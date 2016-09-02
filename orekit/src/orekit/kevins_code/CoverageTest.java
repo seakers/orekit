@@ -34,7 +34,7 @@ import org.orekit.utils.Constants;
 import org.orekit.utils.IERSConventions;
 
 //import CoverageTest.VisibilityHandler;
-import fr.cs.examples.Autoconfiguration;
+//import fr.cs.examples.Autoconfiguration;
 
 //Simulation of a single satellite orbit. Oribt parameters, date, length of simulation, and propagator can all be adjusted within the code
 public class CoverageTest {
@@ -52,7 +52,7 @@ public class CoverageTest {
 			//				System.out.println(n);
 			//			}
 			// configure Orekit
-			Autoconfiguration.configureOrekit();
+//			Autoconfiguration.configureOrekit();
 
 			//  Initial state definition : date, orbit
 			AbsoluteDate initialDate = new AbsoluteDate(2004, 01, 01, 23, 30, 00.000, TimeScalesFactory.getUTC());    //initial orbit time
