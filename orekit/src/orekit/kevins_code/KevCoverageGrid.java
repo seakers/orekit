@@ -39,7 +39,7 @@ import java.io.IOException;
 //initialDate, and scenariotime, generates ground stations that will print out maxmax revisiti time, 
 //avgmax revisit time, and avgavg revisit time. Currently runtime for a single satellite is about 23 minutes.
 
-public class CoverageGrid {
+public class KevCoverageGrid {
 	ArrayList<AbsoluteDate> begintime = new ArrayList<AbsoluteDate>();					//list of times when gap starts for all stations
 	ArrayList<ArrayList<Double>> allStationTimes = new ArrayList<ArrayList<Double>>();	//ArrayList of ArrayList of all gap times for each station
 	int stationCount;												//number of stations
@@ -49,7 +49,7 @@ public class CoverageGrid {
 	ArrayList<String> maxTimes = new ArrayList<String>(); //Delete This eventually (used for debugging)
 	ArrayList<String> avgTimes = new ArrayList<String>(); //Delete This eventually (used for debugging)
 
-	public CoverageGrid( double granularity, BodyShape planet, double maxcheck, double threshold, double elevation, Propagator prop, AbsoluteDate initialDate, double scenariotime){
+	public KevCoverageGrid( double granularity, BodyShape planet, double maxcheck, double threshold, double elevation, Propagator prop, AbsoluteDate initialDate, double scenariotime){
 		stationCount = 0;
 		this.scenariotime = scenariotime;
 		this.initialDate = initialDate;

@@ -116,7 +116,7 @@ public class CoverageTest {
 			//			final double altitude2  = 0.;
 			//			final GeodeticPoint station2 = new GeodeticPoint(latitude2, longitude2, altitude2);
 			//			final TopocentricFrame sta1Frame2 = new TopocentricFrame(earth, station2, "station2");
-
+                        
 			// Event definition
 			final double maxcheck  = 60.0;
 			final double threshold =  0.001;
@@ -183,7 +183,7 @@ public class CoverageTest {
 			// Propagate from the initial date to the first raising or for the fixed duration
 			//			SpacecraftState finalState = kepler.propagate(initialDate.shiftedBy(7*86400.));
 			double scenariotime = 14*86400.;					//Length of simulation
-			CoverageGrid mygrid = new CoverageGrid( 6.0, earth, maxcheck, threshold, elevation, prop, initialDate, scenariotime);
+			KevCoverageGrid mygrid = new KevCoverageGrid( 6.0, earth, maxcheck, threshold, elevation, prop, initialDate, scenariotime);
 			SpacecraftState finalState = prop.propagate(initialDate.shiftedBy(scenariotime));
 			System.out.println("propagate done");
 
