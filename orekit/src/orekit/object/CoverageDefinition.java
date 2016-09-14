@@ -7,8 +7,10 @@ package orekit.object;
 
 import java.io.Serializable;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Objects;
+import orekit.access.TimeIntervalArray;
 import org.hipparchus.util.FastMath;
 import org.orekit.bodies.BodyShape;
 import org.orekit.bodies.GeodeticPoint;
@@ -42,7 +44,6 @@ public class CoverageDefinition implements OrekitObject, Serializable {
      * Shape used to project CoveragePoints
      */
     private final BodyShape planet;
-
 
     /**
      * Creates a new grid of GeodeticPoints on the entire surface of a given
@@ -143,7 +144,7 @@ public class CoverageDefinition implements OrekitObject, Serializable {
      *
      * @param constellation
      */
-    public void assignToConstellation(Constellation constellation) {
+    public void assignConstellation(Constellation constellation) {
         this.constellations = new HashSet();
         this.constellations.add(constellation);
     }
@@ -181,6 +182,31 @@ public class CoverageDefinition implements OrekitObject, Serializable {
             }
         }
         return false;
+    }
+
+    /**
+     * Gets a hashmap of all the accesses stored in this coverage definition.
+     *
+     * @return a hashmap of all the accesses stored in this coverage definition
+     * where the keys are the grid points and the values are the time interval
+     * arrays
+     */
+    public HashMap<CoveragePoint, TimeIntervalArray> getAccesses() {
+        HashMap<CoveragePoint, TimeIntervalArray> out = new HashMap<>(grid.size());
+        for (CoveragePoint pt : grid) {
+            out.put(pt, pt.getAccesses());
+        }
+        return out;
+    }
+
+    /**
+     * Clears the access information stored within all coverage points of this
+     * coverage defintion
+     */
+    public void clearAccesses() {
+        for (CoveragePoint pt : grid) {
+            pt.reset();
+        }
     }
 
     /**
@@ -226,7 +252,7 @@ public class CoverageDefinition implements OrekitObject, Serializable {
 
     @Override
     public String toString() {
-        return "CoverageDefinition{" + "name=" + name + ", number of points =" + grid.size() + "}";
+        return "CoverageDefinition{" + "name=" + name + ", number of points=" + grid.size() + "}";
     }
 
     @Override

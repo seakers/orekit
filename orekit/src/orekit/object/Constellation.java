@@ -40,6 +40,10 @@ public class Constellation implements OrekitObject, Serializable{
     public String getName() {
         return name;
     }
-    
+
+    @Override
+    public String toString() {
+        return "Constellation{" + "name=" + name + ", number of satellites=" + satellites.size() + '}';
+    }
     
 }

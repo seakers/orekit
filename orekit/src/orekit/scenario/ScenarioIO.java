@@ -63,7 +63,7 @@ public class ScenarioIO {
     }
     
     public static boolean saveReadMe(Path path, String filename, Scenario scenario){
-        File file = new File(path.toFile(), filename + ".ore");
+        File file = new File(path.toFile(), filename + ".txtore");
         
         try (FileWriter fw = new FileWriter(file)) {
             fw.append(scenario.toString()); //write scenario header
