@@ -27,6 +27,7 @@ import org.orekit.frames.TopocentricFrame;
 import org.orekit.orbits.Orbit;
 import org.orekit.propagation.Propagator;
 import org.orekit.propagation.SpacecraftState;
+import org.orekit.propagation.events.EventDetector;
 import org.orekit.propagation.events.FieldOfViewDetector;
 import org.orekit.time.AbsoluteDate;
 import org.orekit.time.TimeScale;
@@ -37,7 +38,7 @@ import org.orekit.time.TimeScale;
  *
  * @author nozomihitomi
  */
-public class Scenario implements Callable<Scenario>, Serializable {
+public class ScenarioStepWise implements Callable<ScenarioStepWise>, Serializable {
 
     private static final long serialVersionUID = 8350171762084530278L;
 
@@ -73,7 +74,7 @@ public class Scenario implements Callable<Scenario>, Serializable {
      * @param inertialFrame
      * @param propagatorBuilder
      */
-    public Scenario(String name, AbsoluteDate startDate, AbsoluteDate endDate,
+    public ScenarioStepWise(String name, AbsoluteDate startDate, AbsoluteDate endDate,
             TimeScale timeScale, Frame inertialFrame,
             PropagatorFactory propagatorBuilder) {
         this.scenarioName = name;
@@ -104,7 +105,7 @@ public class Scenario implements Callable<Scenario>, Serializable {
      * @throws org.orekit.errors.OrekitException
      */
     @Override
-    public Scenario call() throws OrekitException {
+    public ScenarioStepWise call() throws OrekitException {
         System.out.println(String.format("Running scenario: %s...", this));
         if (!isDone) {
             //Create propagators for each satellite (only create one per satellite)
@@ -119,12 +120,15 @@ public class Scenario implements Callable<Scenario>, Serializable {
                 }
 
                 Propagator prop = propagatorFactory.createPropagator(orbit);
+                
                 prop.setSlaveMode();
-
+                
+                
                 //add an attitude provider (e.g. nadir pointing)
                 if (sat.getAttProv() != null) {
                     prop.setAttitudeProvider(sat.getAttProv());
                 }
+
                 propagators.put(sat, prop);
 
                 if (repProp == null) {
@@ -134,16 +138,34 @@ public class Scenario implements Callable<Scenario>, Serializable {
 
             System.out.println("Setting up Event Detectors...");
             for (CoverageDefinition cdef : covDefs) {
-                createFOVDetectors(cdef, propagators);
-
                 //propogate each satellite individually
                 System.out.println("Propogating...");
                 for (Satellite sat : propagators.keySet()) {
                     Propagator prop = propagators.get(sat);
+
+                    ArrayList<EventDetector> detectors = createFOVDetectors(cdef, sat);
+                    HashMap<EventDetector, Double> currentGValues = new HashMap<>();
+                    for (EventDetector detector : detectors) {
+                        currentGValues.put(detector, null);
+                    }
                     for (AbsoluteDate extrapDate = startDate;
                             extrapDate.compareTo(endDate) <= 0;
-                            extrapDate = extrapDate.shiftedBy(6000)) {
+                            extrapDate = extrapDate.shiftedBy(1)) {
                         SpacecraftState currentState = prop.propagate(extrapDate);
+                        for (EventDetector detector : detectors) {
+                            if (currentGValues.get(detector) == null) {
+                                currentGValues.put(detector, detector.g(currentState));
+                            } else {
+                                double gVal = currentGValues.get(detector);
+                                double newGVal = detector.g(currentState);
+                                if (gVal >= 0 && newGVal < 0) {
+                                    detector.eventOccurred(currentState, false);
+                                } else if (gVal <= 0 && newGVal > 0) {
+                                    detector.eventOccurred(currentState, true);
+                                }
+                                currentGValues.put(detector, newGVal);
+                            }
+                        }
                     }
                     HashMap<CoveragePoint, TimeIntervalArray> mergedAccesses = mergeCoverageDefinitionAccesses(finalAccesses.get(cdef), cdef.getAccesses(), false);
                     finalAccesses.put(cdef, mergedAccesses);
@@ -238,18 +260,46 @@ public class Scenario implements Callable<Scenario>, Serializable {
      * @param covDef coverage definition to create field of view detectors for
      * @param propMap mapping between satellite and propagator
      */
-    private void createFOVDetectors(CoverageDefinition covDef, HashMap<Satellite, Propagator> propMap) {
+    private ArrayList<EventDetector> createFOVDetectors(CoverageDefinition covDef, HashMap<Satellite, Propagator> propMap) {
+        ArrayList<EventDetector> detectors = new ArrayList();
         for (Constellation constel : covDef.getConstellations()) {
             System.out.println(String.format("Creating FOV detectors for %s targeting %s...", constel, covDef));
             for (Satellite sat : constel.getSatellites()) {
                 for (TopocentricFrame point : covDef.getPoints()) {
                     for (Instrument inst : sat.getPayload()) {
                         FieldOfViewDetector eventDec = new FastFOVDetector(point, inst.getFov(), FastMath.toRadians(60)).withMaxCheck(1).withHandler(new FOVHandler());
-                        propMap.get(sat).addEventDetector(eventDec);
+//                        propMap.get(sat).addEventDetector(eventDec);
+                        detectors.add(eventDec);
                     }
                 }
             }
         }
+        return detectors;
+    }
+
+    /**
+     * Creates the field of view detectors for all points within the given
+     * coverage definition and the satellites assigned to the coverage
+     * definition
+     *
+     * @param covDef coverage definition to create field of view detectors for
+     * @param propMap mapping between satellite and propagator
+     */
+    private ArrayList<EventDetector> createFOVDetectors(CoverageDefinition covDef, Satellite sat) {
+        ArrayList<EventDetector> detectors = new ArrayList();
+        for (Constellation constel : covDef.getConstellations()) {
+            System.out.println(String.format("Creating FOV detectors for %s targeting %s...", constel, covDef));
+
+            for (TopocentricFrame point : covDef.getPoints()) {
+                for (Instrument inst : sat.getPayload()) {
+                    FieldOfViewDetector eventDec = new FastFOVDetector(point, inst.getFov(), FastMath.toRadians(60)).withMaxCheck(1).withHandler(new FOVHandler());
+//                        propMap.get(sat).addEventDetector(eventDec);
+                    detectors.add(eventDec);
+                }
+            }
+
+        }
+        return detectors;
     }
 
     /**

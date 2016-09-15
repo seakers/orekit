@@ -47,22 +47,9 @@ public class TimeIntervalMerger {
 
         //compute the ordered/sorted rise and set times to be used for the future so they don't have to be recomputed
         this.sortedRiseSetTimes = sortRiseSetTimes(timeArrays);
-        System.out.println("\n\n Sorted times");
-        for (int i = 0; i < sortedRiseSetTimes.size(); i++) {
-            System.out.println(sortedRiseSetTimes.get(i) + " rise " +  sortedRiseSetTimes.get(i).isRise());
-        }
 
         //find where the time intervals overlap
         this.overlaps = findOverlaps(sortedRiseSetTimes);
-
-        System.out.println("Condensed Sorted times");
-        for (int i = 0; i < sortedRiseSetTimes.size(); i++) {
-            System.out.println(sortedRiseSetTimes.get(i));
-        }
-        System.out.println("Folds");
-        for (int i = 0; i < overlaps.size(); i++) {
-            System.out.println(overlaps.get(i));
-        }
     }
 
     /**
@@ -84,7 +71,7 @@ public class TimeIntervalMerger {
         int arrayID = 0;
         int totalSize = 0;
         while (iter.hasNext()) {
-            timeArrayMap.put(arrayID, iter.next().getTimeIntervals());
+            timeArrayMap.put(arrayID, iter.next().getRiseSetTimes());
             totalSize += timeArrayMap.get(arrayID).size();
             id_indexMap.put(arrayID, 0);
             arrayID++;
@@ -94,9 +81,18 @@ public class TimeIntervalMerger {
 
         SortedLinkedList<RiseSetTimeID> currentDates = new SortedLinkedList<>(new TimeComparator());
         for (Integer id : id_indexMap.keySet()) {
-            RiseSetTime time = timeArrayMap.get(id).get(id_indexMap.get(id));
-            currentDates.add(new RiseSetTimeID(time, id));
+            if(!timeArrayMap.get(id).isEmpty()){
+                //skip over any time interval arrays that are empty 
+                RiseSetTime time = timeArrayMap.get(id).get(id_indexMap.get(id));
+                currentDates.add(new RiseSetTimeID(time, id));
+            }
         }
+        
+        //if all arrays are empty, return an empty array
+        if (currentDates.isEmpty()){
+            return resultant;
+        }
+        
         int numOpenIntervals = 0;
         while (true) {
             //search for the next earliest rise or set time
@@ -115,7 +111,6 @@ public class TimeIntervalMerger {
                 numOpenIntervals++;
             }
             
-            System.out.println(minDate + " rise " +  minDate.isRise());
             resultant.add(minDate);
 
             //if there are no more dates to sort, break from loop
@@ -138,6 +133,12 @@ public class TimeIntervalMerger {
      */
     private ArrayList<Integer> findOverlaps(ArrayList<RiseSetTime> riseSetTimes) {
         ArrayList<Integer> overlap = new ArrayList<>();
+        
+        //if there are no time intervals, there are no overlapping intervals
+        if(riseSetTimes.isEmpty()){
+            overlap.add(0);
+            return overlap;
+        }
 
         RiseSetTime currentTime = riseSetTimes.get(0);
         int currentOverlap = 1;
@@ -197,18 +198,18 @@ public class TimeIntervalMerger {
         TimeIntervalArray out = new TimeIntervalArray(head, tail);
         for (int i = 0; i < this.overlaps.size(); i++) {
             if (overlaps.get(i) >= n) {
-                if (!out.isOpen()) {
+                if (!out.isTailOpen()) {
                     out.addRiseTime(sortedRiseSetTimes.get(i));
                 }
             } else {
-                if (out.isOpen()) {
+                if (out.isTailOpen()) {
                     out.addSetTime(sortedRiseSetTimes.get(i));
                 }
             }
         }
         //Need to check if last time stamp should be added.
         if (overlaps.get(overlaps.size() - 1) >= n
-                && out.isOpen()) {
+                && out.isTailOpen()) {
             out.addSetTime(sortedRiseSetTimes.get(sortedRiseSetTimes.size() - 1));
         }
 

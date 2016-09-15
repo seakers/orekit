@@ -5,6 +5,7 @@
  */
 package orekit.access;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import org.hipparchus.util.FastMath;
@@ -17,7 +18,9 @@ import org.orekit.time.AbsoluteDate;
  *
  * @author nozomihitomi
  */
-public class TimeIntervalArray implements Iterable<RiseSetTime> {
+public class TimeIntervalArray implements Iterable<RiseSetTime>, Serializable {
+
+    private static final long serialVersionUID = 394081713593567685L;
 
     private final ArrayList<RiseSetTime> timeArray;
     private boolean accessing; //boolean to track if a rise time has a corresponding set time
@@ -97,22 +100,45 @@ public class TimeIntervalArray implements Iterable<RiseSetTime> {
     }
 
     /**
-     * Check to see if there currently is an open time interval
+     * Check to see if the tail of the array is currently an open time interval
+     * (i.e. ends with a rise time).
      *
      * @return
      */
-    public boolean isOpen() {
+    public boolean isTailOpen() {
         return accessing;
     }
 
     /**
-     * Returns the number of closed intervals. Open intervals at the end of the
-     * array do not contribute to the returned value.
+     * Check to see if the head of the array is an open time interval (i.e.
+     * starts with a set time).
+     *
+     * @return
+     */
+    public boolean isHeadOpen() {
+        return !timeArray.get(0).isRise();
+    }
+
+    /**
+     * Returns the number of closed intervals. Open intervals at the ends of the
+     * array are counted as they are automatically closed with the head or tail
+     * times
      *
      * @return
      */
     public int numIntervals() {
-        return FastMath.floorDiv(timeArray.size(), 2);
+        boolean headOpen = isHeadOpen();
+        boolean tailOpen = isTailOpen();
+
+        if (headOpen && !tailOpen) {
+            return FastMath.floorDiv(timeArray.size(), 2) + 1;
+        } else if (!headOpen && tailOpen) {
+            return FastMath.floorDiv(timeArray.size(), 2) + 1;
+        } else if (headOpen && tailOpen) {
+            return FastMath.floorDiv(timeArray.size(), 2);
+        } else {
+            return FastMath.floorDiv(timeArray.size(), 2);
+        }
     }
 
     /**
@@ -121,8 +147,40 @@ public class TimeIntervalArray implements Iterable<RiseSetTime> {
      *
      * @return
      */
-    public ArrayList<RiseSetTime> getTimeIntervals() {
+    public ArrayList<RiseSetTime> getRiseSetTimes() {
         return new ArrayList<>(timeArray);
+    }
+
+    /**
+     * Returns an array of the durations of each interval stored in the array.
+     * The returned array will contain the durations in chronological order of
+     * the time intervals
+     *
+     * @return
+     */
+    public double[] getDurations() {
+        int nIntervals = numIntervals();
+        double[] durations = new double[nIntervals];
+        int durationIndex = 0;
+
+        int startInd = 0;
+        int endInd = timeArray.size();
+
+        if (isHeadOpen()) {
+            startInd++;
+            durationIndex++;
+            durations[0] = timeArray.get(0).durationFrom(head);
+        }
+        if (isTailOpen()) {
+            endInd--;
+            durations[nIntervals - 1] = timeArray.get(endInd).durationFrom(timeArray.get(endInd - 1));
+        }
+
+        for (int i = startInd; i < endInd; i += 2) {
+            durations[durationIndex] = timeArray.get(i + 1).durationFrom(timeArray.get(i));
+        }
+
+        return durations;
     }
 
     /**
@@ -135,6 +193,11 @@ public class TimeIntervalArray implements Iterable<RiseSetTime> {
      * time intervals stored in this array.
      */
     public TimeIntervalArray negate() {
+        //if the array is empty, return new instance of a time interval array
+        if (timeArray.isEmpty()) {
+            return new TimeIntervalArray(head, tail);
+        }
+
         TimeIntervalArray out = new TimeIntervalArray(head, tail);
         Iterator<RiseSetTime> iter = timeArray.iterator();
 

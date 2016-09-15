@@ -78,6 +78,6 @@ public class CoveragePoint extends TopocentricFrame implements OrekitObject {
      * TimeIntervalArray
      */
     public void reset() {
-        accesses = new TimeIntervalArray(endDate, endDate);
+        accesses = new TimeIntervalArray(startDate, endDate);
     }
 }
