@@ -178,6 +178,7 @@ public class TimeIntervalArray implements Iterable<RiseSetTime>, Serializable {
 
         for (int i = startInd; i < endInd; i += 2) {
             durations[durationIndex] = timeArray.get(i + 1).durationFrom(timeArray.get(i));
+            durationIndex++;
         }
 
         return durations;

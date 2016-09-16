@@ -112,15 +112,16 @@ public class Orekit {
 
 //        ArrayList<GeodeticPoint> pts = new ArrayList<>();
 //        pts.add(new GeodeticPoint(FastMath.PI / 2, 0, 0));
-        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", 30, earthShape, startDate, endDate);
+//        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", 20, earthShape, startDate, endDate);
 //        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", pts, earthShape, startDate, endDate);
+        CoverageDefinition covDef1 = new CoverageDefinition("covdef1",STKGRID.getPoints(), earthShape, startDate, endDate);
 
         covDef1.assignConstellation(constel1);
 
         PropagatorFactory pf = new PropagatorFactory(PropagatorType.KEPLERIAN, initialOrbit2);
 
-//        Scenario scen = new Scenario("test", startDate, endDate, utc, earth.getInertiallyOrientedFrame(), pf);
-        ScenarioStepWise scen = new ScenarioStepWise("test", startDate, endDate, utc, earth.getInertiallyOrientedFrame(), pf);
+        Scenario scen = new Scenario("test", startDate, endDate, utc, earth.getInertiallyOrientedFrame(), pf, false);
+//        ScenarioStepWise scen = new ScenarioStepWise("test", startDate, endDate, utc, earth.getInertiallyOrientedFrame(), pf);
 
         scen.addCoverageDefinition(covDef1);
 
@@ -143,10 +144,16 @@ public class Orekit {
         System.out.println(String.format("Max access time %s", accessStats.getMax()));
         System.out.println(String.format("Mean access time %s", accessStats.getMean()));
         System.out.println(String.format("Min access time %s", accessStats.getMin()));
+        System.out.println(String.format("50th access time %s", accessStats.getPercentile(50)));
+        System.out.println(String.format("80th access time %s", accessStats.getPercentile(80)));
+        System.out.println(String.format("90th access time %s", accessStats.getPercentile(90)));
 
         System.out.println(String.format("Max gap time %s", gapStats.getMax()));
         System.out.println(String.format("Mean gap time %s", gapStats.getMean()));
         System.out.println(String.format("Min gap time %s", gapStats.getMin()));
+        System.out.println(String.format("50th gap time %s", gapStats.getPercentile(50)));
+        System.out.println(String.format("80th gap time %s", gapStats.getPercentile(80)));
+        System.out.println(String.format("90th gap time %s", gapStats.getPercentile(90)));
         
         System.out.println("Saving scenario...");
 
