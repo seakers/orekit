@@ -33,6 +33,11 @@ public class TimeIntervalArray implements Iterable<RiseSetTime>, Serializable {
      * Head is the ending date of the timeline
      */
     private final AbsoluteDate tail;
+    
+    /**
+     * Time between the head and the tail dates
+     */
+    private final double simulationLength;
 
     /**
      * Creates a time interval array instance with the head and tail date times
@@ -45,6 +50,7 @@ public class TimeIntervalArray implements Iterable<RiseSetTime>, Serializable {
         this.head = head;
         this.tail = tail;
         this.timeArray = new ArrayList<>();
+        this.simulationLength = tail.durationFrom(head);
     }
 
     /**
@@ -58,11 +64,25 @@ public class TimeIntervalArray implements Iterable<RiseSetTime>, Serializable {
      * @return true if the interval is open, false if it is closed.
      */
     public boolean addRiseTime(AbsoluteDate riseTime) {
+        return addRiseTime(riseTime.durationFrom(head));
+    }
+    
+    /**
+     * Adds a new rise time to the array to the start of a time interval. If
+     * previous intervals exists, the newly added rise time must occur after the
+     * set time of the previous interval. If an interval remains "open" (i.e.
+     * has no set time) then the interval must be "closed" before a new rise
+     * time can be added.
+     *
+     * @param riseTime
+     * @return true if the interval is open, false if it is closed.
+     */
+    public boolean addRiseTime(double riseTime) {
         if (accessing) {
             throw new IllegalArgumentException(String.format("Cannot add rise time %s since interval is not closed yet.", riseTime));
         }
 
-        if (riseTime.compareTo(head) < 0) {
+        if (riseTime < 0) {
             throw new IllegalArgumentException(String.format("Cannot add rise time %s before the head of the timeline.", riseTime));
         }
 
@@ -81,6 +101,19 @@ public class TimeIntervalArray implements Iterable<RiseSetTime>, Serializable {
      * @return true if the interval is open, false if it is closed.
      */
     public boolean addSetTime(AbsoluteDate setTime) {
+        return addSetTime(setTime.durationFrom(head));
+    }
+    
+    /**
+     * Adds a new set time to the array to the end of a time interval. The newly
+     * added set time must occur after the rise time of the current interval. If
+     * an interval is not "open" (i.e. has no rise time) then the interval must
+     * be "opened" before a new set time can be added.
+     *
+     * @param setTime
+     * @return true if the interval is open, false if it is closed.
+     */
+    public boolean addSetTime(double setTime) {
         if (timeArray.isEmpty()) {
             addRiseTime(head);
         } else {
@@ -89,7 +122,7 @@ public class TimeIntervalArray implements Iterable<RiseSetTime>, Serializable {
                 throw new IllegalArgumentException(String.format("Cannot add set time %s since interval is not open yet.", setTime));
             }
 
-            if (setTime.compareTo(tail) > 0) {
+            if (setTime > simulationLength) {
                 throw new IllegalArgumentException(String.format("Cannot add set time %s after the tail of the timeline.", setTime));
             }
         }
@@ -116,6 +149,9 @@ public class TimeIntervalArray implements Iterable<RiseSetTime>, Serializable {
      * @return
      */
     public boolean isHeadOpen() {
+        if (timeArray.isEmpty()) {
+            return false;
+        }
         return !timeArray.get(0).isRise();
     }
 
@@ -127,6 +163,10 @@ public class TimeIntervalArray implements Iterable<RiseSetTime>, Serializable {
      * @return
      */
     public int numIntervals() {
+        if (timeArray.isEmpty()) {
+            return 0;
+        }
+
         boolean headOpen = isHeadOpen();
         boolean tailOpen = isTailOpen();
 
@@ -169,15 +209,15 @@ public class TimeIntervalArray implements Iterable<RiseSetTime>, Serializable {
         if (isHeadOpen()) {
             startInd++;
             durationIndex++;
-            durations[0] = timeArray.get(0).durationFrom(head);
+            durations[0] = timeArray.get(0).getTime();
         }
         if (isTailOpen()) {
             endInd--;
-            durations[nIntervals - 1] = timeArray.get(endInd).durationFrom(timeArray.get(endInd - 1));
+            durations[nIntervals - 1] = timeArray.get(endInd).getTime()-timeArray.get(endInd - 1).getTime();
         }
 
         for (int i = startInd; i < endInd; i += 2) {
-            durations[durationIndex] = timeArray.get(i + 1).durationFrom(timeArray.get(i));
+            durations[durationIndex] = timeArray.get(i + 1).getTime() - timeArray.get(i).getTime();
             durationIndex++;
         }
 
@@ -203,17 +243,17 @@ public class TimeIntervalArray implements Iterable<RiseSetTime>, Serializable {
         Iterator<RiseSetTime> iter = timeArray.iterator();
 
         RiseSetTime current = iter.next();
-        if (head.compareTo(current) < 0) {
+        if (current.getTime() > 0) {
             out.addRiseTime(head);
-            out.addSetTime(current);
+            out.addSetTime(current.getTime());
         }
 
         while (iter.hasNext()) {
             current = iter.next();
             if (current.isRise()) {
-                out.addSetTime(current);
+                out.addSetTime(current.getTime());
             } else {
-                out.addRiseTime(current);
+                out.addRiseTime(current.getTime());
             }
         }
 

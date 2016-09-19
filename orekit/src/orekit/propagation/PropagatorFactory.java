@@ -11,6 +11,8 @@ import org.orekit.errors.OrekitException;
 import org.orekit.orbits.Orbit;
 import org.orekit.orbits.OrbitType;
 import org.orekit.propagation.Propagator;
+import org.orekit.propagation.SpacecraftState;
+import org.orekit.propagation.analytical.J2DifferentialEffect;
 import org.orekit.propagation.analytical.KeplerianPropagator;
 import org.orekit.propagation.analytical.tle.SGP4;
 import org.orekit.propagation.analytical.tle.TLE;
@@ -42,6 +44,8 @@ public class PropagatorFactory implements Serializable{
         switch(propType){
             case KEPLERIAN:
                 return createKeplerianPropagator(orbit, Propagator.DEFAULT_MASS);
+            case J2:
+//                return createJ2Propagator();
             default: 
                 throw new UnsupportedOperationException(String.format("Propagator of type %s is not supported by factory.", propType));
         }
@@ -57,6 +61,13 @@ public class PropagatorFactory implements Serializable{
     private Propagator createKeplerianPropagator(Orbit orbit, double mass) throws OrekitException{
         return new KeplerianPropagator(orbit, Propagator.DEFAULT_LAW, orbit.getMu(), mass);
     }
+    
+//    private Propagator createJ2Propagator(SpacecraftState original,
+//                                AdapterPropagator.DifferentialEffect directEffect,
+//                                boolean applyBefore,
+//                                double referenceRadius,  double mu,  double j2)){
+//        return new J2DifferentialEffect(original, directEffect, applyBefore, referenceRadius, mu, j2);
+//    }
     
     /**
      * Creates a TLE propagator

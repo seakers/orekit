@@ -8,6 +8,7 @@ package orekit;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
+import orekit.access.RiseSetTime;
 import orekit.access.TimeIntervalArray;
 import orekit.access.TimeIntervalMerger;
 import orekit.object.Constellation;
@@ -68,8 +69,8 @@ public class Orekit {
         OrekitConfig.init();
 
         TimeScale utc = TimeScalesFactory.getUTC();
-        AbsoluteDate startDate = new AbsoluteDate(2004, 01, 01, 00, 00, 00.000, utc);
-        AbsoluteDate endDate =   new AbsoluteDate(2004, 01, 01, 12, 00, 00.000, utc);
+        AbsoluteDate startDate = new AbsoluteDate(2016, 01, 01, 16, 00, 00.000, utc);
+        AbsoluteDate endDate =   new AbsoluteDate(2016, 03, 01, 16, 00, 00.000, utc);
 
         double mu = Constants.EGM96_EARTH_MU; // gravitation coefficient
         CelestialBody earth = CelestialBodyFactory.getEarth();
@@ -80,16 +81,16 @@ public class Orekit {
                 earth.getBodyOrientedFrame());
 
         //Enter satellites
-        double a = 6971000.0;
-        double e = 0.0000001;
+        double a = 6978137.0;
+        double e = 0.00000000001;
         double i = FastMath.toRadians(90);
         double argofperigee = 0.;
         double raan = 0.0;
-        double anomaly = FastMath.toRadians(90);
+        double anomaly = FastMath.toRadians(0);
         Orbit initialOrbit1 = new KeplerianOrbit(a, e, i, argofperigee, raan, anomaly, PositionAngle.TRUE, earth.getInertiallyOrientedFrame(), startDate, mu);
 
-        double anomaly2 = FastMath.toRadians(0);
-        Orbit initialOrbit2 = new KeplerianOrbit(a * 1.1, e, i, argofperigee, raan, anomaly2, PositionAngle.TRUE, earth.getInertiallyOrientedFrame(), startDate, mu);
+        double anomaly2 = FastMath.toRadians(90);
+        Orbit initialOrbit2 = new KeplerianOrbit(a, e, i, argofperigee, raan, anomaly2, PositionAngle.TRUE, earth.getInertiallyOrientedFrame(), startDate, mu);
 
         NadirPointing nadPoint = new NadirPointing(earth.getInertiallyOrientedFrame(), earthShape);
         Satellite sat1 = new Satellite("sat1", initialOrbit1, nadPoint);
@@ -106,7 +107,7 @@ public class Orekit {
 
         ArrayList<Satellite> satGroup1 = new ArrayList<>();
         satGroup1.add(sat1);
-        satGroup1.add(sat2);
+//        satGroup1.add(sat2);
 
         Constellation constel1 = new Constellation("constel1", satGroup1);
 
@@ -128,8 +129,19 @@ public class Orekit {
         scen.call();
 
         System.out.println(String.format("Done Running Scenario %s", scen));
-
+        
         HashMap<CoveragePoint, TimeIntervalArray> covDefAccess = scen.getMergedAccesses(covDef1);
+
+        for (CoveragePoint pt : covDefAccess.keySet()) {
+            TimeIntervalArray array = covDefAccess.get(pt);
+            for(RiseSetTime time : array.getRiseSetTimes()){
+                if(time.isRise())
+                    System.out.print("" + time.getTime());
+                else
+                    System.out.println("," + time.getTime());
+            }
+        }
+        
         DescriptiveStatistics accessStats = new DescriptiveStatistics();
         DescriptiveStatistics gapStats = new DescriptiveStatistics();
         for (CoveragePoint pt : covDefAccess.keySet()) {

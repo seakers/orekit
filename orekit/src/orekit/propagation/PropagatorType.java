@@ -13,6 +13,7 @@ package orekit.propagation;
  */
 public enum PropagatorType {
     KEPLERIAN, //for keplerian propagation
+    J2, //for J2 propagation
     TLE, //Use if TLE is available
     NUMERICAL //numerical propagation for when using force models (i.e. atmospheric drag)
 }
