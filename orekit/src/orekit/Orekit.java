@@ -16,6 +16,8 @@ import orekit.object.CoverageDefinition;
 import orekit.object.CoveragePoint;
 import orekit.object.Instrument;
 import orekit.object.Satellite;
+import orekit.object.fieldofview.RectangularFieldOfView;
+import orekit.object.fieldofview.SimpleConicalFieldOfView;
 import orekit.propagation.PropagatorFactory;
 import orekit.propagation.PropagatorType;
 import orekit.scenario.Scenario;
@@ -42,6 +44,7 @@ import org.orekit.time.AbsoluteDate;
 import org.orekit.time.TimeScale;
 import org.orekit.time.TimeScalesFactory;
 import org.orekit.utils.Constants;
+import org.orekit.utils.IERSConventions;
 
 /**
  *
@@ -70,45 +73,41 @@ public class Orekit {
 
         TimeScale utc = TimeScalesFactory.getUTC();
         AbsoluteDate startDate = new AbsoluteDate(2016, 01, 01, 16, 00, 00.000, utc);
-        AbsoluteDate endDate =   new AbsoluteDate(2016, 03, 01, 16, 00, 00.000, utc);
+        AbsoluteDate endDate =   new AbsoluteDate(2016, 01, 02, 16, 00, 00.000, utc);
 
         double mu = Constants.EGM96_EARTH_MU; // gravitation coefficient
         CelestialBody earth = CelestialBodyFactory.getEarth();
-        Frame eme2000 = FramesFactory.getEME2000();
+        Frame earthFrame = FramesFactory.getITRF(IERSConventions.IERS_2003, true);
+        Frame inertialFrame = FramesFactory.getEME2000();
 
         BodyShape earthShape = new OneAxisEllipsoid(Constants.WGS84_EARTH_EQUATORIAL_RADIUS,
                 Constants.WGS84_EARTH_FLATTENING,
-                earth.getBodyOrientedFrame());
+                earthFrame);
 
         //Enter satellites
         double a = 6978137.0;
         double e = 0.00000000001;
         double i = FastMath.toRadians(90);
         double argofperigee = 0.;
-        double raan = 0.0;
+        double raan = 0;
         double anomaly = FastMath.toRadians(0);
-        Orbit initialOrbit1 = new KeplerianOrbit(a, e, i, argofperigee, raan, anomaly, PositionAngle.TRUE, earth.getInertiallyOrientedFrame(), startDate, mu);
+        Orbit initialOrbit1 = new KeplerianOrbit(a, e, i, argofperigee, raan, anomaly, PositionAngle.TRUE, inertialFrame, startDate, mu);
 
         double anomaly2 = FastMath.toRadians(90);
-        Orbit initialOrbit2 = new KeplerianOrbit(a, e, i, argofperigee, raan, anomaly2, PositionAngle.TRUE, earth.getInertiallyOrientedFrame(), startDate, mu);
+        Orbit initialOrbit2 = new KeplerianOrbit(a, e, i, argofperigee, raan, anomaly2, PositionAngle.TRUE, inertialFrame, startDate, mu);
 
-        NadirPointing nadPoint = new NadirPointing(earth.getInertiallyOrientedFrame(), earthShape);
+        NadirPointing nadPoint = new NadirPointing(inertialFrame, earthShape);
         Satellite sat1 = new Satellite("sat1", initialOrbit1, nadPoint);
-        FieldOfView fov1 = new FieldOfView(Vector3D.PLUS_K, Vector3D.PLUS_I,
-                FastMath.toRadians(25), Vector3D.PLUS_J, FastMath.toRadians(25), .001);
-        Instrument view1 = new Instrument("view1", fov1);
+        RectangularFieldOfView fov_rect = new RectangularFieldOfView(Vector3D.PLUS_K, Vector3D.PLUS_I,
+                FastMath.toRadians(45), Vector3D.PLUS_J, FastMath.toRadians(80), .001);
+        SimpleConicalFieldOfView fov_cone = new SimpleConicalFieldOfView(Vector3D.PLUS_K,
+                FastMath.toRadians(45));
+        Instrument view1 = new Instrument("view1", fov_cone);
         sat1.addInstrument(view1);
-
-        Satellite sat2 = new Satellite("sat2", initialOrbit2, nadPoint);
-        FieldOfView fov2 = new FieldOfView(Vector3D.PLUS_K, Vector3D.PLUS_I,
-                FastMath.toRadians(25), Vector3D.PLUS_J, FastMath.toRadians(25), .001);
-        Instrument view2 = new Instrument("view1", fov2);
-        sat2.addInstrument(view2);
 
         ArrayList<Satellite> satGroup1 = new ArrayList<>();
         satGroup1.add(sat1);
-//        satGroup1.add(sat2);
-
+        
         Constellation constel1 = new Constellation("constel1", satGroup1);
 
 //        ArrayList<GeodeticPoint> pts = new ArrayList<>();
@@ -121,7 +120,7 @@ public class Orekit {
 
         PropagatorFactory pf = new PropagatorFactory(PropagatorType.KEPLERIAN, initialOrbit2);
 
-        Scenario scen = new Scenario("test", startDate, endDate, utc, earth.getInertiallyOrientedFrame(), pf, false);
+        Scenario scen = new Scenario("test", startDate, endDate, utc, inertialFrame, pf, false);
 //        ScenarioStepWise scen = new ScenarioStepWise("test", startDate, endDate, utc, earth.getInertiallyOrientedFrame(), pf);
 
         scen.addCoverageDefinition(covDef1);
@@ -169,8 +168,8 @@ public class Orekit {
         
         System.out.println("Saving scenario...");
 
-//        ScenarioIO.save(Paths.get(path, ""), filename, scen);
-//        ScenarioIO.saveReadMe(Paths.get(path, ""), filename, scen);
+        ScenarioIO.save(Paths.get(path, ""), filename, scen);
+        ScenarioIO.saveReadMe(Paths.get(path, ""), filename, scen);
 
         long end = System.nanoTime();
         System.out.println("Took " + (end - start) / Math.pow(10, 9) + " sec");

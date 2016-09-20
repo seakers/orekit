@@ -5,6 +5,7 @@
  */
 package orekit.scenario;
 
+import orekit.object.fieldofview.FOVDetector;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -20,19 +21,14 @@ import orekit.object.CoveragePoint;
 import orekit.object.Instrument;
 import orekit.object.Satellite;
 import orekit.propagation.PropagatorFactory;
-import org.hipparchus.geometry.euclidean.threed.Vector3D;
 import org.hipparchus.util.FastMath;
-import org.orekit.bodies.CelestialBodyFactory;
 import org.orekit.bodies.GeodeticPoint;
 import org.orekit.errors.OrekitException;
 import org.orekit.frames.Frame;
-import org.orekit.frames.FramesFactory;
 import org.orekit.frames.TopocentricFrame;
 import org.orekit.orbits.Orbit;
 import org.orekit.propagation.Propagator;
 import org.orekit.propagation.SpacecraftState;
-import org.orekit.propagation.events.CircularFieldOfViewDetector;
-import org.orekit.propagation.events.FieldOfViewDetector;
 import org.orekit.time.AbsoluteDate;
 import org.orekit.time.TimeScale;
 
@@ -219,8 +215,7 @@ public class Scenario implements Callable<Scenario>, Serializable {
 //                        System.out.println(currentState.getPVCoordinates(inertialFrame).getPosition());
 //                        System.out.println(pt1.getPVCoordinates(currentState.getDate(), inertialFrame).getPosition());
 //                        System.out.println(CelestialBodyFactory.getEarth().getPVCoordinates(endDate, inertialFrame).getPosition());
-
-//                        for (CoveragePoint pt : cdef.getPoints()) {
+//                        for(CoveragePoint pt: cdef.getPoints()){
 //                            System.out.println(pt.getPVCoordinates(currentState.getDate(), inertialFrame).getPosition());
 //                        }
                     }
@@ -343,8 +338,7 @@ public class Scenario implements Callable<Scenario>, Serializable {
             for (Satellite sat : constel.getSatellites()) {
                 for (TopocentricFrame point : covDef.getPoints()) {
                     for (Instrument inst : sat.getPayload()) {
-                        FastFOVDetector eventDec = new FastFOVDetector(point, inst.getFov()).withMaxCheck(1).withHandler(new FOVHandler());
-//                        CircularFieldOfViewDetector eventDec = new CircularFieldOfViewDetector(1, point, Vector3D.PLUS_K, FastMath.toRadians(45.0)).withHandler(new FOVHandler());
+                        FOVDetector eventDec = new FOVDetector(point, inst).withMaxCheck(1).withHandler(new FOVHandler());
                         propMap.get(sat).addEventDetector(eventDec);
                     }
                 }

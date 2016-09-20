@@ -46,5 +46,7 @@ accesses{np}(na:end,:) = [];
 fclose(fid);
 
 accesses(np+1:end,:) = [];
+latitudes(np+1:end,:) = [];
+longitudes(np+1:end,:) = [];
 
 end

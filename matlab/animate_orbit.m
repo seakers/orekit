@@ -1,7 +1,7 @@
 orbit1 = csvread('test.txt');
 % orbit2 = csvread('orbit2Data.txt');
 grid = csvread('gridtest.txt');
-pt1data = csvread('testpt.txt');
+pt1data = csvread('pt_0_1745lat_0_6283lon_Data.txt');
 % pt2data = csvread('pt_-50lat_-60lon_Data.txt');
 npts = 104;
 step_size = 60;
@@ -34,7 +34,7 @@ maxs = max([grid;orbit1;pt1data]);
 
 tail_length = 0;
 time = 0 + tail_length * step_size;
-for i = tail_length+1:length(data)
+for i = tail_length+1:length(orbit1)
 scatter3(orbit1(i,1), orbit1(i,2), orbit1(i,3),'r');
 hold on
 plot3(orbit1(i-tail_length:i,1),orbit1(i-tail_length:i,2),orbit1(i-tail_length:i,3),'--r')
