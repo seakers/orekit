@@ -16,6 +16,7 @@ import org.orekit.errors.OrekitException;
 import org.orekit.orbits.Orbit;
 import org.orekit.orbits.OrbitType;
 import org.orekit.orbits.PositionAngle;
+import org.orekit.propagation.Propagator;
 import org.orekit.utils.ParameterDriver;
 import org.orekit.utils.ParameterDriversList;
 
@@ -35,12 +36,34 @@ public class Satellite implements OrekitObject, Serializable {
     private final Orbit orbit;
     private final String name;
     private final AttitudeProvider attProv;
-
+    
+    /**
+     * Original wet mass of the satellite
+     */
+    private final double wetMass;
+    
+    /**
+     * Original dry mass of the satellite
+     */
+    private final double dryMass;
+    
+    /**
+     * Original gross mass of the satellite
+     */
+    private final double grossMass;
+    
     public Satellite(String name, Orbit orbit, AttitudeProvider attProv) {
+        this(name, orbit, attProv, Propagator.DEFAULT_MASS, Propagator.DEFAULT_MASS);
+    }
+
+    public Satellite(String name, Orbit orbit, AttitudeProvider attProv, double wetMass, double dryMass) {
         this.orbit = orbit;
         this.name = name;
         this.payload = new ArrayList<>();
         this.attProv = attProv;
+        this.wetMass = wetMass;
+        this.dryMass = dryMass;
+        this.grossMass = wetMass + dryMass;
     }
 
     public void addInstrument(Instrument instrument) {
@@ -57,6 +80,22 @@ public class Satellite implements OrekitObject, Serializable {
 
     public AttitudeProvider getAttProv() {
         return attProv;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public double getWetMass() {
+        return wetMass;
+    }
+
+    public double getDryMass() {
+        return dryMass;
+    }
+
+    public double getGrossMass() {
+        return grossMass;
     }
     
 

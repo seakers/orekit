@@ -19,7 +19,7 @@ public class STKGRID {
     public static Collection<GeodeticPoint> getPoints() {
         ArrayList<GeodeticPoint> points = new ArrayList<>();
 
-//        points.add(new GeodeticPoint(-1.5707963267949001, 0.0000000000000000, 0.0));
+        points.add(new GeodeticPoint(-1.5707963267949001, 0.0000000000000000, 0.0));
 //        points.add(new GeodeticPoint(-1.2217304763960299, 0.5235987755982990, 0.0));
 //        points.add(new GeodeticPoint(-1.2217304763960299, 1.5707963267949001, 0.0));
 //        points.add(new GeodeticPoint(-1.2217304763960299, 2.6179938779914900, 0.0));
@@ -78,7 +78,7 @@ public class STKGRID {
 //        points.add(new GeodeticPoint(0.5235987755982990, 0.6283185307179590, 0.0));
 //        points.add(new GeodeticPoint(0.5235987755982990, 1.0471975511966001, 0.0));
 //        points.add(new GeodeticPoint(0.8726646259971650, 0.2094395102393200, 0.0));
-        points.add(new GeodeticPoint(0.8726646259971650, 0.6283185307179590, 0.0));
+//        points.add(new GeodeticPoint(0.8726646259971650, 0.6283185307179590, 0.0));
 //        points.add(new GeodeticPoint(0.8726646259971650, 1.0471975511966001, 0.0));
 //        points.add(new GeodeticPoint(0.1745329251994330, 1.4660765716752400, 0.0));
 //        points.add(new GeodeticPoint(0.1745329251994330, 1.8849555921538801, 0.0));

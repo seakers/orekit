@@ -178,7 +178,7 @@ public class Scenario implements Callable<Scenario>, Serializable {
                             orbit.getType(), propagatorFactory.getOrbitType()));
                 }
 
-                Propagator prop = propagatorFactory.createPropagator(orbit);
+                Propagator prop = propagatorFactory.createPropagator(orbit, sat.getGrossMass());
                 prop.setSlaveMode();
 
                 //add an attitude provider (e.g. nadir pointing)

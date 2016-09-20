@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import orekit.access.RiseSetTime;
 import orekit.access.TimeIntervalArray;
-import orekit.access.TimeIntervalMerger;
 import orekit.object.Constellation;
 import orekit.object.CoverageDefinition;
 import orekit.object.CoveragePoint;
@@ -22,16 +21,12 @@ import orekit.propagation.PropagatorFactory;
 import orekit.propagation.PropagatorType;
 import orekit.scenario.Scenario;
 import orekit.scenario.ScenarioIO;
-import orekit.scenario.ScenarioStepWise;
 import orekit.util.OrekitConfig;
 import org.hipparchus.geometry.euclidean.threed.Vector3D;
 import org.hipparchus.stat.descriptive.DescriptiveStatistics;
 import org.hipparchus.util.FastMath;
 import org.orekit.attitudes.NadirPointing;
 import org.orekit.bodies.BodyShape;
-import org.orekit.bodies.CelestialBody;
-import org.orekit.bodies.CelestialBodyFactory;
-import org.orekit.bodies.GeodeticPoint;
 import org.orekit.bodies.OneAxisEllipsoid;
 import org.orekit.errors.OrekitException;
 import org.orekit.frames.Frame;
@@ -39,7 +34,6 @@ import org.orekit.frames.FramesFactory;
 import org.orekit.orbits.KeplerianOrbit;
 import org.orekit.orbits.Orbit;
 import org.orekit.orbits.PositionAngle;
-import org.orekit.propagation.events.FieldOfView;
 import org.orekit.time.AbsoluteDate;
 import org.orekit.time.TimeScale;
 import org.orekit.time.TimeScalesFactory;
@@ -72,17 +66,17 @@ public class Orekit {
         OrekitConfig.init();
 
         TimeScale utc = TimeScalesFactory.getUTC();
-        AbsoluteDate startDate = new AbsoluteDate(2016, 01, 01, 16, 00, 00.000, utc);
-        AbsoluteDate endDate =   new AbsoluteDate(2016, 01, 02, 16, 00, 00.000, utc);
+        AbsoluteDate startDate = new AbsoluteDate(2016, 1, 1, 16, 00, 00.000, utc);
+        AbsoluteDate endDate   = new AbsoluteDate(2016, 3, 1, 16, 00, 00.000, utc);
 
         double mu = Constants.EGM96_EARTH_MU; // gravitation coefficient
-        CelestialBody earth = CelestialBodyFactory.getEarth();
+        
+        //must use these frames to be consistent with STK
         Frame earthFrame = FramesFactory.getITRF(IERSConventions.IERS_2003, true);
         Frame inertialFrame = FramesFactory.getEME2000();
 
         BodyShape earthShape = new OneAxisEllipsoid(Constants.WGS84_EARTH_EQUATORIAL_RADIUS,
-                Constants.WGS84_EARTH_FLATTENING,
-                earthFrame);
+                Constants.WGS84_EARTH_FLATTENING, earthFrame);
 
         //Enter satellites
         double a = 6978137.0;
@@ -107,18 +101,18 @@ public class Orekit {
 
         ArrayList<Satellite> satGroup1 = new ArrayList<>();
         satGroup1.add(sat1);
-        
+
         Constellation constel1 = new Constellation("constel1", satGroup1);
 
 //        ArrayList<GeodeticPoint> pts = new ArrayList<>();
 //        pts.add(new GeodeticPoint(FastMath.PI / 2, 0, 0));
 //        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", 20, earthShape, startDate, endDate);
 //        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", pts, earthShape, startDate, endDate);
-        CoverageDefinition covDef1 = new CoverageDefinition("covdef1",STKGRID.getPoints(), earthShape, startDate, endDate);
+        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", STKGRID.getPoints(), earthShape, startDate, endDate);
 
         covDef1.assignConstellation(constel1);
 
-        PropagatorFactory pf = new PropagatorFactory(PropagatorType.KEPLERIAN, initialOrbit2);
+        PropagatorFactory pf = new PropagatorFactory(PropagatorType.J2, initialOrbit2);
 
         Scenario scen = new Scenario("test", startDate, endDate, utc, inertialFrame, pf, false);
 //        ScenarioStepWise scen = new ScenarioStepWise("test", startDate, endDate, utc, earth.getInertiallyOrientedFrame(), pf);
@@ -128,26 +122,27 @@ public class Orekit {
         scen.call();
 
         System.out.println(String.format("Done Running Scenario %s", scen));
-        
+
         HashMap<CoveragePoint, TimeIntervalArray> covDefAccess = scen.getMergedAccesses(covDef1);
 
         for (CoveragePoint pt : covDefAccess.keySet()) {
             TimeIntervalArray array = covDefAccess.get(pt);
-            for(RiseSetTime time : array.getRiseSetTimes()){
-                if(time.isRise())
+            for (RiseSetTime time : array.getRiseSetTimes()) {
+                if (time.isRise()) {
                     System.out.print("" + time.getTime());
-                else
+                } else {
                     System.out.println("," + time.getTime());
+                }
             }
         }
-        
+
         DescriptiveStatistics accessStats = new DescriptiveStatistics();
         DescriptiveStatistics gapStats = new DescriptiveStatistics();
         for (CoveragePoint pt : covDefAccess.keySet()) {
-            for(Double duration : covDefAccess.get(pt).getDurations()){
+            for (Double duration : covDefAccess.get(pt).getDurations()) {
                 accessStats.addValue(duration);
             }
-            for(Double duration : covDefAccess.get(pt).negate().getDurations()){
+            for (Double duration : covDefAccess.get(pt).negate().getDurations()) {
                 gapStats.addValue(duration);
             }
         }
@@ -165,7 +160,7 @@ public class Orekit {
         System.out.println(String.format("50th gap time %s", gapStats.getPercentile(50)));
         System.out.println(String.format("80th gap time %s", gapStats.getPercentile(80)));
         System.out.println(String.format("90th gap time %s", gapStats.getPercentile(90)));
-        
+
         System.out.println("Saving scenario...");
 
         ScenarioIO.save(Paths.get(path, ""), filename, scen);

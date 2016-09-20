@@ -119,7 +119,7 @@ public class ScenarioStepWise implements Callable<ScenarioStepWise>, Serializabl
                             orbit.getType(), propagatorFactory.getOrbitType()));
                 }
 
-                Propagator prop = propagatorFactory.createPropagator(orbit);
+                Propagator prop = propagatorFactory.createPropagator(orbit, sat.getGrossMass());
                 
                 prop.setSlaveMode();
                 
