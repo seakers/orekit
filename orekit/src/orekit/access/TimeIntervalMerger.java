@@ -119,7 +119,7 @@ public class TimeIntervalMerger {
             }
         }
         for (int i = 0; i < numOpenIntervals; i++) {
-            resultant.add(new RiseSetTime(tail, false));
+            resultant.add(new RiseSetTime(tail.durationFrom(head), false));
         }
         return resultant;
     }
@@ -199,18 +199,18 @@ public class TimeIntervalMerger {
         for (int i = 0; i < this.overlaps.size(); i++) {
             if (overlaps.get(i) >= n) {
                 if (!out.isTailOpen()) {
-                    out.addRiseTime(sortedRiseSetTimes.get(i));
+                    out.addRiseTime(sortedRiseSetTimes.get(i).getTime());
                 }
             } else {
                 if (out.isTailOpen()) {
-                    out.addSetTime(sortedRiseSetTimes.get(i));
+                    out.addSetTime(sortedRiseSetTimes.get(i).getTime());
                 }
             }
         }
         //Need to check if last time stamp should be added.
         if (overlaps.get(overlaps.size() - 1) >= n
                 && out.isTailOpen()) {
-            out.addSetTime(sortedRiseSetTimes.get(sortedRiseSetTimes.size() - 1));
+            out.addSetTime(sortedRiseSetTimes.get(sortedRiseSetTimes.size() - 1).getTime());
         }
 
         return out;
@@ -239,7 +239,13 @@ public class TimeIntervalMerger {
 
         @Override
         public int compare(RiseSetTimeID a, RiseSetTimeID b) {
-            return a.getTime().compareTo(b.getTime());
+            double val = a.getTime().getTime()-b.getTime().getTime();
+            if(val < 0)
+                return -1;
+            else if(val > 0)
+                return 1;
+            else
+                return 0;
         }
     }
 

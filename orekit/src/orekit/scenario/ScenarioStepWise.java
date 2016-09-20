@@ -119,7 +119,7 @@ public class ScenarioStepWise implements Callable<ScenarioStepWise>, Serializabl
                             orbit.getType(), propagatorFactory.getOrbitType()));
                 }
 
-                Propagator prop = propagatorFactory.createPropagator(orbit);
+                Propagator prop = propagatorFactory.createPropagator(orbit, sat.getGrossMass());
                 
                 prop.setSlaveMode();
                 
@@ -267,9 +267,9 @@ public class ScenarioStepWise implements Callable<ScenarioStepWise>, Serializabl
             for (Satellite sat : constel.getSatellites()) {
                 for (TopocentricFrame point : covDef.getPoints()) {
                     for (Instrument inst : sat.getPayload()) {
-                        FieldOfViewDetector eventDec = new FastFOVDetector(point, inst.getFov(), FastMath.toRadians(60)).withMaxCheck(1).withHandler(new FOVHandler());
-//                        propMap.get(sat).addEventDetector(eventDec);
-                        detectors.add(eventDec);
+//                        FastFOVDetector eventDec = new FastFOVDetector(point, inst.getFov(), FastMath.toRadians(60)).withMaxCheck(1).withHandler(new FOVHandler());
+////                        propMap.get(sat).addEventDetector(eventDec);
+//                        detectors.add(eventDec);
                     }
                 }
             }
@@ -292,9 +292,9 @@ public class ScenarioStepWise implements Callable<ScenarioStepWise>, Serializabl
 
             for (TopocentricFrame point : covDef.getPoints()) {
                 for (Instrument inst : sat.getPayload()) {
-                    FieldOfViewDetector eventDec = new FastFOVDetector(point, inst.getFov(), FastMath.toRadians(60)).withMaxCheck(1).withHandler(new FOVHandler());
-//                        propMap.get(sat).addEventDetector(eventDec);
-                    detectors.add(eventDec);
+//                    FastFOVDetector eventDec = new FastFOVDetector(point, inst.getFov(), FastMath.toRadians(60)).withMaxCheck(1).withHandler(new FOVHandler());
+////                        propMap.get(sat).addEventDetector(eventDec);
+//                    detectors.add(eventDec);
                 }
             }
 

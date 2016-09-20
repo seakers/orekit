@@ -6,31 +6,32 @@
 package orekit.access;
 
 import orekit.object.CoveragePoint;
+import orekit.object.fieldofview.FOVDetector;
+import org.orekit.errors.OrekitException;
 import org.orekit.propagation.SpacecraftState;
-import org.orekit.propagation.events.FieldOfViewDetector;
 import org.orekit.propagation.events.handlers.EventHandler;
 
 /**
- * the g() function for the FieldOfViewDetector assumes that the target enters
- * the FieldOfView when the value is negative and exits when the value is
- * positive. Therefore, when an event is detected and the value is decreasing,
+ * the g() function for the FOVDetector assumes that the target enters
+ the FieldOfView when the value is positive and exits when the value is
+ negative. Therefore, when an event is detected and the value is increasing,
  * the target is entering the FieldOfView.
  *
  * @author nozomihitomi
  */
-public class FOVHandler implements EventHandler<FieldOfViewDetector> {
+public class FOVHandler implements EventHandler<FOVDetector> {
 
     @Override
-    public EventHandler.Action eventOccurred(final SpacecraftState s, final FieldOfViewDetector detector,
-            final boolean increasing) {
+    public EventHandler.Action eventOccurred(final SpacecraftState s, final FOVDetector detector,
+            final boolean increasing) throws OrekitException {
 
         CoveragePoint target = (CoveragePoint) detector.getPVTarget();
         if (increasing) {
+            //Access begins
+            target.addRiseTime(s.getDate());
+        } else {
             //Access ends
             target.addSetTime(s.getDate());
-        } else {
-            //Access Begins
-            target.addRiseTime(s.getDate());
         }
 
         return EventHandler.Action.CONTINUE;

@@ -5,10 +5,12 @@
  */
 package orekit.scenario;
 
+import orekit.object.fieldofview.FOVDetector;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.concurrent.Callable;
 import orekit.access.FOVHandler;
 import orekit.access.TimeIntervalArray;
@@ -27,7 +29,6 @@ import org.orekit.frames.TopocentricFrame;
 import org.orekit.orbits.Orbit;
 import org.orekit.propagation.Propagator;
 import org.orekit.propagation.SpacecraftState;
-import org.orekit.propagation.events.FieldOfViewDetector;
 import org.orekit.time.AbsoluteDate;
 import org.orekit.time.TimeScale;
 
@@ -41,16 +42,51 @@ public class Scenario implements Callable<Scenario>, Serializable {
 
     private static final long serialVersionUID = 8350171762084530278L;
 
+    /**
+     * Name of the scenario
+     */
     private final String scenarioName;
+
+    /**
+     * The time scale of the scenario
+     */
     private final TimeScale timeScale;
+
+    /**
+     * Scenario start date
+     */
     private final AbsoluteDate startDate;
+
+    /**
+     * Scenario end date
+     */
     private final AbsoluteDate endDate;
-    private final double simulationDuration;
+
+    /**
+     * Inertial frame used in scenario
+     */
     private final Frame inertialFrame;
+
+    /**
+     * Propagator factory that will create the necessary propagator for each
+     * satellite
+     */
     private final PropagatorFactory propagatorFactory;
+
+    /**
+     * A set of the unique constellations
+     */
     private final HashSet<Constellation> uniqueConstellations;
+
+    /**
+     * A collection of the unique satellites in this scenario. Required to only
+     * propagate each satellite once and once only.
+     */
     private final HashSet<Satellite> uniqueSatellites;
 
+    /**
+     * The set of coverage definitions to simulate.
+     */
     private final HashSet<CoverageDefinition> covDefs;
 
     /**
@@ -59,30 +95,54 @@ public class Scenario implements Callable<Scenario>, Serializable {
      */
     private final HashMap<CoverageDefinition, HashMap<CoveragePoint, TimeIntervalArray>> finalAccesses;
 
+    /**
+     * flag to keep track of whether the simulation is done
+     */
     private boolean isDone;
+
+    /**
+     * The representative propagator to extract information from in pretty
+     * print.
+     */
     private Propagator repProp; //representative Propagator
 
     /**
-     * Constructor if numerical integrator is needed (e.g. Atmospheric drag
-     * model)
+     * a flag set by the user to toggle whether to save the access of each
+     * individual satellite or to release them from memory.
+     */
+    private final boolean saveAllAccesses;
+
+    /**
+     * Stores all the accesses of each satellite if saveAllAccesses is true.
+     */
+    private HashMap<CoverageDefinition, HashMap<Satellite, HashMap<CoveragePoint, TimeIntervalArray>>> allAccesses;
+
+    /**
+     * Creates a new scenario.
      *
      * @param name of scenario
      * @param startDate of scenario
      * @param endDate of scenario
      * @param timeScale of scenario
      * @param inertialFrame
-     * @param propagatorBuilder
+     * @param propagatorFactory
+     * @param saveAllAccesses true if user wants to maintain all the accesses
+     * from each individual satellite. false if user would like to only get the
+     * merged accesses between all satellites (this saves memory).
      */
     public Scenario(String name, AbsoluteDate startDate, AbsoluteDate endDate,
             TimeScale timeScale, Frame inertialFrame,
-            PropagatorFactory propagatorBuilder) {
+            PropagatorFactory propagatorFactory, boolean saveAllAccesses) {
         this.scenarioName = name;
         this.startDate = startDate;
         this.endDate = endDate;
-        this.simulationDuration = endDate.offsetFrom(startDate, timeScale);
         this.timeScale = timeScale;
         this.inertialFrame = inertialFrame;
-        this.propagatorFactory = propagatorBuilder;
+        this.propagatorFactory = propagatorFactory;
+        this.saveAllAccesses = saveAllAccesses;
+        if (saveAllAccesses) {
+            allAccesses = new HashMap();
+        }
 
         this.covDefs = new HashSet<>();
         this.uniqueConstellations = new HashSet<>();
@@ -118,7 +178,7 @@ public class Scenario implements Callable<Scenario>, Serializable {
                             orbit.getType(), propagatorFactory.getOrbitType()));
                 }
 
-                Propagator prop = propagatorFactory.createPropagator(orbit);
+                Propagator prop = propagatorFactory.createPropagator(orbit, sat.getGrossMass());
                 prop.setSlaveMode();
 
                 //add an attitude provider (e.g. nadir pointing)
@@ -135,23 +195,43 @@ public class Scenario implements Callable<Scenario>, Serializable {
             System.out.println("Setting up Event Detectors...");
             for (CoverageDefinition cdef : covDefs) {
                 createFOVDetectors(cdef, propagators);
+                if (saveAllAccesses) {
+                    allAccesses.put(cdef, new HashMap<>());
+                }
+
+                Iterator<CoveragePoint> iter = cdef.getPoints().iterator();
+                CoveragePoint pt1 = iter.next();
+//                CoveragePoint pt2 = iter.next();
 
                 //propogate each satellite individually
                 System.out.println("Propogating...");
                 for (Satellite sat : propagators.keySet()) {
                     Propagator prop = propagators.get(sat);
+//                    System.out.println("-----");
                     for (AbsoluteDate extrapDate = startDate;
                             extrapDate.compareTo(endDate) <= 0;
-                            extrapDate = extrapDate.shiftedBy(6000)) {
+                            extrapDate = extrapDate.shiftedBy(60)) {
                         SpacecraftState currentState = prop.propagate(extrapDate);
+//                        System.out.println(currentState.getPVCoordinates(inertialFrame).getPosition());
+//                        System.out.println(pt1.getPVCoordinates(currentState.getDate(), inertialFrame).getPosition());
+//                        System.out.println(CelestialBodyFactory.getEarth().getPVCoordinates(endDate, inertialFrame).getPosition());
+//                        for(CoveragePoint pt: cdef.getPoints()){
+//                            System.out.println(pt.getPVCoordinates(currentState.getDate(), inertialFrame).getPosition());
+//                        }
                     }
+                    //save the satellite accesses 
+                    if (saveAllAccesses) {
+                        allAccesses.get(cdef).put(sat, cdef.getAccesses());
+                    }
+
                     HashMap<CoveragePoint, TimeIntervalArray> mergedAccesses = mergeCoverageDefinitionAccesses(finalAccesses.get(cdef), cdef.getAccesses(), false);
                     finalAccesses.put(cdef, mergedAccesses);
+                    
+                    TimeIntervalArray tmp = finalAccesses.get(cdef).get(cdef.getPoints().iterator().next());
                     cdef.clearAccesses();
                 }
 
             }
-
             isDone = true;
             System.out.println(String.format("Finished simulating %s...", this));
         }
@@ -196,11 +276,25 @@ public class Scenario implements Callable<Scenario>, Serializable {
      * Returns the merged accesses of a given coverage definition after the
      * scenario is finished running
      *
-     * @param covDef
+     * @param covDef the coverage definition of interest
      * @return
      */
     public HashMap<CoveragePoint, TimeIntervalArray> getMergedAccesses(CoverageDefinition covDef) {
         return finalAccesses.get(covDef);
+    }
+
+    /**
+     * Returns the individual accesses of a given satellite on a given coverage
+     * definition after the scenario is finished running.
+     *
+     * @param covDef the coverage definition of interest
+     * @param sat a satellite that is assigned to the coverage definition
+     * @return If the scenario is set to save the individual satellite accesses
+     * and the satellite is assigned to the coverage definition, a map of
+     * coverage points and time interval array will be returned. else null
+     */
+    public HashMap<CoveragePoint, TimeIntervalArray> getSatelliteAccesses(CoverageDefinition covDef, Satellite sat) {
+        return allAccesses.get(covDef).get(sat);
     }
 
     /**
@@ -244,7 +338,7 @@ public class Scenario implements Callable<Scenario>, Serializable {
             for (Satellite sat : constel.getSatellites()) {
                 for (TopocentricFrame point : covDef.getPoints()) {
                     for (Instrument inst : sat.getPayload()) {
-                        FieldOfViewDetector eventDec = new FastFOVDetector(point, inst.getFov(), FastMath.toRadians(60)).withMaxCheck(1).withHandler(new FOVHandler());
+                        FOVDetector eventDec = new FOVDetector(point, inst).withMaxCheck(1).withHandler(new FOVHandler());
                         propMap.get(sat).addEventDetector(eventDec);
                     }
                 }

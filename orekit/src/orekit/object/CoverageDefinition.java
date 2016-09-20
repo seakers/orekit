@@ -109,7 +109,7 @@ public class CoverageDefinition implements OrekitObject, Serializable {
                 double altitude = 0.;
                 GeodeticPoint point = new GeodeticPoint(latitude, longitude, altitude);
                 this.grid.add(new CoveragePoint(planet, point, String.valueOf(numPoints), startDate, endDate));
-
+                System.out.println((latitude) + " " + (longitude));
                 numPoints++;
             }
         }
