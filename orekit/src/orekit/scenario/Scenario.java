@@ -126,13 +126,7 @@ public class Scenario implements Callable<Scenario>, Serializable {
      * Stores all the accesses of each satellite if saveAllAccesses is true.
      */
     private HashMap<CoverageDefinition, HashMap<Satellite, HashMap<CoveragePoint, TimeIntervalArray>>> allAccesses;
-
-    /**
-     * Flag to allow scenario to be processed in parallel by assigning subsets
-     * of the coverage grid to different threads
-     */
-    private final boolean parallelizeCoverage;
-
+    
     /**
      * the number of threads to use in parallel processing
      */
@@ -181,9 +175,7 @@ public class Scenario implements Callable<Scenario>, Serializable {
         this.finalAccesses = new HashMap();
 
         this.isDone = false;
-
-        this.parallelizeCoverage = parallelizeCoverage;
-
+        
         this.numThreads = numThreads;
 
         this.futureTasks = new ArrayList<>();

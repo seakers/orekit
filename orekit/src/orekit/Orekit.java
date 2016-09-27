@@ -93,11 +93,11 @@ public class Orekit {
 
         NadirPointing nadPoint = new NadirPointing(inertialFrame, earthShape);
         Satellite sat1 = new Satellite("sat1", initialOrbit1, nadPoint);
-        RectangularFieldOfView fov_rect = new RectangularFieldOfView(Vector3D.PLUS_K, Vector3D.PLUS_I,
-                FastMath.toRadians(45), Vector3D.PLUS_J, FastMath.toRadians(80), .001);
+        RectangularFieldOfView fov_rect = new RectangularFieldOfView(Vector3D.PLUS_K, 
+                FastMath.toRadians(80), FastMath.toRadians(45), 0);
         SimpleConicalFieldOfView fov_cone = new SimpleConicalFieldOfView(Vector3D.PLUS_K,
                 FastMath.toRadians(45));
-        Instrument view1 = new Instrument("view1", fov_cone);
+        Instrument view1 = new Instrument("view1", fov_rect);
         sat1.addInstrument(view1);
 
         ArrayList<Satellite> satGroup1 = new ArrayList<>();

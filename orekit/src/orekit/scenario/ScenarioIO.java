@@ -84,7 +84,7 @@ public class ScenarioIO {
             for (CoveragePoint pt : girdPoints) {
                 fw.append(String.format("PointNumber:        %d\n", i)); 
                 fw.append(String.format("Lat:                %.14e\n", pt.getPoint().getLatitude()));
-                fw.append(String.format("Lat:                %.14e\n", pt.getPoint().getLongitude()));
+                fw.append(String.format("Lon:                %.14e\n", pt.getPoint().getLongitude()));
                 fw.append(String.format("Alt:                %.14e\n", pt.getPoint().getAltitude()));
                 fw.append(String.format("NumberOfAccesses:   %d\n", cvaa.get(pt).numIntervals()));
                 Iterator<RiseSetTime> iter = cvaa.get(pt).getRiseSetTimes().iterator();

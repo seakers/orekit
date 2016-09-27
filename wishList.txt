@@ -1,0 +1,3 @@
+Wish list for features to add on to Orekit source code:
+
+- Color mapping algorithm to more efficiently assign grid points to each propagator that runs on its own thread. 
