@@ -1,0 +1,61 @@
+AbstractAnalyticalPropagator.java
+
+
+currentState = propagate(startDate, tagetDate){
+
+//determine the step size. this can be the entire duration or some smaller step size as computed by the propagator
+stepSize = determine_step_size(tagetDate);
+
+initialize_event_detectors();
+
+initialize_step_handlers();
+
+currentDate = startDate;
+state = basicPropagate(startDate);
+
+while(currentDate < tagetDate)
+	previousState = state;
+	currentState = propagate_forward_by(stepSize);
+	interpolator = basicInterpolator(previousState, currentState);
+	state = acceptStep(interpolator,target) //triggers the event and step handlers
+	currentDate = state.getDate();
+	
+return state
+}
+
+
+
+
+state = acceptStep(interpolator,target) {
+	occurringEvents = new Queue();
+	//eventStates are the event detectors
+	for (state in eventsStates){
+		//for each event to check, propagate the full step and see if event occurred
+		//evaluateStep also conducts the root finding on the g() function to identify when the event occurred
+		if(state.evaluateStep(interpolator))
+			occurringEvents.add(state);
+	}
+	
+	//sort the events in chronological order
+	occurringEvents = sortByDate();
+	
+	while(!occuringEvents.isEmpty()){
+		
+		currentEvent = occuringEvents.pop();
+		
+		//get the state at the event time
+		eventState = getInterpolatedState(currentEvent.getDate());
+		
+		// try to advance all event states to current time
+		// in case a new root is found that wasn't expected
+		for (state in eventsStates){
+			//tryAdvance looks for unexpected new roots using the current and previous states within the interpolator
+			if (state != currentEvent && state.tryAdvance(eventState, interpolator)){
+				requeueEvents(); 
+			}
+		}
+		
+		//do event notifies the listener of the event and the new state. Also sets up the times/states for the next event search
+		currentEvent.doEvent(eventState);
+		
+}

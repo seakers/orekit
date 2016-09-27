@@ -10,7 +10,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Objects;
-import orekit.access.TimeIntervalArray;
+import orekit.coverage.access.TimeIntervalArray;
 import org.hipparchus.util.FastMath;
 import org.orekit.bodies.BodyShape;
 import org.orekit.bodies.GeodeticPoint;
@@ -109,7 +109,6 @@ public class CoverageDefinition implements OrekitObject, Serializable {
                 double altitude = 0.;
                 GeodeticPoint point = new GeodeticPoint(latitude, longitude, altitude);
                 this.grid.add(new CoveragePoint(planet, point, String.valueOf(numPoints), startDate, endDate));
-                System.out.println((latitude) + " " + (longitude));
                 numPoints++;
             }
         }

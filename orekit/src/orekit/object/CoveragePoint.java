@@ -5,7 +5,7 @@
  */
 package orekit.object;
 
-import orekit.access.TimeIntervalArray;
+import orekit.coverage.access.TimeIntervalArray;
 import org.orekit.bodies.BodyShape;
 import org.orekit.bodies.GeodeticPoint;
 import org.orekit.frames.TopocentricFrame;
@@ -17,7 +17,7 @@ import org.orekit.time.AbsoluteDate;
  *
  * @author nozomihitomi
  */
-public class CoveragePoint extends TopocentricFrame implements OrekitObject {
+public class CoveragePoint extends TopocentricFrame implements OrekitObject, Comparable<CoveragePoint> {
 
     private static final long serialVersionUID = 5330957252938339044L;
 
@@ -50,28 +50,30 @@ public class CoveragePoint extends TopocentricFrame implements OrekitObject {
 
     /**
      * Gets the accesses stored
+     *
      * @return
      */
     public TimeIntervalArray getAccesses() {
         return accesses;
     }
-    
+
     /**
      * Adds the rise time (start time) of an access
+     *
      * @param riseTime time when the access begins
      */
     public void addRiseTime(AbsoluteDate riseTime) {
         accesses.addRiseTime(riseTime);
     }
-    
+
     /**
      * Adds the set time (end time) of an access
+     *
      * @param setTime time when the access ends
      */
     public void addSetTime(AbsoluteDate setTime) {
         accesses.addSetTime(setTime);
     }
-
 
     /**
      * Resets the stored time interval array to a new instance of a
@@ -79,5 +81,31 @@ public class CoveragePoint extends TopocentricFrame implements OrekitObject {
      */
     public void reset() {
         accesses = new TimeIntervalArray(startDate, endDate);
+    }
+
+    /**
+     * This method can be used to order the coverage points first by latitude
+     * and then by longitude in ascending order.
+     *
+     * @param o
+     * @return
+     */
+    @Override
+    public int compareTo(CoveragePoint o) {
+        //first compare the latitudes
+        if (this.getPoint().getLatitude() < o.getPoint().getLatitude()) {
+            return -1;
+        } else if (this.getPoint().getLatitude() > o.getPoint().getLatitude()) {
+            return 1;
+        } else {
+            //next compare longitudes
+            if (this.getPoint().getLongitude()< o.getPoint().getLongitude()) {
+                return -1;
+            } else if (this.getPoint().getLongitude()> o.getPoint().getLongitude()) {
+                return 1;
+            }
+            else 
+                return 0;
+        }
     }
 }

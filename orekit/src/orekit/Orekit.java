@@ -8,8 +8,8 @@ package orekit;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
-import orekit.access.RiseSetTime;
-import orekit.access.TimeIntervalArray;
+import orekit.coverage.access.RiseSetTime;
+import orekit.coverage.access.TimeIntervalArray;
 import orekit.object.Constellation;
 import orekit.object.CoverageDefinition;
 import orekit.object.CoveragePoint;
@@ -21,6 +21,7 @@ import orekit.propagation.PropagatorFactory;
 import orekit.propagation.PropagatorType;
 import orekit.scenario.Scenario;
 import orekit.scenario.ScenarioIO;
+import orekit.scenario.ScenarioStepWise;
 import orekit.util.OrekitConfig;
 import org.hipparchus.geometry.euclidean.threed.Vector3D;
 import org.hipparchus.stat.descriptive.DescriptiveStatistics;
@@ -112,10 +113,10 @@ public class Orekit {
 
         covDef1.assignConstellation(constel1);
 
-        PropagatorFactory pf = new PropagatorFactory(PropagatorType.J2, initialOrbit2);
+        PropagatorFactory pf = new PropagatorFactory(PropagatorType.KEPLERIAN, initialOrbit2);
 
-        Scenario scen = new Scenario("test", startDate, endDate, utc, inertialFrame, pf, false);
-//        ScenarioStepWise scen = new ScenarioStepWise("test", startDate, endDate, utc, earth.getInertiallyOrientedFrame(), pf);
+        Scenario scen = new Scenario("test", startDate, endDate, utc, inertialFrame, pf, false, 3);
+//        ScenarioStepWise scen = new ScenarioStepWise("test", startDate, endDate, utc, inertialFrame, pf);
 
         scen.addCoverageDefinition(covDef1);
 
@@ -124,17 +125,6 @@ public class Orekit {
         System.out.println(String.format("Done Running Scenario %s", scen));
 
         HashMap<CoveragePoint, TimeIntervalArray> covDefAccess = scen.getMergedAccesses(covDef1);
-
-        for (CoveragePoint pt : covDefAccess.keySet()) {
-            TimeIntervalArray array = covDefAccess.get(pt);
-            for (RiseSetTime time : array.getRiseSetTimes()) {
-                if (time.isRise()) {
-                    System.out.print("" + time.getTime());
-                } else {
-                    System.out.println("," + time.getTime());
-                }
-            }
-        }
 
         DescriptiveStatistics accessStats = new DescriptiveStatistics();
         DescriptiveStatistics gapStats = new DescriptiveStatistics();
@@ -165,6 +155,7 @@ public class Orekit {
 
         ScenarioIO.save(Paths.get(path, ""), filename, scen);
         ScenarioIO.saveReadMe(Paths.get(path, ""), filename, scen);
+        ScenarioIO.saveAccess(Paths.get(path, ""), filename, scen, covDef1);
 
         long end = System.nanoTime();
         System.out.println("Took " + (end - start) / Math.pow(10, 9) + " sec");
