@@ -69,10 +69,10 @@ public class CoverageDefinition implements OrekitObject, Serializable {
      * @param name of the coverage definition
      * @param granularity defines the resolution of the grid points. Input in
      * degrees
-     * @param minLatitude Minimum latitude where coverage is defined
-     * @param maxLatitude Maximum latitude where coverage is defined
-     * @param minLongitdue Maximum latitude where coverage is defined
-     * @param maxLongitude Maximum latitude where coverage is defined
+     * @param minLatitude Minimum latitude where coverage is defined [deg]
+     * @param maxLatitude Maximum latitude where coverage is defined [deg]
+     * @param minLongitdue Maximum latitude where coverage is defined [deg]
+     * @param maxLongitude Maximum latitude where coverage is defined [deg]
      * @param planet Body shape on which to project the CoveragePoints
      * @param startDate The date when the scenario starts
      * @param endDate The date when the scenario ends

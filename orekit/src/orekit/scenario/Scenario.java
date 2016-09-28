@@ -18,6 +18,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import orekit.coverage.access.CoverageAccessMerger;
 import orekit.coverage.access.FOVHandler;
 import orekit.coverage.access.TimeIntervalArray;
 import orekit.coverage.access.TimeIntervalMerger;
@@ -136,6 +137,11 @@ public class Scenario implements Callable<Scenario>, Serializable {
      * Collection of future tasks to propagate
      */
     private final ArrayList<Future<PropagateTask>> futureTasks;
+    
+    /**
+     * Object to merge the access from several satellite propagations
+     */
+    private CoverageAccessMerger accessMerger;
 
     /**
      * Creates a new scenario.
@@ -254,7 +260,7 @@ public class Scenario implements Callable<Scenario>, Serializable {
                     }
 
                     //merge the time accesses across all satellite for each coverage definition
-                    HashMap<CoveragePoint, TimeIntervalArray> mergedAccesses = mergeCoverageDefinitionAccesses(finalAccesses.get(cdef), satAccesses, false);
+                    HashMap<CoveragePoint, TimeIntervalArray> mergedAccesses = accessMerger.mergeCoverageDefinitionAccesses(finalAccesses.get(cdef), satAccesses, false);
                     finalAccesses.put(cdef, mergedAccesses);
                 }
             }
@@ -290,40 +296,6 @@ public class Scenario implements Callable<Scenario>, Serializable {
                 out.get(FastMath.floorMod(i, numDivisions)).add(pt);
                 i++;
             }
-        }
-        return out;
-    }
-
-    /**
-     * Merges the accesses in two sets of accesses.
-     *
-     * @param accesses1 a set of accesses that is to be merged. Must have the
-     * same coverage points as accesses2
-     * @param accesses2 a set of accesses that is to be merged. Must have the
-     * same coverage points as accesses1
-     * @param andCombine true if accesses should be combined with logical AND
-     * (i.e. intersection). False if accesses should be combined with a logical
-     * OR (i.e. union)
-     */
-    private HashMap<CoveragePoint, TimeIntervalArray> mergeCoverageDefinitionAccesses(HashMap<CoveragePoint, TimeIntervalArray> accesses1, HashMap<CoveragePoint, TimeIntervalArray> accesses2, boolean andCombine) {
-        HashMap<CoveragePoint, TimeIntervalArray> out = new HashMap<>(accesses1.size());
-        if (accesses1.keySet().equals(accesses2.keySet())) {
-            for (CoveragePoint pt : accesses1.keySet()) {
-                ArrayList<TimeIntervalArray> accessArrays = new ArrayList<>();
-                accessArrays.add(accesses1.get(pt));
-                accessArrays.add(accesses2.get(pt));
-                TimeIntervalMerger merger = new TimeIntervalMerger(accessArrays);
-                TimeIntervalArray mergedArray;
-                if (andCombine) {
-                    mergedArray = merger.andCombine();
-                } else {
-                    mergedArray = merger.orCombine();
-                }
-                out.put(pt, mergedArray);
-            }
-        } else {
-            //The coverage definitions must contain the same grid points
-            throw new IllegalArgumentException("Failed to merge access for two sets of grid points. Expected grid points between sets to be equal. Found sets containing different points.");
         }
         return out;
     }
