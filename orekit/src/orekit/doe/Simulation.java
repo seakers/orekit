@@ -8,6 +8,8 @@ package orekit.doe;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
+import orekit.STKGRID;
+import orekit.access.RiseSetTime;
 import orekit.access.TimeIntervalArray;
 import orekit.access.TimeIntervalMerger;
 import orekit.object.Constellation;
@@ -41,6 +43,8 @@ import org.orekit.time.AbsoluteDate;
 import org.orekit.time.TimeScale;
 import org.orekit.time.TimeScalesFactory;
 import org.orekit.utils.Constants;
+import org.orekit.utils.IERSConventions;
+import orekit.object.fieldofview.*;
 /**
  *
  * @author paugarciabuzzi
@@ -73,14 +77,15 @@ public class Simulation {
     public void simulate() throws OrekitException{
         
         long start = System.nanoTime();
-
-        double mu = Constants.EGM96_EARTH_MU; // gravitation coefficient
-        CelestialBody earth = CelestialBodyFactory.getEarth();
-        Frame eme2000 = FramesFactory.getEME2000();
+        
+        Frame earthFrame = FramesFactory.getITRF(IERSConventions.IERS_2003, true);
+        Frame inertialFrame = FramesFactory.getEME2000();
 
         BodyShape earthShape = new OneAxisEllipsoid(Constants.WGS84_EARTH_EQUATORIAL_RADIUS,
-                Constants.WGS84_EARTH_FLATTENING,
-                earth.getBodyOrientedFrame());
+                Constants.WGS84_EARTH_FLATTENING, earthFrame);
+
+        
+        double mu = Constants.EGM96_EARTH_MU; // gravitation coefficient
 
         //Enter satellites
         double a = majorAxis;
@@ -101,41 +106,44 @@ public class Simulation {
            for (int ind2=0; ind2<numSatsPerPlane; ind2++){
                anomaly = anomaly0 + ind2*FastMath.toRadians(360/numSatsPerPlane);
                orbits.add(ind, new KeplerianOrbit(a, e, i, argofperigee, raan, 
-                    anomaly, PositionAngle.TRUE, earth.getInertiallyOrientedFrame(), 
+                    anomaly, PositionAngle.TRUE, inertialFrame, 
                     startDate, mu));
                ind++;
            }
        }
 
-        NadirPointing nadPoint = new NadirPointing(earth.getInertiallyOrientedFrame(), earthShape);
+        NadirPointing nadPoint = new NadirPointing(inertialFrame, earthShape);
         ArrayList<Satellite> satellites = new ArrayList<>(numPlanes*numSatsPerPlane);
         for (int satnum=0; satnum<numPlanes*numSatsPerPlane; satnum++){
             String name= "sat" + Integer.toString(satnum);
             Satellite sat = new Satellite(name, orbits.get(satnum), nadPoint);
-            FieldOfView fov = new FieldOfView(Vector3D.PLUS_K, Vector3D.PLUS_I,
-                                                FastMath.toRadians(25), Vector3D.PLUS_J, 
-                                                FastMath.toRadians(25), .001);
-            Instrument view = new Instrument("view1", fov);
+            RectangularFieldOfView fov_rect = new RectangularFieldOfView(Vector3D.PLUS_K, Vector3D.PLUS_I,
+                FastMath.toRadians(45), Vector3D.PLUS_J, FastMath.toRadians(80), .001);
+            SimpleConicalFieldOfView fov_cone = new SimpleConicalFieldOfView(Vector3D.PLUS_K,
+                FastMath.toRadians(45));
+            String nameview= "view" + Integer.toString(satnum);
+            Instrument view = new Instrument(nameview, fov_cone);
             sat.addInstrument(view);
             satellites.add(satnum, sat);
         }
+        
+//        ArrayList<Satellite> satGroup = new ArrayList<>();
+//        for (int satnum=0; satnum<numPlanes*numSatsPerPlane; satnum++){
+//            satGroup.add(satellites.get(satnum));
+//        }
 
-        ArrayList<Satellite> satGroup = new ArrayList<>();
-        for (int satnum=0; satnum<numPlanes*numSatsPerPlane; satnum++){
-            satGroup.add(satellites.get(satnum));
-        }
 
-
-        Constellation constel = new Constellation("constel", satGroup);
-
+        Constellation constel = new Constellation("constel", satellites);
+        
+//        CoverageDefinition covDef = new CoverageDefinition("covdef", STKGRID.getPoints(), earthShape, startDate, endDate);
         CoverageDefinition covDef = new CoverageDefinition("covdef", 30, earthShape, startDate, endDate);
 
         covDef.assignConstellation(constel);
 
         PropagatorFactory pf = new PropagatorFactory(PropagatorType.KEPLERIAN, orbits.get(0));
 
-        ScenarioStepWise scen = new ScenarioStepWise("test", startDate, endDate, utc, earth.getInertiallyOrientedFrame(), pf);
-
+        Scenario scen = new Scenario("test", startDate, endDate, utc, inertialFrame, pf, false);
+        
         scen.addCoverageDefinition(covDef);
 
         scen.call();
@@ -143,13 +151,25 @@ public class Simulation {
         System.out.println(String.format("Done Running Scenario %s", scen));
         
         HashMap<CoveragePoint, TimeIntervalArray> covDefAccess = scen.getMergedAccesses(covDef);
+
+        for (CoveragePoint pt : covDefAccess.keySet()) {
+            TimeIntervalArray array = covDefAccess.get(pt);
+            for (RiseSetTime time : array.getRiseSetTimes()) {
+                if (time.isRise()) {
+                    System.out.print("" + time.getTime());
+                } else {
+                    System.out.println("," + time.getTime());
+                }
+            }
+        }
+
         DescriptiveStatistics accessStats = new DescriptiveStatistics();
         DescriptiveStatistics gapStats = new DescriptiveStatistics();
         for (CoveragePoint pt : covDefAccess.keySet()) {
-            for(Double duration : covDefAccess.get(pt).getDurations()){
+            for (Double duration : covDefAccess.get(pt).getDurations()) {
                 accessStats.addValue(duration);
             }
-            for(Double duration : covDefAccess.get(pt).negate().getDurations()){
+            for (Double duration : covDefAccess.get(pt).negate().getDurations()) {
                 gapStats.addValue(duration);
             }
         }
@@ -157,13 +177,19 @@ public class Simulation {
         System.out.println(String.format("Max access time %s", accessStats.getMax()));
         System.out.println(String.format("Mean access time %s", accessStats.getMean()));
         System.out.println(String.format("Min access time %s", accessStats.getMin()));
+        System.out.println(String.format("50th access time %s", accessStats.getPercentile(50)));
+        System.out.println(String.format("80th access time %s", accessStats.getPercentile(80)));
+        System.out.println(String.format("90th access time %s", accessStats.getPercentile(90)));
 
         System.out.println(String.format("Max gap time %s", gapStats.getMax()));
         System.out.println(String.format("Mean gap time %s", gapStats.getMean()));
         System.out.println(String.format("Min gap time %s", gapStats.getMin()));
+        System.out.println(String.format("50th gap time %s", gapStats.getPercentile(50)));
+        System.out.println(String.format("80th gap time %s", gapStats.getPercentile(80)));
+        System.out.println(String.format("90th gap time %s", gapStats.getPercentile(90)));
         
-        System.out.println("Saving scenario...");
-
+//        System.out.println("Saving scenario...");
+//
 //        ScenarioIO.save(Paths.get(path, ""), filename, scen);
 //        ScenarioIO.saveReadMe(Paths.get(path, ""), filename, scen);
 

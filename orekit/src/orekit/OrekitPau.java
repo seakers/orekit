@@ -52,11 +52,11 @@ public class OrekitPau {
         OrekitConfig.init();
         
         TimeScale utc = TimeScalesFactory.getUTC();
-        AbsoluteDate startDate = new AbsoluteDate(2004, 01, 01, 00, 00, 00.000, utc);
-        AbsoluteDate endDate =   new AbsoluteDate(2004, 01, 01, 12, 00, 00.000, utc);
+        AbsoluteDate startDate = new AbsoluteDate(2016, 1, 1, 16, 00, 00.000, utc);
+        AbsoluteDate endDate   = new AbsoluteDate(2016, 1, 3, 16, 00, 00.000, utc);
 
-        double a = 6971000.0;
-        double i = FastMath.toRadians(30);
+        double a = 6978137.0;
+        double i = 90;
         
         int numPlanes = 2;
         int numSatsPerPlane= 1;

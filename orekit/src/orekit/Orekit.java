@@ -112,7 +112,7 @@ public class Orekit {
 
         covDef1.assignConstellation(constel1);
 
-        PropagatorFactory pf = new PropagatorFactory(PropagatorType.J2, initialOrbit2);
+        PropagatorFactory pf = new PropagatorFactory(PropagatorType.KEPLERIAN, initialOrbit2);
 
         Scenario scen = new Scenario("test", startDate, endDate, utc, inertialFrame, pf, false);
 //        ScenarioStepWise scen = new ScenarioStepWise("test", startDate, endDate, utc, earth.getInertiallyOrientedFrame(), pf);
