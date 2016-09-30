@@ -5,6 +5,7 @@
  */
 package orekit.coverage.access;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -15,7 +16,8 @@ import orekit.object.CoveragePoint;
  *
  * @author nozomihitomi
  */
-public class CoverageAccessMerger {
+public class CoverageAccessMerger implements Serializable{
+    private static final long serialVersionUID = 9046345352941432741L;
 
     /**
      * Merges the accesses in two sets of accesses. The inputs are two sets of

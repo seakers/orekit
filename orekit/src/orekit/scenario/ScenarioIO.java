@@ -112,15 +112,19 @@ public class ScenarioIO {
      * @return the Scenario instance saved by using save()
      */
     public static Scenario load(Path path, String filename) {
-        Scenario hist = null;
+        Scenario scenario = null;
         File file = new File(path.toFile(), filename);
         try (ObjectInputStream is = new ObjectInputStream(new FileInputStream(file))) {
-            hist = (Scenario) is.readObject();
+            scenario = (Scenario) is.readObject();
         } catch (IOException | ClassNotFoundException ex) {
+            
+            System.err.println(ex);
             Logger.getLogger(ScenarioIO.class.getName()).log(Level.SEVERE, null, ex);
         }
+        if(scenario == null)
+            System.err.println("null?");
         System.out.println("Successfully loaded scenario: " + file.toString());
-        return hist;
+        return scenario;
     }
 
     public static boolean saveReadMe(Path path, String filename, Scenario scenario) {
