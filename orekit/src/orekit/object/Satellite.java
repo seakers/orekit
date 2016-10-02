@@ -130,4 +130,9 @@ public class Satellite implements OrekitObject, Serializable {
         return out;
     }
 
+    @Override
+    public String toString() {
+        return "Satellite{" + "payload=" + payload + ", orbit=" + orbit + ", name=" + name + ", attProv=" + attProv + ", wetMass=" + wetMass + ", dryMass=" + dryMass + ", grossMass=" + grossMass + '}';
+    }
+    
 }

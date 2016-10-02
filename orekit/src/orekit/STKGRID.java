@@ -21,11 +21,11 @@ public class STKGRID {
 
         points.add(new GeodeticPoint(-1.5707963267949001, 0.0000000000000000, 0.0));
         points.add(new GeodeticPoint(-1.2217304763960299, 0.5235987755982990, 0.0));
-//        points.add(new GeodeticPoint(-1.2217304763960299, 1.5707963267949001, 0.0));
-//        points.add(new GeodeticPoint(-1.2217304763960299, 2.6179938779914900, 0.0));
-//        points.add(new GeodeticPoint(-1.2217304763960299, 3.6651914291880900, 0.0));
-//        points.add(new GeodeticPoint(-1.2217304763960299, 4.7123889803846897, 0.0));
-//        points.add(new GeodeticPoint(-1.2217304763960299, 5.7595865315812897, 0.0));
+        points.add(new GeodeticPoint(-1.2217304763960299, 1.5707963267949001, 0.0));
+        points.add(new GeodeticPoint(-1.2217304763960299, 2.6179938779914900, 0.0));
+        points.add(new GeodeticPoint(-1.2217304763960299, 3.6651914291880900, 0.0));
+        points.add(new GeodeticPoint(-1.2217304763960299, 4.7123889803846897, 0.0));
+        points.add(new GeodeticPoint(-1.2217304763960299, 5.7595865315812897, 0.0));
 //        points.add(new GeodeticPoint(-0.8726646259971650, 0.2094395102393200, 0.0));
 //        points.add(new GeodeticPoint(-0.8726646259971650, 0.6283185307179590, 0.0));
 //        points.add(new GeodeticPoint(-0.8726646259971650, 1.0471975511966001, 0.0));

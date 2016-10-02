@@ -10,7 +10,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Objects;
-import orekit.access.TimeIntervalArray;
+import orekit.coverage.access.TimeIntervalArray;
 import org.hipparchus.util.FastMath;
 import org.orekit.bodies.BodyShape;
 import org.orekit.bodies.GeodeticPoint;
@@ -69,10 +69,10 @@ public class CoverageDefinition implements OrekitObject, Serializable {
      * @param name of the coverage definition
      * @param granularity defines the resolution of the grid points. Input in
      * degrees
-     * @param minLatitude Minimum latitude where coverage is defined
-     * @param maxLatitude Maximum latitude where coverage is defined
-     * @param minLongitdue Maximum latitude where coverage is defined
-     * @param maxLongitude Maximum latitude where coverage is defined
+     * @param minLatitude Minimum latitude where coverage is defined [deg]
+     * @param maxLatitude Maximum latitude where coverage is defined [deg]
+     * @param minLongitdue Maximum latitude where coverage is defined [deg]
+     * @param maxLongitude Maximum latitude where coverage is defined [deg]
      * @param planet Body shape on which to project the CoveragePoints
      * @param startDate The date when the scenario starts
      * @param endDate The date when the scenario ends
@@ -109,7 +109,6 @@ public class CoverageDefinition implements OrekitObject, Serializable {
                 double altitude = 0.;
                 GeodeticPoint point = new GeodeticPoint(latitude, longitude, altitude);
                 this.grid.add(new CoveragePoint(planet, point, String.valueOf(numPoints), startDate, endDate));
-                System.out.println((latitude) + " " + (longitude));
                 numPoints++;
             }
         }

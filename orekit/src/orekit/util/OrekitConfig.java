@@ -33,6 +33,18 @@ public class OrekitConfig {
         System.setProperty(DataProvidersManager.OREKIT_DATA_PATH, pathBuffer.toString());
     }
     
+    /**
+     * Initial configuration that configures the libraries from the development environment
+     * Loads in default datasets
+     * @param currentDirectory string of the current directory
+     */
+    public static void init(String currentDirectory){
+        StringBuffer pathBuffer = new StringBuffer();
+        final File currrentDir = new File(currentDirectory);
+        appendIfExists(pathBuffer, new File(currrentDir,    "orekit-data"));
+        System.setProperty(DataProvidersManager.OREKIT_DATA_PATH, pathBuffer.toString());
+    }
+    
      /** Append a directory/zip archive to the path if it exists.
      * @param path placeholder where to put the directory/zip archive
      * @param file file to try

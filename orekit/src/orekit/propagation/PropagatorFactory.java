@@ -92,4 +92,8 @@ public class PropagatorFactory implements Serializable {
         return orbitType;
     }
 
+    public PropagatorType getPropType() {
+        return propType;
+    }
+
 }
