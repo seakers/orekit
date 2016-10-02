@@ -21,7 +21,6 @@ import java.util.logging.Logger;
 import orekit.coverage.access.CoverageAccessMerger;
 import orekit.coverage.access.FOVHandler;
 import orekit.coverage.access.TimeIntervalArray;
-import orekit.coverage.access.TimeIntervalMerger;
 import orekit.object.Constellation;
 import orekit.object.CoverageDefinition;
 import orekit.object.CoveragePoint;
@@ -112,12 +111,6 @@ public class Scenario implements Callable<Scenario>, Serializable {
     private boolean isDone;
 
     /**
-     * The representative propagator to extract information from in pretty
-     * print.
-     */
-    private Propagator repProp; //representative Propagator
-
-    /**
      * a flag set by the user to toggle whether to save the access of each
      * individual satellite or to release them from memory.
      */
@@ -127,7 +120,7 @@ public class Scenario implements Callable<Scenario>, Serializable {
      * Stores all the accesses of each satellite if saveAllAccesses is true.
      */
     private HashMap<CoverageDefinition, HashMap<Satellite, HashMap<CoveragePoint, TimeIntervalArray>>> allAccesses;
-    
+
     /**
      * the number of threads to use in parallel processing
      */
@@ -137,11 +130,11 @@ public class Scenario implements Callable<Scenario>, Serializable {
      * Collection of future tasks to propagate
      */
     private final ArrayList<Future<PropagateTask>> futureTasks;
-    
+
     /**
      * Object to merge the access from several satellite propagations
      */
-    private CoverageAccessMerger accessMerger;
+    private final CoverageAccessMerger accessMerger;
 
     /**
      * Creates a new scenario.
@@ -181,8 +174,9 @@ public class Scenario implements Callable<Scenario>, Serializable {
         this.finalAccesses = new HashMap();
 
         this.isDone = false;
-        
+
         this.numThreads = numThreads;
+        this.accessMerger = new CoverageAccessMerger();
 
         this.futureTasks = new ArrayList<>();
     }
@@ -227,7 +221,7 @@ public class Scenario implements Callable<Scenario>, Serializable {
             for (CoverageDefinition cdef : covDefs) {
                 System.out.println(String.format("Acquiring access times for %s...", cdef));
                 if (saveAllAccesses) {
-                    allAccesses.put(cdef, new HashMap<>());
+                    allAccesses.put(cdef, new HashMap());
                 }
 
                 //propogate each satellite individually
@@ -249,6 +243,7 @@ public class Scenario implements Callable<Scenario>, Serializable {
                                 satAccesses.put(pt, task.getResults().get(pt));
                             }
                         } catch (InterruptedException | ExecutionException ex) {
+                            System.err.println(ex);
                             Logger.getLogger(Scenario.class.getName()).log(Level.SEVERE, null, ex);
                         }
                     }
@@ -260,8 +255,13 @@ public class Scenario implements Callable<Scenario>, Serializable {
                     }
 
                     //merge the time accesses across all satellite for each coverage definition
-                    HashMap<CoveragePoint, TimeIntervalArray> mergedAccesses = accessMerger.mergeCoverageDefinitionAccesses(finalAccesses.get(cdef), satAccesses, false);
-                    finalAccesses.put(cdef, mergedAccesses);
+                    if (finalAccesses.containsKey(cdef)) {
+                        HashMap<CoveragePoint, TimeIntervalArray> mergedAccesses
+                                = accessMerger.mergeCoverageDefinitionAccesses(finalAccesses.get(cdef), satAccesses, false);
+                        finalAccesses.put(cdef, mergedAccesses);
+                    } else {
+                        finalAccesses.put(cdef, satAccesses);
+                    }
                 }
             }
 
@@ -289,7 +289,7 @@ public class Scenario implements Callable<Scenario>, Serializable {
         } else {
             //TODO implement map coloring to efficiently distribute points
             for (int i = 0; i < numDivisions; i++) {
-                out.add(new ArrayList<>());
+                out.add(new ArrayList());
             }
             int i = 0;
             for (CoveragePoint pt : cdef.getPoints()) {
@@ -326,6 +326,14 @@ public class Scenario implements Callable<Scenario>, Serializable {
     }
 
     /**
+     * Gets the list of coverage definitions assigned to this scenario
+     * @return 
+     */
+    public HashSet<CoverageDefinition> getCoverageDefinitions() {
+        return covDefs;
+    }
+
+    /**
      * Adds a coverage definition to the scenario
      *
      * @param covDef
@@ -335,7 +343,7 @@ public class Scenario implements Callable<Scenario>, Serializable {
     public boolean addCoverageDefinition(CoverageDefinition covDef) {
         boolean newConstel = covDefs.add(covDef);
         if (newConstel) {
-            uniqueSatsAssignedToCovDef.put(covDef, new HashSet<>());
+            uniqueSatsAssignedToCovDef.put(covDef, new HashSet());
             for (Constellation constel : covDef.getConstellations()) {
                 uniqueConstellations.add(constel);
                 for (Satellite satellite : constel.getSatellites()) {

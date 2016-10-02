@@ -71,14 +71,14 @@ public class CoverageAnalyzer {
         pointsAtLatitude = new HashMap<>();
 
         for (CoveragePoint pt : coverageDefinitionAccesses.keySet()) {
-            accessesPerPoint.put(pt, new DescriptiveStatistics(coverageDefinitionAccesses.get(pt).numIntervals()));
-            gapsPerPoint.put(pt, new DescriptiveStatistics(coverageDefinitionAccesses.get(pt).numIntervals()));
+            accessesPerPoint.put(pt, new DescriptiveStatistics());
+            gapsPerPoint.put(pt, new DescriptiveStatistics());
 
             double latitude = pt.getPoint().getLatitude();
             if (!accessesPerLatitude.containsKey(latitude)) {
                 accessesPerLatitude.put(pt.getPoint().getLatitude(), new DescriptiveStatistics());
                 gapsPerLatitude.put(pt.getPoint().getLatitude(), new DescriptiveStatistics());
-                pointsAtLatitude.put(pt.getPoint().getLatitude(), new ArrayList<>());
+                pointsAtLatitude.put(pt.getPoint().getLatitude(), new ArrayList());
             }
 
             for (Double duration : coverageDefinitionAccesses.get(pt).getDurations()) {
@@ -294,8 +294,8 @@ public class CoverageAnalyzer {
      * @return
      */
     public double[] getCDFAccess() {
-        double[] out = new double[100];
-        for (int i = 0; i < 100; i++) {
+        double[] out = new double[99];
+        for (int i = 1; i < 99; i++) {
             out[i] = accessStats.getPercentile(i);
         }
         return out;
@@ -310,8 +310,8 @@ public class CoverageAnalyzer {
      */
     public double[] getCDFAccess(CoveragePoint pt) {
         if (accessesPerPoint.containsKey(pt)) {
-            double[] out = new double[100];
-            for (int i = 0; i < 100; i++) {
+            double[] out = new double[99];
+            for (int i = 1; i < 99; i++) {
                 out[i] = accessesPerPoint.get(pt).getPercentile(i);
             }
             return out;
@@ -328,8 +328,8 @@ public class CoverageAnalyzer {
      */
     public double[] getCDFAccess(double latitude) {
         if (accessesPerLatitude.containsKey(latitude)) {
-            double[] out = new double[100];
-            for (int i = 0; i < 100; i++) {
+            double[] out = new double[99];
+            for (int i = 1; i < 99; i++) {
                 out[i] = accessesPerLatitude.get(latitude).getPercentile(i);
             }
             return out;
@@ -625,8 +625,8 @@ public class CoverageAnalyzer {
      * @return
      */
     public double[] getCDFGap() {
-        double[] out = new double[100];
-        for (int i = 0; i < 100; i++) {
+        double[] out = new double[99];
+        for (int i = 1; i < 99; i++) {
             out[i] = accessStats.getPercentile(i);
         }
         return out;
@@ -642,8 +642,8 @@ public class CoverageAnalyzer {
      */
     public double[] getCDFGap(CoveragePoint pt) {
         if (gapsPerPoint.containsKey(pt)) {
-            double[] out = new double[100];
-            for (int i = 0; i < 100; i++) {
+            double[] out = new double[99];
+            for (int i = 1; i < 99; i++) {
                 out[i] = gapsPerPoint.get(pt).getPercentile(i);
             }
             return out;
@@ -662,8 +662,8 @@ public class CoverageAnalyzer {
      */
     public double[] getCDFGap(double latitude) {
         if (gapsPerLatitude.containsKey(latitude)) {
-            double[] out = new double[100];
-            for (int i = 0; i < 100; i++) {
+            double[] out = new double[99];
+            for (int i = 1; i < 99; i++) {
                 out[i] = gapsPerLatitude.get(latitude).getPercentile(i);
             }
             return out;

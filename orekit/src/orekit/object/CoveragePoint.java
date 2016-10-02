@@ -108,4 +108,22 @@ public class CoveragePoint extends TopocentricFrame implements OrekitObject, Com
                 return 0;
         }
     }
+
+    @Override
+    public int hashCode() {
+        return this.getPoint().hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final CoveragePoint other = (CoveragePoint) obj;
+        return this.getPoint().equals(other.getPoint());
+    }
+    
 }

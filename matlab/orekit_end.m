@@ -6,7 +6,7 @@ function orekit_end()
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 jarFile1 = ['.',filesep,'orekit',filesep,'dist',filesep,'orekit.jar'];
 jarFile2 = ['.',filesep,'orekit',filesep,'dist',filesep,'lib',filesep,'orekit-8.0.jar'];
-jarFile3 = ['.',filesep,'orekit',filesep,'dist',filesep,'lib',filesep,'hipparchus-geometry-1.0'];
+jarFile3 = ['.',filesep,'orekit',filesep,'dist',filesep,'lib',filesep,'hipparchus-geometry-1.0.jar'];
 tmp = javaclasspath;
 javaclasspathadded1 = false;
 javaclasspathadded2 = false;
@@ -35,5 +35,5 @@ if javaclasspathadded2
     javaarmpath(['.',filesep,'orekit',filesep,'dist',filesep,'lib',filesep,'orekit-8.0.jar']);
 end
 if javaclasspathadded3
-    javaarmpath(['.',filesep,'orekit',filesep,'dist',filesep,'lib',filesep,'orekit-8.0.jar']);
+    javaarmpath(['.',filesep,'orekit',filesep,'dist',filesep,'lib',filesep,'hipparchus-geometry-1.0.jar']);
 end
