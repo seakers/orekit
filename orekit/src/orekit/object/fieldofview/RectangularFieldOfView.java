@@ -35,7 +35,7 @@ public class RectangularFieldOfView extends CustomFieldOfView {
      * @param acrossTrackHalfAperture FOV half aperture angle in the across-track direction,
      * must be less than π/2, i.e. full dihedra must be smaller then
      * an hemisphere
-     * @param alongTrackHalfAperture FFOV half aperture angle in the along-track direction,
+     * @param alongTrackHalfAperture FOV half aperture angle in the along-track direction,
      * must be less than π/2, i.e. full dihedra must be smaller then
      * an hemisphere
      * @param margin angular margin to apply to the zone (if positive,

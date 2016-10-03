@@ -26,6 +26,7 @@ import org.hipparchus.stat.descriptive.DescriptiveStatistics;
 import org.hipparchus.util.FastMath;
 import org.orekit.attitudes.NadirPointing;
 import org.orekit.bodies.BodyShape;
+import org.orekit.bodies.GeodeticPoint;
 import org.orekit.bodies.OneAxisEllipsoid;
 import org.orekit.errors.OrekitException;
 import org.orekit.frames.Frame;
@@ -93,8 +94,6 @@ public class Orekit {
         Satellite sat1 = new Satellite("sat1", initialOrbit1, nadPoint);
         RectangularFieldOfView fov_rect = new RectangularFieldOfView(Vector3D.PLUS_K, 
                 FastMath.toRadians(80), FastMath.toRadians(45), 0);
-        SimpleConicalFieldOfView fov_cone = new SimpleConicalFieldOfView(Vector3D.PLUS_K,
-                FastMath.toRadians(45));
         Instrument view1 = new Instrument("view1", fov_rect);
         sat1.addInstrument(view1);
 
@@ -103,11 +102,11 @@ public class Orekit {
 
         Constellation constel1 = new Constellation("constel1", satGroup1);
 
-//        ArrayList<GeodeticPoint> pts = new ArrayList<>();
+        ArrayList<GeodeticPoint> pts = new ArrayList<>();
 //        pts.add(new GeodeticPoint(FastMath.PI / 2, 0, 0));
 //        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", 20, earthShape, startDate, endDate);
-//        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", pts, earthShape, startDate, endDate);
-        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", STKGRID.getPoints(), earthShape, startDate, endDate);
+        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", pts, earthShape, startDate, endDate);
+//        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", STKGRID.getPoints(), earthShape, startDate, endDate);
 
         covDef1.assignConstellation(constel1);
 
