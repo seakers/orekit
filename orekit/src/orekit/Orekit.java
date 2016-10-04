@@ -8,6 +8,7 @@ package orekit;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
+import orekit.attitude.OscillatingYawSteering;
 import orekit.coverage.access.TimeIntervalArray;
 import orekit.object.Constellation;
 import orekit.object.CoverageDefinition;
@@ -25,6 +26,7 @@ import org.hipparchus.geometry.euclidean.threed.Vector3D;
 import org.hipparchus.stat.descriptive.DescriptiveStatistics;
 import org.hipparchus.util.FastMath;
 import org.orekit.attitudes.NadirPointing;
+import org.orekit.attitudes.SpinStabilized;
 import org.orekit.bodies.BodyShape;
 import org.orekit.bodies.GeodeticPoint;
 import org.orekit.bodies.OneAxisEllipsoid;
@@ -91,7 +93,9 @@ public class Orekit {
         Orbit initialOrbit2 = new KeplerianOrbit(a, e, i, argofperigee, raan, anomaly2, PositionAngle.TRUE, inertialFrame, startDate, mu);
 
         NadirPointing nadPoint = new NadirPointing(inertialFrame, earthShape);
-        Satellite sat1 = new Satellite("sat1", initialOrbit1, nadPoint);
+        OscillatingYawSteering yawSteer = new OscillatingYawSteering(nadPoint, startDate, Vector3D.PLUS_K, FastMath.toRadians(0.1), 0);
+        SpinStabilized spin = new SpinStabilized(nadPoint, startDate, Vector3D.PLUS_K, 0.2);
+        Satellite sat1 = new Satellite("sat1", initialOrbit1, yawSteer);
         RectangularFieldOfView fov_rect = new RectangularFieldOfView(Vector3D.PLUS_K, 
                 FastMath.toRadians(80), FastMath.toRadians(45), 0);
         Instrument view1 = new Instrument("view1", fov_rect);
@@ -103,7 +107,7 @@ public class Orekit {
         Constellation constel1 = new Constellation("constel1", satGroup1);
 
         ArrayList<GeodeticPoint> pts = new ArrayList<>();
-//        pts.add(new GeodeticPoint(FastMath.PI / 2, 0, 0));
+        pts.add(new GeodeticPoint(1.74532925199433e-001, 2.09439510239320e-001, 0));
 //        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", 20, earthShape, startDate, endDate);
         CoverageDefinition covDef1 = new CoverageDefinition("covdef1", pts, earthShape, startDate, endDate);
 //        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", STKGRID.getPoints(), earthShape, startDate, endDate);

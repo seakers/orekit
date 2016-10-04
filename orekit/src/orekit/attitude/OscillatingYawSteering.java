@@ -117,15 +117,13 @@ public class OscillatingYawSteering extends SpinStabilized {
      * @param startDate the start date when oscillating yaw steering shall begin
      * @param axis rotation axis in satellite frame
      * @param angularVelocity the angular velocity to rotate in yaw
-     * @param startAngle the angle at which the rotation in yaw should begin. In
-     * radians[-pi, pi]
      * @param offsetAngle the angle at which the spacecraft is initially offset
      * in yaw. In radians[-pi, pi]
      * @exception OrekitException if the frame specified is not a
      * pseudo-inertial frame
      * @since 7.1
      */
-    private OscillatingYawSteering(
+    public OscillatingYawSteering(
             final AttitudeProvider nonRotatingLaw,
             final AbsoluteDate startDate,
             final Vector3D axis,
@@ -156,7 +154,7 @@ public class OscillatingYawSteering extends SpinStabilized {
      * pseudo-inertial frame
      * @since 7.1
      */
-    public OscillatingYawSteering(
+    private OscillatingYawSteering(
             final AttitudeProvider nonRotatingLaw,
             final AbsoluteDate startDate,
             final Vector3D axis,
@@ -174,17 +172,17 @@ public class OscillatingYawSteering extends SpinStabilized {
         this.offsetAngle = offsetAngle;
         this.isUnidirectional = isUnidirectional;
 
-        if (startAngle < FastMath.PI || startAngle > FastMath.PI) {
+        if (startAngle < -FastMath.PI || startAngle > FastMath.PI) {
             throw new IllegalArgumentException(String.format("Start angle must be between -PI and PI. Found %f", startAngle));
         }
-        if (endAngle < FastMath.PI || endAngle > 2 * FastMath.PI) {
+        if (endAngle < -FastMath.PI || endAngle > 2 * FastMath.PI) {
             throw new IllegalArgumentException(String.format("End angle must be between -PI and PI. Found %f", endAngle));
         }
         if(startAngle - endAngle < 0){
             throw new IllegalArgumentException(String.format("Start angle must be larger than end angle. Found startAngle = %f and endAngle = %f", startAngle, endAngle));
         }
         
-        if (offsetAngle < FastMath.PI || offsetAngle > 2 * FastMath.PI) {
+        if (offsetAngle < -FastMath.PI || offsetAngle > 2 * FastMath.PI) {
             throw new IllegalArgumentException(String.format("Offset angle must be between -PI and PI. Found %f", offsetAngle));
         }
     }
@@ -238,7 +236,7 @@ public class OscillatingYawSteering extends SpinStabilized {
         
         // add compensation
         return new Attitude(date, frame, combined.getRotation(), combined.getRotationRate(), combined.getRotationAcceleration());
-
+        
     }
 
 }
