@@ -228,19 +228,17 @@ public class Scenario implements Callable<Scenario>, Serializable, Cloneable {
                 for (Satellite sat : uniqueSatsAssignedToCovDef.get(cdef)) {
                     HashMap<CoveragePoint, TimeIntervalArray> satAccesses = new HashMap<>(cdef.getNumberOfPoints());
 
-                    for (Collection<CoveragePoint> coveragePoints : subdivideCovDef(cdef, numThreads)) {
-                        //assign future tasks
-                        PropagateTask task = new PropagateTask(sat, endDate, coveragePoints);
-                        futureTasks.add(pool.submit(task));
-                    }
+                    //assign future tasks
+                    PropagateTask task = new PropagateTask(sat, endDate, cdef.getPoints());
+                    futureTasks.add(pool.submit(task));
 
                     //call future tasks and combine accesses from each point into one results object 
                     System.out.println(String.format("Propagating satellite %s to date %s", sat, endDate));
                     for (Future<PropagateTask> run : futureTasks) {
                         try {
-                            PropagateTask task = run.get();
-                            for (CoveragePoint pt : task.getResults().keySet()) {
-                                satAccesses.put(pt, task.getResults().get(pt));
+                            PropagateTask finishedTask = run.get();
+                            for (CoveragePoint pt : finishedTask.getResults().keySet()) {
+                                satAccesses.put(pt, finishedTask.getResults().get(pt));
                             }
                         } catch (InterruptedException | ExecutionException ex) {
                             System.err.println(ex);
@@ -294,33 +292,6 @@ public class Scenario implements Callable<Scenario>, Serializable, Cloneable {
     }
 
     /**
-     * This method divides the coverage grid into subregions to break up the
-     * simulation in parts. The subregions can be then simulated sequentially or
-     * in parallel
-     *
-     * @param cdef
-     * @param numDivisions
-     * @return
-     */
-    private ArrayList<Collection<CoveragePoint>> subdivideCovDef(CoverageDefinition cdef, int numDivisions) {
-        ArrayList<Collection<CoveragePoint>> out = new ArrayList<>(numDivisions);
-        if (numDivisions == 1) {
-            out.add(cdef.getPoints());
-        } else {
-            //TODO implement map coloring to efficiently distribute points
-            for (int i = 0; i < numDivisions; i++) {
-                out.add(new ArrayList());
-            }
-            int i = 0;
-            for (CoveragePoint pt : cdef.getPoints()) {
-                out.get(FastMath.floorMod(i, numDivisions)).add(pt);
-                i++;
-            }
-        }
-        return out;
-    }
-
-    /**
      * Returns the merged accesses of a given coverage definition after the
      * scenario is finished running
      *
@@ -347,7 +318,8 @@ public class Scenario implements Callable<Scenario>, Serializable, Cloneable {
 
     /**
      * Gets the list of coverage definitions assigned to this scenario
-     * @return 
+     *
+     * @return
      */
     public HashSet<CoverageDefinition> getCoverageDefinitions() {
         return covDefs;
