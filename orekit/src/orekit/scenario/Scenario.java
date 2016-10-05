@@ -200,7 +200,7 @@ public class Scenario implements Callable<Scenario>, Serializable, Cloneable {
             PropagatorFactory propagatorFactory, boolean saveAllAccesses) {
         this(name, startDate, endDate, timeScale, inertialFrame, propagatorFactory, saveAllAccesses, 1);
     }
-
+    
     /**
      * Runs the scenario from the start date to the end date. Running the
      * scenario propagates the orbits of each satellite in the constellation and
@@ -271,24 +271,20 @@ public class Scenario implements Callable<Scenario>, Serializable, Cloneable {
         return this;
     }
 
-    @Override
-        /**
-     * Clones the Scenario. 
-     * @return Scenario cloned
+    /**
+     * Clones everything in the Scenario except the coverage definitions and the
+     * computed accesses
+     *
+     * @return Scenario cloned. The cloned instance is not flagged as run
      * @throws CloneNotSupportedException
      */
-    public Scenario clone() throws CloneNotSupportedException{
-            super.clone();
-            String name=this.scenarioName;
-            AbsoluteDate startDate=this.startDate;
-            AbsoluteDate endDate=this.endDate;
-            TimeScale timeScale= this.timeScale;
-            Frame inertialFrame=this.inertialFrame;
-            PropagatorFactory propFact=this.propagatorFactory;
-            boolean saveAllAccesses=this.saveAllAccesses;
-            int numThreads=this.numThreads;
-            Scenario out=new Scenario(name,startDate,endDate,timeScale,inertialFrame,propFact,saveAllAccesses,numThreads);
-            return out;
+    @Override
+    public Scenario clone() throws CloneNotSupportedException {
+        super.clone();
+        Scenario out = new Scenario(this.scenarioName, this.startDate,
+                this.endDate, this.timeScale, this.inertialFrame,
+                this.propagatorFactory, this.saveAllAccesses, this.numThreads);
+        return out;
     }
 
     /**
@@ -458,23 +454,39 @@ public class Scenario implements Callable<Scenario>, Serializable, Cloneable {
     public AbsoluteDate getEndDate() {
         return endDate;
     }
-    
-    public boolean isDone(){
+
+    /**
+     * Returns the flag that marks the simulation as finished.
+     * @return True if the simulation is done. Else false.
+     */
+    public boolean isDone() {
         return isDone;
     }
-    
-    public boolean isSaveAllAccesses(){
+
+    /**
+     * Returns the flag that marks whether each satellite's accesses should be saved.
+     * @return 
+     */
+    public boolean isSaveAllAccesses() {
         return saveAllAccesses;
     }
-    
-    public HashMap<CoverageDefinition, HashMap<CoveragePoint, TimeIntervalArray>> getFinalAccesses(){
+
+    /**
+     * Returns the computed accesses for each coverage definition by the combination of satellites assigned to that coverage definition
+     * @return 
+     */
+    public HashMap<CoverageDefinition, HashMap<CoveragePoint, TimeIntervalArray>> getFinalAccesses() {
         return finalAccesses;
     }
-    
-    public HashMap<CoverageDefinition, HashMap<Satellite, HashMap<CoveragePoint, TimeIntervalArray>>> getAllAccesses(){
+
+    /**
+     * Returns the computed accesses for each coverage definition by each of the satellites assigned to that coverage definition
+     * @return 
+     */
+    public HashMap<CoverageDefinition, HashMap<Satellite, HashMap<CoveragePoint, TimeIntervalArray>>> getAllAccesses() {
         return allAccesses;
     }
-    
+
     @Override
     public String toString() {
         return "Scenario{" + "scenarioName=" + scenarioName + ", startDate=" + startDate + ", endDate= " + endDate + '}';
