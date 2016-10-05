@@ -43,7 +43,7 @@ import org.orekit.time.TimeScale;
  *
  * @author nozomihitomi
  */
-public class Scenario implements Callable<Scenario>, Serializable {
+public class Scenario implements Callable<Scenario>, Serializable, Cloneable {
 
     private static final long serialVersionUID = 8350171762084530278L;
 
@@ -273,6 +273,26 @@ public class Scenario implements Callable<Scenario>, Serializable {
         return this;
     }
 
+    @Override
+        /**
+     * Clones the Scenario. 
+     * @return Scenario cloned
+     * @throws CloneNotSupportedException
+     */
+    public Scenario clone() throws CloneNotSupportedException{
+            super.clone();
+            String name=this.scenarioName;
+            AbsoluteDate startDate=this.startDate;
+            AbsoluteDate endDate=this.endDate;
+            TimeScale timeScale= this.timeScale;
+            Frame inertialFrame=this.inertialFrame;
+            PropagatorFactory propFact=this.propagatorFactory;
+            boolean saveAllAccesses=this.saveAllAccesses;
+            int numThreads=this.numThreads;
+            Scenario out=new Scenario(name,startDate,endDate,timeScale,inertialFrame,propFact,saveAllAccesses,numThreads);
+            return out;
+    }
+
     /**
      * This method divides the coverage grid into subregions to break up the
      * simulation in parts. The subregions can be then simulated sequentially or
@@ -466,7 +486,23 @@ public class Scenario implements Callable<Scenario>, Serializable {
     public AbsoluteDate getEndDate() {
         return endDate;
     }
-
+    
+    public boolean isDone(){
+        return isDone;
+    }
+    
+    public boolean isSaveAllAccesses(){
+        return saveAllAccesses;
+    }
+    
+    public HashMap<CoverageDefinition, HashMap<CoveragePoint, TimeIntervalArray>> getFinalAccesses(){
+        return finalAccesses;
+    }
+    
+    public HashMap<CoverageDefinition, HashMap<Satellite, HashMap<CoveragePoint, TimeIntervalArray>>> getAllAccesses(){
+        return allAccesses;
+    }
+    
     @Override
     public String toString() {
         return "Scenario{" + "scenarioName=" + scenarioName + ", startDate=" + startDate + ", endDate= " + endDate + '}';
