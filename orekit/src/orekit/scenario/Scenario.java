@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -286,7 +287,60 @@ public class Scenario implements Callable<Scenario>, Serializable, Cloneable {
                 this.propagatorFactory, this.saveAllAccesses, this.numThreads);
         return out;
     }
+    
+    /**
+     * Merges a collection of subscenarios previously run in parallel into their
+     * parent Scenario
+     *
+     * @param subscenarios the collection of subscenarios that we want to merge
+     * into the parents scenario
+     * @throws java.lang.Exception
+     */
+    public void mergeSubscenarios(Collection<SubScenario> subscenarios) throws Exception{
+        /*
+        Check if all the subscenarios are run and all come from the same Parent Scenario. 
+        Otherwise throw an Exception
+        */
+        
+        for (SubScenario subscenario : subscenarios) {
+            if (!subscenario.isDone()){
+                throw new Exception("The subscenarios are not run yet");
+            }
+            if (!this.isSameScenario(subscenario)){
+                throw new Exception("The subscenarios are from different Parent Scenarios");
+            }
+        }
+        /*
+        For every subscenario, we get its stored Accesses and merge them all in 
+        the Parent Scenario Accesses Hashmap (psa)
+        */
+        HashMap<CoveragePoint,TimeIntervalArray> psa=new HashMap<>();
+        for (SubScenario subscenario : subscenarios) {
+            HashSet<CoverageDefinition> covs=subscenario.getCoverageDefinitions();
+            Iterator iter = covs.iterator();
+            CoverageDefinition c=(CoverageDefinition) iter.next();
+            HashMap<CoveragePoint,TimeIntervalArray> accesses=c.getAccesses();
+            psa.putAll(accesses);     
+        }
+        /*
+        We create a new coverage definition and we add it to the Parent scenario
+        */
+        CoverageDefinition c=new CoverageDefinition(this.scenarioName,psa.keySet());
+        this.addCoverageDefinition(c);
+    }
+    
+        /**
+     * Checks if the parameter Scenario is the same as the one calling 
+     * the method
+     * @param other Scenario to compare
 
+     * @return True if both Scenarios are the same. Else false.
+     */
+    public boolean isSameScenario(Scenario other) {
+        return this.scenarioName.equals(other.scenarioName);
+    }
+    
+   
     /**
      * Returns the merged accesses of a given coverage definition after the
      * scenario is finished running

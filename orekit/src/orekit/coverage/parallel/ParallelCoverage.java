@@ -12,6 +12,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import orekit.coverage.access.CoverageDivider;
 import orekit.object.CoverageDefinition;
 import orekit.scenario.*;
 import org.orekit.errors.OrekitException;
@@ -21,6 +22,14 @@ import org.orekit.errors.OrekitException;
  */
 public class ParallelCoverage {
     
+    /**
+     * Creates ndivisions subscenarios from parent Scenario s to run them in 
+     * parallel
+     * 
+     * @param s Scenario from which we want to create the subscenarios
+     * @param ndivisions Number of subscenarios
+     * @param file File object containing the path to save all the subscenarios
+     */
     public void CreateSubScenarios(Scenario s, int ndivisions, File file){
         /*
         We first get the different coverage definitions included inside the original scenario
@@ -35,11 +44,12 @@ public class ParallelCoverage {
         Iterator iter1 = coverageCollection.iterator();
         int counter=1;
         while (iter1.hasNext()) {
-            Collection<CoverageDefinition> covs=iter1.next().divideCoverageGrid(ndivisions);
+            CoverageDivider covdivider=new CoverageDivider();
+            Collection<CoverageDefinition> covs=covdivider.divide((CoverageDefinition)iter1.next(), ndivisions);
             Iterator iter2=covs.iterator();
             while (iter2.hasNext()){
                 try {
-                    Scenario subscen = s.clone();
+                    SubScenario subscen = (SubScenario) s.clone();
                     subscen.addCoverageDefinition((CoverageDefinition) iter2.next());
                     ScenarioIO.save(file.toPath(), String.format("subscen%d", counter), subscen);
                     counter++;
@@ -51,6 +61,12 @@ public class ParallelCoverage {
         }
     }
     
+    /**
+     * Loads, runs, and saves an Scenario
+     *
+     * @param file File object containing the path of the Scenario we want to run
+     * @param filename String containing the name of the scenario to run
+     */
     public void LoadRunAndSave(File file, String filename){
         /*
         Loads, runs and saves the subscenario stored in filename
