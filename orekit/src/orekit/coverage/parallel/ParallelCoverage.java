@@ -41,17 +41,17 @@ public class ParallelCoverage {
         For each coverage definition of the original scenario, we create ndivisions subscenarios
         and save them
         */
-        Iterator iter1 = coverageCollection.iterator();
+        Iterator<CoverageDefinition> iter1 = coverageCollection.iterator();
         int counter=1;
         while (iter1.hasNext()) {
             CoverageDivider covdivider=new CoverageDivider();
-            Collection<CoverageDefinition> covs=covdivider.divide((CoverageDefinition)iter1.next(), ndivisions);
-            Iterator iter2=covs.iterator();
+            Collection<CoverageDefinition> covs=covdivider.divide(iter1.next(), ndivisions);
+            Iterator<CoverageDefinition> iter2=covs.iterator();
             while (iter2.hasNext()){
                 try {
                     SubScenario subscen = (SubScenario) s.clone();
-                    subscen.addCoverageDefinition((CoverageDefinition) iter2.next());
-                    ScenarioIO.save(file.toPath(), String.format("subscen%d", counter), subscen);
+                    subscen.addCoverageDefinition(iter2.next());
+                    ScenarioIO.save(file.toPath(), String.format(s.getName()+ "_subscen%d", counter), subscen);
                     counter++;
                 } catch (CloneNotSupportedException ex) {
                     Logger.getLogger(ParallelCoverage.class.getName()).log(Level.SEVERE, null, ex);

@@ -126,6 +126,10 @@ public class ScenarioIO {
         System.out.println("Successfully loaded scenario: " + file.toString());
         return scenario;
     }
+    
+    public static SubScenario loadSubScenario(Path path, String filename) {
+        return (SubScenario)load(path,filename);
+    }
 
     public static boolean saveReadMe(Path path, String filename, Scenario scenario) {
         File file = new File(path.toFile(), filename + ".txtore");

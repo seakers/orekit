@@ -504,6 +504,10 @@ public class Scenario implements Callable<Scenario>, Serializable, Cloneable {
     public AbsoluteDate getStartDate() {
         return startDate;
     }
+    
+    public String getName(){
+        return scenarioName;
+    }
 
     public AbsoluteDate getEndDate() {
         return endDate;
