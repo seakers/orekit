@@ -144,12 +144,16 @@ for exp_i = 1:size(experiments, 1)
             
             %save Parent Scenario with meaningful filename
             orekit.scenario.ScenarioIO.save(java.io.File(savepath).toPath, filename, scen);
+            covDef=scen.getCoveragedefinition([scen.getName(),'_final']);
+            access_collection.add(scen.getMergedAccesses(covDef));
+            
         else
             scen = orekit.scenario.ScenarioIO.load(java.io.File(savepath).toPath, strcat(filename,'.ore'));
-            covDef = scen.getCoverageDefinitions.iterator.next;
+            covDef = scen.getCoveragedefinition([scen.getName(),'_final']);
+            access_collection.add(scen.getMergedAccesses(covDef));
         end
         
-        access_collection.add(scen.getMergedAccesses(scen.getCoveragedefinition([scen.getName(),'_final'])));
+        
     end
     
     %compute metrics of the overall constellation
