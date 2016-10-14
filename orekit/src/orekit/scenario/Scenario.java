@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -43,7 +45,7 @@ import org.orekit.time.TimeScale;
  *
  * @author nozomihitomi
  */
-public class Scenario implements Callable<Scenario>, Serializable {
+public class Scenario implements Callable<Scenario>, Serializable, Cloneable {
 
     private static final long serialVersionUID = 8350171762084530278L;
 
@@ -200,7 +202,7 @@ public class Scenario implements Callable<Scenario>, Serializable {
             PropagatorFactory propagatorFactory, boolean saveAllAccesses) {
         this(name, startDate, endDate, timeScale, inertialFrame, propagatorFactory, saveAllAccesses, 1);
     }
-
+    
     /**
      * Runs the scenario from the start date to the end date. Running the
      * scenario propagates the orbits of each satellite in the constellation and
@@ -272,6 +274,75 @@ public class Scenario implements Callable<Scenario>, Serializable {
     }
 
     /**
+     * Clones everything in the Scenario except the coverage definitions and the
+     * computed accesses
+     *
+     * @return Scenario cloned. The cloned instance is not flagged as run
+     * @throws CloneNotSupportedException
+     */
+    @Override
+    public Scenario clone() throws CloneNotSupportedException {
+        super.clone();
+        Scenario out = new Scenario(this.scenarioName, this.startDate,
+                this.endDate, this.timeScale, this.inertialFrame,
+                this.propagatorFactory, this.saveAllAccesses, this.numThreads);
+        return out;
+    }
+    
+    /**
+     * Merges a collection of subscenarios previously run in parallel into their
+     * parent Scenario
+     *
+     * @param subscenarios the collection of subscenarios that we want to merge
+     * into the parents scenario
+     * @throws java.lang.Exception
+     */
+    public void mergeSubscenarios(Collection<SubScenario> subscenarios) throws Exception{
+        /*
+        Check if all the subscenarios are run and all come from the same Parent Scenario. 
+        Otherwise throw an Exception
+        */
+        
+        for (SubScenario subscenario : subscenarios) {
+            if (!subscenario.isDone()){
+                throw new Exception("The subscenarios are not run yet");
+            }
+            if (!this.isSubScenario(subscenario)){
+                throw new Exception("The subscenarios are from different Parent Scenarios");
+            }
+        }
+        /*
+        For every subscenario, we get its stored Accesses and merge them all in 
+        the Parent Scenario Accesses Hashmap (psa)
+        */
+        HashMap<CoveragePoint,TimeIntervalArray> psa=new HashMap<>();
+        for (SubScenario subscenario : subscenarios) {
+            HashSet<CoverageDefinition> covs=subscenario.getCoverageDefinitions();
+            Iterator iter = covs.iterator();
+            CoverageDefinition c=(CoverageDefinition) iter.next();
+            HashMap<CoveragePoint,TimeIntervalArray> accesses=c.getAccesses();
+            psa.putAll(accesses);     
+        }
+        /*
+        We create a new coverage definition and we add it to the Parent scenario
+        */
+        CoverageDefinition c=new CoverageDefinition(this.scenarioName + "_final",psa.keySet());
+        c.assignToConstellations(subscenarios.iterator().next().getUniqueConstellations());
+        this.addCoverageDefinition(c);
+    }
+    
+        /**
+     * Checks if the parameter SubScenario comes from this scenario
+     * @param sub SubScenario to check
+
+     * @return True if SubScenario comes from this Scenario. Else false.
+     */
+    public boolean isSubScenario(SubScenario sub) {
+        return this.hashCode()==sub.getParentScenarioHash();
+    }
+    
+   
+    /**
      * Returns the merged accesses of a given coverage definition after the
      * scenario is finished running
      *
@@ -303,6 +374,32 @@ public class Scenario implements Callable<Scenario>, Serializable {
      */
     public HashSet<CoverageDefinition> getCoverageDefinitions() {
         return covDefs;
+    }
+
+    /**
+     * Gets the unique constellations that are simulated in this scenario
+     * @return 
+     */
+    public HashSet<Constellation> getUniqueConstellations() {
+        return uniqueConstellations;
+    }
+    
+    
+    /**
+     * Gets the coverage definition specified by a name
+     *
+     * @param name of the CoverageDefinition we want to get
+     * @return
+     */
+    public CoverageDefinition getCoverageDefinition(String name) {
+        Iterator<CoverageDefinition> i=this.covDefs.iterator();
+        while(i.hasNext()){
+            CoverageDefinition c=i.next();
+            if(c.getName().equals(name)){
+                return c;
+            }
+        }
+        return null;
     }
 
     /**
@@ -434,15 +531,135 @@ public class Scenario implements Callable<Scenario>, Serializable {
     public AbsoluteDate getStartDate() {
         return startDate;
     }
+    
+    public String getName(){
+        return scenarioName;
+    }
 
     public AbsoluteDate getEndDate() {
         return endDate;
     }
 
+    /**
+     * Returns the flag that marks the simulation as finished.
+     * @return True if the simulation is done. Else false.
+     */
+    public boolean isDone() {
+        return isDone;
+    }
+
+    /**
+     * Returns the flag that marks whether each satellite's accesses should be saved.
+     * @return 
+     */
+    public boolean isSaveAllAccesses() {
+        return saveAllAccesses;
+    }
+
+    /**
+     * Returns the computed accesses for each coverage definition by the combination of satellites assigned to that coverage definition
+     * @return 
+     */
+    public HashMap<CoverageDefinition, HashMap<CoveragePoint, TimeIntervalArray>> getFinalAccesses() {
+        return finalAccesses;
+    }
+
+    /**
+     * Returns the computed accesses for each coverage definition by each of the satellites assigned to that coverage definition
+     * @return 
+     */
+    public HashMap<CoverageDefinition, HashMap<Satellite, HashMap<CoveragePoint, TimeIntervalArray>>> getAllAccesses() {
+        return allAccesses;
+    }
+
+    /**
+     * Gets the timescale (e.g. UTC)
+     * @return 
+     */
+    public TimeScale getTimeScale() {
+        return timeScale;
+    }
+
+    /**
+     * Returns the inertial frame used in this scenario
+     * @return 
+     */
+    public Frame getFrame() {
+        return inertialFrame;
+    }
+
+    /**
+     * Gets the propagator factory used to create new propagators for this scenario
+     * @return 
+     */
+    public PropagatorFactory getPropagatorFactory() {
+        return propagatorFactory;
+    }
+    
     @Override
     public String toString() {
         return "Scenario{" + "scenarioName=" + scenarioName + ", startDate=" + startDate + ", endDate= " + endDate + '}';
     }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 47 * hash + Objects.hashCode(this.scenarioName);
+        hash = 47 * hash + Objects.hashCode(this.timeScale);
+        hash = 47 * hash + Objects.hashCode(this.startDate);
+        hash = 47 * hash + Objects.hashCode(this.endDate);
+        hash = 47 * hash + Objects.hashCode(this.inertialFrame);
+        hash = 47 * hash + Objects.hashCode(this.propagatorFactory);
+        hash = 47 * hash + Objects.hashCode(this.uniqueConstellations);
+        hash = 47 * hash + Objects.hashCode(this.uniqueSatsAssignedToCovDef);
+        hash = 47 * hash + Objects.hashCode(this.uniqueSatellites);
+        hash = 47 * hash + Objects.hashCode(this.covDefs);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final Scenario other = (Scenario) obj;
+        if (!Objects.equals(this.scenarioName, other.scenarioName)) {
+            return false;
+        }
+        if (!Objects.equals(this.timeScale, other.timeScale)) {
+            return false;
+        }
+        if (!Objects.equals(this.startDate, other.startDate)) {
+            return false;
+        }
+        if (!Objects.equals(this.endDate, other.endDate)) {
+            return false;
+        }
+        if (!Objects.equals(this.inertialFrame, other.inertialFrame)) {
+            return false;
+        }
+        if (!Objects.equals(this.propagatorFactory, other.propagatorFactory)) {
+            return false;
+        }
+        if (!Objects.equals(this.uniqueConstellations, other.uniqueConstellations)) {
+            return false;
+        }
+        if (!Objects.equals(this.uniqueSatsAssignedToCovDef, other.uniqueSatsAssignedToCovDef)) {
+            return false;
+        }
+        if (!Objects.equals(this.uniqueSatellites, other.uniqueSatellites)) {
+            return false;
+        }
+        if (!Objects.equals(this.covDefs, other.covDefs)) {
+            return false;
+        }
+        return true;
+    }
+    
+    
 
     /**
      * This class is the task to parallelize within the scenario. It propagates

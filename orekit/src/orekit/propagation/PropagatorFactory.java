@@ -6,18 +6,14 @@
 package orekit.propagation;
 
 import java.io.Serializable;
-import org.orekit.attitudes.AttitudeProvider;
 import org.orekit.errors.OrekitException;
 import org.orekit.orbits.Orbit;
 import org.orekit.orbits.OrbitType;
 import org.orekit.propagation.Propagator;
-import org.orekit.propagation.SpacecraftState;
 import org.orekit.propagation.analytical.EcksteinHechlerPropagator;
-import org.orekit.propagation.analytical.J2DifferentialEffect;
 import org.orekit.propagation.analytical.KeplerianPropagator;
 import org.orekit.propagation.analytical.tle.SGP4;
 import org.orekit.propagation.analytical.tle.TLE;
-import org.orekit.propagation.analytical.tle.TLEPropagator;
 import org.orekit.utils.Constants;
 
 /**
@@ -33,12 +29,10 @@ public class PropagatorFactory implements Serializable {
     private static final long serialVersionUID = -1149749257521567681L;
 
     private final PropagatorType propType;
-    private final Orbit template;
     private final OrbitType orbitType;
 
     public PropagatorFactory(PropagatorType propType, Orbit template) {
         this.propType = propType;
-        this.template = template;
         this.orbitType = template.getType();
     }
 

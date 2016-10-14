@@ -9,12 +9,9 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.hipparchus.util.FastMath;
-import org.orekit.attitudes.Attitude;
 import org.orekit.attitudes.AttitudeProvider;
 import org.orekit.errors.OrekitException;
 import org.orekit.orbits.Orbit;
-import org.orekit.orbits.OrbitType;
 import org.orekit.orbits.PositionAngle;
 import org.orekit.propagation.Propagator;
 import org.orekit.utils.ParameterDriver;
@@ -36,26 +33,53 @@ public class Satellite implements OrekitObject, Serializable {
     private final Orbit orbit;
     private final String name;
     private final AttitudeProvider attProv;
-    
+
     /**
      * Original wet mass of the satellite
      */
     private final double wetMass;
-    
+
     /**
      * Original dry mass of the satellite
      */
     private final double dryMass;
-    
+
     /**
      * Original gross mass of the satellite
      */
     private final double grossMass;
-    
+
+    /**
+     * Constructor for new satellite instance with no attitude control and
+     * default wet mass and default dry mass
+     *
+     * @param name satellite name
+     * @param orbit initial orbit to position satellite
+     */
+    public Satellite(String name, Orbit orbit) {
+        this(name, orbit, null, Propagator.DEFAULT_MASS, Propagator.DEFAULT_MASS);
+    }
+
+    /**
+     * Constructor for new satellite instance with default wet mass and default
+     * dry mass
+     *
+     * @param name satellite name
+     * @param orbit initial orbit to position satellite
+     * @param attProv the attitude control law
+     */
     public Satellite(String name, Orbit orbit, AttitudeProvider attProv) {
         this(name, orbit, attProv, Propagator.DEFAULT_MASS, Propagator.DEFAULT_MASS);
     }
 
+    /**
+     * Constructor for new satellite instance with specified wet mass and
+     * default dry mass
+     *
+     * @param name satellite name
+     * @param orbit initial orbit to position satellite
+     * @param attProv the attitude control law
+     */
     public Satellite(String name, Orbit orbit, AttitudeProvider attProv, double wetMass, double dryMass) {
         this.orbit = orbit;
         this.name = name;
@@ -97,7 +121,6 @@ public class Satellite implements OrekitObject, Serializable {
     public double getGrossMass() {
         return grossMass;
     }
-    
 
     public String ppOrbit() {
         String out = "";
@@ -110,8 +133,8 @@ public class Satellite implements OrekitObject, Serializable {
 
             //print out calculations are based on javadoc provided by EquinoctialOrbit class
             int i = 0;
-            for(ParameterDriver param : paramsList.getDrivers()){
-                out += String.format("%s: %f\t",param.getName(),orbParams[i]);
+            for (ParameterDriver param : paramsList.getDrivers()) {
+                out += String.format("%s: %f\t", param.getName(), orbParams[i]);
                 i++;
             }
         } catch (OrekitException ex) {
@@ -120,10 +143,10 @@ public class Satellite implements OrekitObject, Serializable {
 
         return out;
     }
-    
+
     public String ppPayload() {
         String out = "{";
-        for(Instrument inst : payload){
+        for (Instrument inst : payload) {
             out += inst.getName() + ",";
         }
         out += "}";
@@ -134,5 +157,5 @@ public class Satellite implements OrekitObject, Serializable {
     public String toString() {
         return "Satellite{" + "payload=" + payload + ", orbit=" + orbit + ", name=" + name + ", attProv=" + attProv + ", wetMass=" + wetMass + ", dryMass=" + dryMass + ", grossMass=" + grossMass + '}';
     }
-    
+
 }

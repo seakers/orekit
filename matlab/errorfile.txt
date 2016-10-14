@@ -1,0 +1,55 @@
+>> cd ../..
+>> cd Nozomi\OREKIT\
+>> results = scenario_builder_Parallel('C:\Users\SEAK1\Nozomi\OREKIT\testing','test');
+Coverage Grid 'covdef' has 100 points
+Saved scenario in C:\Users\SEAK1\Nozomi\OREKIT\testing\test_subscen1.ore
+Saved scenario in C:\Users\SEAK1\Nozomi\OREKIT\testing\test_subscen2.ore
+Saved scenario in C:\Users\SEAK1\Nozomi\OREKIT\testing\test_subscen3.ore
+Saved scenario in C:\Users\SEAK1\Nozomi\OREKIT\testing\test_subscen4.ore
+Successfully loaded scenario: C:\Users\SEAK1\Nozomi\OREKIT\testing\test_subscen1.ore
+Running scenario: SubScenario{scenarioName=test_subscen1, startDate=2016-01-01T16:00:00.000, endDate= 2016-01-02T16:00:00.000}...
+Acquiring access times for CoverageDefinition{name=covdef_i, number of points=25}...
+Propagating satellite Satellite{payload=[Instrument{Name=view1RectangularFieldOfView{ HalfAngle1=0.9948376736367679, HalfAngle2=0.04363323129985824}], orbit=keplerian parameters: {a: 6878137.0; e: 0.0; i: 1718.8733853924696; pa: 0.0; raan: 0.0; v: 0.0;}, name=sat1, attProv=null, wetMass=1000.0, dryMass=1000.0, grossMass=2000.0} to date 2016-01-02T16:00:00.000
+Finished simulating SubScenario{scenarioName=test_subscen1, startDate=2016-01-01T16:00:00.000, endDate= 2016-01-02T16:00:00.000}...
+Saved scenario in C:\Users\SEAK1\Nozomi\OREKIT\testing\test_subscen1.ore
+Successfully loaded scenario: C:\Users\SEAK1\Nozomi\OREKIT\testing\test_subscen2.ore
+Running scenario: SubScenario{scenarioName=test_subscen2, startDate=2016-01-01T16:00:00.000, endDate= 2016-01-02T16:00:00.000}...
+Acquiring access times for CoverageDefinition{name=covdef_i, number of points=25}...
+Propagating satellite Satellite{payload=[Instrument{Name=view1RectangularFieldOfView{ HalfAngle1=0.9948376736367679, HalfAngle2=0.04363323129985824}], orbit=keplerian parameters: {a: 6878137.0; e: 0.0; i: 1718.8733853924696; pa: 0.0; raan: 0.0; v: 0.0;}, name=sat1, attProv=null, wetMass=1000.0, dryMass=1000.0, grossMass=2000.0} to date 2016-01-02T16:00:00.000
+Finished simulating SubScenario{scenarioName=test_subscen2, startDate=2016-01-01T16:00:00.000, endDate= 2016-01-02T16:00:00.000}...
+Saved scenario in C:\Users\SEAK1\Nozomi\OREKIT\testing\test_subscen2.ore
+Successfully loaded scenario: C:\Users\SEAK1\Nozomi\OREKIT\testing\test_subscen3.ore
+Running scenario: SubScenario{scenarioName=test_subscen3, startDate=2016-01-01T16:00:00.000, endDate= 2016-01-02T16:00:00.000}...
+Acquiring access times for CoverageDefinition{name=covdef_i, number of points=25}...
+Propagating satellite Satellite{payload=[Instrument{Name=view1RectangularFieldOfView{ HalfAngle1=0.9948376736367679, HalfAngle2=0.04363323129985824}], orbit=keplerian parameters: {a: 6878137.0; e: 0.0; i: 1718.8733853924696; pa: 0.0; raan: 0.0; v: 0.0;}, name=sat1, attProv=null, wetMass=1000.0, dryMass=1000.0, grossMass=2000.0} to date 2016-01-02T16:00:00.000
+Finished simulating SubScenario{scenarioName=test_subscen3, startDate=2016-01-01T16:00:00.000, endDate= 2016-01-02T16:00:00.000}...
+Saved scenario in C:\Users\SEAK1\Nozomi\OREKIT\testing\test_subscen3.ore
+Successfully loaded scenario: C:\Users\SEAK1\Nozomi\OREKIT\testing\test_subscen4.ore
+Running scenario: SubScenario{scenarioName=test_subscen4, startDate=2016-01-01T16:00:00.000, endDate= 2016-01-02T16:00:00.000}...
+Acquiring access times for CoverageDefinition{name=covdef_i, number of points=25}...
+Propagating satellite Satellite{payload=[Instrument{Name=view1RectangularFieldOfView{ HalfAngle1=0.9948376736367679, HalfAngle2=0.04363323129985824}], orbit=keplerian parameters: {a: 6878137.0; e: 0.0; i: 1718.8733853924696; pa: 0.0; raan: 0.0; v: 0.0;}, name=sat1, attProv=null, wetMass=1000.0, dryMass=1000.0, grossMass=2000.0} to date 2016-01-02T16:00:00.000
+Finished simulating SubScenario{scenarioName=test_subscen4, startDate=2016-01-01T16:00:00.000, endDate= 2016-01-02T16:00:00.000}...
+Saved scenario in C:\Users\SEAK1\Nozomi\OREKIT\testing\test_subscen4.ore
+Successfully loaded scenario: C:\Users\SEAK1\Nozomi\OREKIT\testing\test_subscen1.ore
+Successfully loaded scenario: C:\Users\SEAK1\Nozomi\OREKIT\testing\test_subscen2.ore
+Successfully loaded scenario: C:\Users\SEAK1\Nozomi\OREKIT\testing\test_subscen3.ore
+Successfully loaded scenario: C:\Users\SEAK1\Nozomi\OREKIT\testing\test_subscen4.ore
+Saved scenario in C:\Users\SEAK1\Nozomi\OREKIT\testing\a6878137.000_e0.000_i30.000_w0.000_o0.000_v0.000_fov57.000x2.500_start2016-01-01T16-00-00-000_end2016-01-02T16-00-00-000.ore
+Coverage Grid 'covdef' has 100 points
+Saved scenario in C:\Users\SEAK1\Nozomi\OREKIT\testing\test_subscen1.ore
+Saved scenario in C:\Users\SEAK1\Nozomi\OREKIT\testing\test_subscen2.ore
+Saved scenario in C:\Users\SEAK1\Nozomi\OREKIT\testing\test_subscen3.ore
+Saved scenario in C:\Users\SEAK1\Nozomi\OREKIT\testing\test_subscen4.ore
+Successfully loaded scenario: C:\Users\SEAK1\Nozomi\OREKIT\testing\a6878137.000_e0.000_i30.000_w0.000_o0.000_v0.000_fov57.000x2.500_start2016-01-01T16-00-00-000_end2016-01-02T16-00-00-000.ore
+Error using scenario_builder_Parallel (line 129)
+Java exception occurred:
+java.lang.ClassCastException: orekit.scenario.Scenario cannot be cast to
+orekit.scenario.SubScenario
+
+	at orekit.scenario.ScenarioIO.loadSubScenario(ScenarioIO.java:131)
+
+	at
+    orekit.coverage.parallel.ParallelCoverage.loadRunAndSave(ParallelCoverage.java:80)
+
+ 
+>> 
