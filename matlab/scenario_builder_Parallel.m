@@ -1,4 +1,4 @@
-function results = scenario_builder(savepath, analysis_name)
+function results = scenario_builder_Parallel(savepath, analysis_name)
 %This function searches over a range of orbital parameters for some
 %specified orbits and computes coverage metrics
 
@@ -122,8 +122,8 @@ for exp_i = 1:size(experiments, 1)
             
             %parallelization of the scenario
             parallelCoverage=orekit.coverage.parallel.ParallelCoverage();
-            ncores=4;
-            parallelCoverage.CreateSubScenarios(scen,ncores,java.io.File(savepath).toPath);
+            ndivisions=4;
+            parallelCoverage.CreateSubScenarios(scen,ndivisions,java.io.File(savepath).toPath);
             
             %run each of the subscenarios(need to be improved with future tasks)
             subscenarios=dir('*.ore');
@@ -149,7 +149,7 @@ for exp_i = 1:size(experiments, 1)
             covDef = scen.getCoverageDefinitions.iterator.next;
         end
         
-        access_collection.add(scen.getMergedAccesses(covDef));
+        access_collection.add(scen.getMergedAccesses(scen.getCoveragedefinition([scen.getName(),'_final'])));
     end
     
     %compute metrics of the overall constellation

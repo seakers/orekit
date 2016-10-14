@@ -72,7 +72,7 @@ public class ParallelCoverage {
         Loads, runs and saves the subscenario stored in filename
         */
         try {
-            Scenario s=ScenarioIO.load(file.toPath(), filename);
+            SubScenario s=ScenarioIO.loadSubScenario(file.toPath(), filename);
             s.call();
             ScenarioIO.save(file.toPath(),filename,s);
         } catch (OrekitException ex) {

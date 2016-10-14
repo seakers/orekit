@@ -325,7 +325,7 @@ public class Scenario implements Callable<Scenario>, Serializable, Cloneable {
         /*
         We create a new coverage definition and we add it to the Parent scenario
         */
-        CoverageDefinition c=new CoverageDefinition(this.scenarioName,psa.keySet());
+        CoverageDefinition c=new CoverageDefinition(this.scenarioName + "_final",psa.keySet());
         this.addCoverageDefinition(c);
     }
     
@@ -373,6 +373,23 @@ public class Scenario implements Callable<Scenario>, Serializable, Cloneable {
      */
     public HashSet<CoverageDefinition> getCoverageDefinitions() {
         return covDefs;
+    }
+    
+    /**
+     * Gets the coverage definition specified by a name
+     *
+     * @param name of the CoverageDefinition we want to get
+     * @return
+     */
+    public CoverageDefinition getCoverageDefinition(String name) {
+        Iterator<CoverageDefinition> i=this.covDefs.iterator();
+        while(i.hasNext()){
+            CoverageDefinition c=i.next();
+            if(c.getName().equals(name)){
+                return c;
+            }
+        }
+        return null;
     }
 
     /**
