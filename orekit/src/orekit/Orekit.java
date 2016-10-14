@@ -59,7 +59,8 @@ public class Orekit {
             path = args[0];
             filename = args[1];
         } else {
-            path = "/Users/nozomihitomi/Desktop";
+//            path = "/Users/nozomihitomi/Desktop";
+            path = "C:\\Users\\SEAK1\\Nozomi\\OREKIT\\";
             filename = "rotating";
         }
 
@@ -67,7 +68,7 @@ public class Orekit {
 
         TimeScale utc = TimeScalesFactory.getUTC();
         AbsoluteDate startDate = new AbsoluteDate(2016, 1, 1, 16, 00, 00.000, utc);
-        AbsoluteDate endDate   = new AbsoluteDate(2016, 3, 1, 16, 00, 00.000, utc);
+        AbsoluteDate endDate   = new AbsoluteDate(2016, 1, 8, 16, 00, 00.000, utc);
 
         double mu = Constants.EGM96_EARTH_MU; // gravitation coefficient
         
@@ -102,17 +103,17 @@ public class Orekit {
 
         Constellation constel1 = new Constellation("constel1", satGroup1);
 
-        ArrayList<GeodeticPoint> pts = new ArrayList<>();
+//        ArrayList<GeodeticPoint> pts = new ArrayList<>();
 //        pts.add(new GeodeticPoint(FastMath.PI / 2, 0, 0));
 //        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", 20, earthShape, startDate, endDate);
-        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", pts, earthShape, startDate, endDate);
-//        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", STKGRID.getPoints(), earthShape, startDate, endDate);
+//        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", pts, earthShape, startDate, endDate);
+        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", STKGRID.getPoints(), earthShape, startDate, endDate);
 
         covDef1.assignConstellation(constel1);
 
         PropagatorFactory pf = new PropagatorFactory(PropagatorType.KEPLERIAN, initialOrbit2);
 
-        Scenario scen = new Scenario("test", startDate, endDate, utc, inertialFrame, pf, false, 3);
+        Scenario scen = new Scenario("test", startDate, endDate, utc, inertialFrame, pf, false, 1);
 //        ScenarioStepWise scen = new ScenarioStepWise("test", startDate, endDate, utc, inertialFrame, pf);
 
         scen.addCoverageDefinition(covDef1);
