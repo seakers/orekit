@@ -52,7 +52,9 @@ public class CoverageDivider {
         }
         ArrayList<CoverageDefinition> out =  new ArrayList<>(numDivisions);
         for (int i = 0; i < numDivisions; i++) {
-            out.add(new CoverageDefinition(cdef.getName() + "_i", points.get(i)));
+            CoverageDefinition subDivision = new CoverageDefinition(cdef.getName() + "_i", points.get(i));
+            subDivision.assignToConstellations(cdef.getConstellations());
+            out.add(subDivision);
         }
         return out;
     }

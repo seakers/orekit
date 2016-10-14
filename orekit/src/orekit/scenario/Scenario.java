@@ -562,6 +562,30 @@ public class Scenario implements Callable<Scenario>, Serializable, Cloneable {
         return allAccesses;
     }
 
+    /**
+     * Gets the timescale (e.g. UTC)
+     * @return 
+     */
+    public TimeScale getTimeScale() {
+        return timeScale;
+    }
+
+    /**
+     * Returns the inertial frame used in this scenario
+     * @return 
+     */
+    public Frame getFrame() {
+        return inertialFrame;
+    }
+
+    /**
+     * Gets the propagator factory used to create new propagators for this scenario
+     * @return 
+     */
+    public PropagatorFactory getPropagatorFactory() {
+        return propagatorFactory;
+    }
+    
     @Override
     public String toString() {
         return "Scenario{" + "scenarioName=" + scenarioName + ", startDate=" + startDate + ", endDate= " + endDate + '}';

@@ -16,65 +16,64 @@ import orekit.coverage.access.CoverageDivider;
 import orekit.object.CoverageDefinition;
 import orekit.scenario.*;
 import org.orekit.errors.OrekitException;
+
 /**
  *
  * @author paugarciabuzzi
  */
 public class ParallelCoverage {
-    
+
     /**
-     * Creates ndivisions subscenarios from parent Scenario s to run them in 
+     * Creates ndivisions subscenarios from parent Scenario s to run them in
      * parallel
-     * 
+     *
      * @param s Scenario from which we want to create the subscenarios
      * @param ndivisions Number of subscenarios
      * @param file File object containing the path to save all the subscenarios
      */
-    public void CreateSubScenarios(Scenario s, int ndivisions, File file){
+    public void createSubScenarios(Scenario s, int ndivisions, File file) {
         /*
-        We first get the different coverage definitions included inside the original scenario
-        */
-        HashSet<CoverageDefinition> coverageCollection=s.getCoverageDefinitions();
-        
-        
+         We first get the different coverage definitions included inside the original scenario
+         */
+        HashSet<CoverageDefinition> coverageCollection = s.getCoverageDefinitions();
+
         /*
-        For each coverage definition of the original scenario, we create ndivisions subscenarios
-        and save them
-        */
+         For each coverage definition of the original scenario, we create ndivisions subscenarios
+         and save them
+         */
         Iterator<CoverageDefinition> iter1 = coverageCollection.iterator();
-        int counter=1;
+        int counter = 1;
         while (iter1.hasNext()) {
-            CoverageDivider covdivider=new CoverageDivider();
-            Collection<CoverageDefinition> covs=covdivider.divide(iter1.next(), ndivisions);
-            Iterator<CoverageDefinition> iter2=covs.iterator();
-            while (iter2.hasNext()){
-                try {
-                    SubScenario subscen = (SubScenario) s.clone();
-                    subscen.addCoverageDefinition(iter2.next());
-                    ScenarioIO.save(file.toPath(), String.format(s.getName()+ "_subscen%d", counter), subscen);
-                    counter++;
-                } catch (CloneNotSupportedException ex) {
-                    Logger.getLogger(ParallelCoverage.class.getName()).log(Level.SEVERE, null, ex);
-                }
+            CoverageDivider covdivider = new CoverageDivider();
+            Collection<CoverageDefinition> covs = covdivider.divide(iter1.next(), ndivisions);
+            Iterator<CoverageDefinition> iter2 = covs.iterator();
+            while (iter2.hasNext()) {
+                SubScenario subscen = new SubScenario(s.getName(), s.getStartDate(),
+                        s.getEndDate(), s.getTimeScale(), s.getFrame(),
+                        s.getPropagatorFactory(), s.isSaveAllAccesses());
+                subscen.addCoverageDefinition(iter2.next());
+                ScenarioIO.save(file.toPath(), String.format(s.getName() + "_subscen%d", counter), subscen);
+                counter++;
 
             }
         }
     }
-    
+
     /**
      * Loads, runs, and saves an Scenario
      *
-     * @param file File object containing the path of the Scenario we want to run
+     * @param file File object containing the path of the Scenario we want to
+     * run
      * @param filename String containing the name of the scenario to run
      */
-    public void LoadRunAndSave(File file, String filename){
+    public void loadRunAndSave(File file, String filename) {
         /*
-        Loads, runs and saves the subscenario stored in filename
-        */
+         Loads, runs and saves the subscenario stored in filename
+         */
         try {
-            SubScenario s=ScenarioIO.loadSubScenario(file.toPath(), filename);
+            SubScenario s = ScenarioIO.loadSubScenario(file.toPath(), filename);
             s.call();
-            ScenarioIO.save(file.toPath(),filename,s);
+            ScenarioIO.save(file.toPath(), filename, s);
         } catch (OrekitException ex) {
             Logger.getLogger(ParallelCoverage.class.getName()).log(Level.SEVERE, null, ex);
         }

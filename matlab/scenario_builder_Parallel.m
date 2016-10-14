@@ -123,18 +123,18 @@ for exp_i = 1:size(experiments, 1)
             %parallelization of the scenario
             parallelCoverage=orekit.coverage.parallel.ParallelCoverage();
             ndivisions=4;
-            parallelCoverage.CreateSubScenarios(scen,ndivisions,java.io.File(savepath).toPath);
+            parallelCoverage.createSubScenarios(scen,ndivisions,java.io.File(savepath));
             
             %run each of the subscenarios(need to be improved with future tasks)
-            subscenarios=dir('*.ore');
+            subscenarios=dir(strcat(savepath,filesep,'*.ore'));
             nsubscenarios=size(subscenarios,1);
             for ind=1:nsubscenarios
-                ParallelCoverage.LoadRunAndSave(java.io.File(savepath).toPath,subscenarios(ind).name);
+                parallelCoverage.loadRunAndSave(java.io.File(savepath),subscenarios(ind).name);
             end
             
             %load all run subscenarios and put them in a Collection
-            subscen_collection = java.util.Collection;
-            subscenarios=dir('*.ore');
+            subscen_collection = java.util.ArrayList;
+            subscenarios=dir(strcat(savepath,filesep,'*.ore'));
             nsubscenarios=size(subscenarios,1);
             for ind=1:nsubscenarios
                 subscen_collection.add(orekit.scenario.ScenarioIO.loadSubScenario(java.io.File(savepath).toPath,subscenarios(ind).name));
@@ -144,12 +144,12 @@ for exp_i = 1:size(experiments, 1)
             
             %save Parent Scenario with meaningful filename
             orekit.scenario.ScenarioIO.save(java.io.File(savepath).toPath, filename, scen);
-            covDef=scen.getCoveragedefinition([scen.getName(),'_final']);
+            covDef=scen.getCoverageDefinition([char(scen.getName()),'_final']);
             access_collection.add(scen.getMergedAccesses(covDef));
             
         else
             scen = orekit.scenario.ScenarioIO.load(java.io.File(savepath).toPath, strcat(filename,'.ore'));
-            covDef = scen.getCoveragedefinition([scen.getName(),'_final']);
+            covDef = scen.getCoverageDefinition([char(scen.getName()),'_final']);
             access_collection.add(scen.getMergedAccesses(covDef));
         end
         
