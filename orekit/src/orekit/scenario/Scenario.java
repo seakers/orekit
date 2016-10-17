@@ -23,6 +23,8 @@ import java.util.logging.Logger;
 import orekit.coverage.access.CoverageAccessMerger;
 import orekit.coverage.access.FOVHandler;
 import orekit.coverage.access.TimeIntervalArray;
+import orekit.ephemeris.EphemerisHistory;
+import orekit.ephemeris.EphemerisStepHandler;
 import orekit.object.Constellation;
 import orekit.object.CoverageDefinition;
 import orekit.object.CoveragePoint;
@@ -36,6 +38,7 @@ import org.orekit.frames.Frame;
 import org.orekit.frames.TopocentricFrame;
 import org.orekit.orbits.Orbit;
 import org.orekit.propagation.Propagator;
+import org.orekit.propagation.sampling.OrekitFixedStepHandler;
 import org.orekit.time.AbsoluteDate;
 import org.orekit.time.TimeScale;
 
@@ -139,6 +142,11 @@ public class Scenario implements Callable<Scenario>, Serializable, Cloneable {
     private final CoverageAccessMerger accessMerger;
 
     /**
+     * The ephemeris history of each satellite
+     */
+    private final HashMap<Satellite, EphemerisHistory> ephemerisHist;
+
+    /**
      * Creates a new scenario.
      *
      * @param name of scenario
@@ -179,7 +187,7 @@ public class Scenario implements Callable<Scenario>, Serializable, Cloneable {
 
         this.numThreads = numThreads;
         this.accessMerger = new CoverageAccessMerger();
-
+        this.ephemerisHist = new HashMap<>();
         this.futureTasks = new ArrayList<>();
     }
 
@@ -202,7 +210,7 @@ public class Scenario implements Callable<Scenario>, Serializable, Cloneable {
             PropagatorFactory propagatorFactory, boolean saveAllAccesses) {
         this(name, startDate, endDate, timeScale, inertialFrame, propagatorFactory, saveAllAccesses, 1);
     }
-    
+
     /**
      * Runs the scenario from the start date to the end date. Running the
      * scenario propagates the orbits of each satellite in the constellation and
@@ -231,7 +239,7 @@ public class Scenario implements Callable<Scenario>, Serializable, Cloneable {
                     HashMap<CoveragePoint, TimeIntervalArray> satAccesses = new HashMap<>(cdef.getNumberOfPoints());
 
                     //assign future tasks
-                    PropagateTask task = new PropagateTask(sat, endDate, cdef.getPoints());
+                    PropagateTask task = new PropagateTask(sat, endDate, cdef.getPoints(),600);
                     futureTasks.add(pool.submit(task));
 
                     //call future tasks and combine accesses from each point into one results object 
@@ -239,9 +247,10 @@ public class Scenario implements Callable<Scenario>, Serializable, Cloneable {
                     for (Future<PropagateTask> run : futureTasks) {
                         try {
                             PropagateTask finishedTask = run.get();
-                            for (CoveragePoint pt : finishedTask.getResults().keySet()) {
-                                satAccesses.put(pt, finishedTask.getResults().get(pt));
+                            for (CoveragePoint pt : finishedTask.getAccesses().keySet()) {
+                                satAccesses.put(pt, finishedTask.getAccesses().get(pt));
                             }
+                            ephemerisHist.put(sat,finishedTask.getEphemerisHistory());
                         } catch (InterruptedException | ExecutionException ex) {
                             System.err.println(ex);
                             Logger.getLogger(Scenario.class.getName()).log(Level.SEVERE, null, ex);
@@ -288,7 +297,7 @@ public class Scenario implements Callable<Scenario>, Serializable, Cloneable {
                 this.propagatorFactory, this.saveAllAccesses, this.numThreads);
         return out;
     }
-    
+
     /**
      * Merges a collection of subscenarios previously run in parallel into their
      * parent Scenario
@@ -297,51 +306,51 @@ public class Scenario implements Callable<Scenario>, Serializable, Cloneable {
      * into the parents scenario
      * @throws java.lang.Exception
      */
-    public void mergeSubscenarios(Collection<SubScenario> subscenarios) throws Exception{
+    public void mergeSubscenarios(Collection<SubScenario> subscenarios) throws Exception {
         /*
-        Check if all the subscenarios are run and all come from the same Parent Scenario. 
-        Otherwise throw an Exception
-        */
-        
+         Check if all the subscenarios are run and all come from the same Parent Scenario. 
+         Otherwise throw an Exception
+         */
+
         for (SubScenario subscenario : subscenarios) {
-            if (!subscenario.isDone()){
+            if (!subscenario.isDone()) {
                 throw new Exception("The subscenarios are not run yet");
             }
-            if (!this.isSubScenario(subscenario)){
+            if (!this.isSubScenario(subscenario)) {
                 throw new Exception("The subscenarios are from different Parent Scenarios");
             }
         }
         /*
-        For every subscenario, we get its stored Accesses and merge them all in 
-        the Parent Scenario Accesses Hashmap (psa)
-        */
-        HashMap<CoveragePoint,TimeIntervalArray> psa=new HashMap<>();
+         For every subscenario, we get its stored Accesses and merge them all in 
+         the Parent Scenario Accesses Hashmap (psa)
+         */
+        HashMap<CoveragePoint, TimeIntervalArray> psa = new HashMap<>();
         for (SubScenario subscenario : subscenarios) {
-            HashSet<CoverageDefinition> covs=subscenario.getCoverageDefinitions();
+            HashSet<CoverageDefinition> covs = subscenario.getCoverageDefinitions();
             Iterator iter = covs.iterator();
-            CoverageDefinition c=(CoverageDefinition) iter.next();
-            HashMap<CoveragePoint,TimeIntervalArray> accesses=c.getAccesses();
-            psa.putAll(accesses);     
+            CoverageDefinition c = (CoverageDefinition) iter.next();
+            HashMap<CoveragePoint, TimeIntervalArray> accesses = c.getAccesses();
+            psa.putAll(accesses);
         }
         /*
-        We create a new coverage definition and we add it to the Parent scenario
-        */
-        CoverageDefinition c=new CoverageDefinition(this.scenarioName + "_final",psa.keySet());
+         We create a new coverage definition and we add it to the Parent scenario
+         */
+        CoverageDefinition c = new CoverageDefinition(this.scenarioName + "_final", psa.keySet());
         c.assignToConstellations(subscenarios.iterator().next().getUniqueConstellations());
         this.addCoverageDefinition(c);
     }
-    
-        /**
-     * Checks if the parameter SubScenario comes from this scenario
-     * @param sub SubScenario to check
 
+    /**
+     * Checks if the parameter SubScenario comes from this scenario
+     *
+     * @param sub SubScenario to check
+     *
      * @return True if SubScenario comes from this Scenario. Else false.
      */
     public boolean isSubScenario(SubScenario sub) {
-        return this.hashCode()==sub.getParentScenarioHash();
+        return this.hashCode() == sub.getParentScenarioHash();
     }
-    
-   
+
     /**
      * Returns the merged accesses of a given coverage definition after the
      * scenario is finished running
@@ -378,13 +387,22 @@ public class Scenario implements Callable<Scenario>, Serializable, Cloneable {
 
     /**
      * Gets the unique constellations that are simulated in this scenario
-     * @return 
+     *
+     * @return
      */
     public HashSet<Constellation> getUniqueConstellations() {
         return uniqueConstellations;
     }
-    
-    
+
+    /**
+     * Gets the unique satellites that are simulated in this scenario
+     *
+     * @return
+     */
+    public HashSet<Satellite> getUniqueSatellites() {
+        return uniqueSatellites;
+    }
+
     /**
      * Gets the coverage definition specified by a name
      *
@@ -392,10 +410,10 @@ public class Scenario implements Callable<Scenario>, Serializable, Cloneable {
      * @return
      */
     public CoverageDefinition getCoverageDefinition(String name) {
-        Iterator<CoverageDefinition> i=this.covDefs.iterator();
-        while(i.hasNext()){
-            CoverageDefinition c=i.next();
-            if(c.getName().equals(name)){
+        Iterator<CoverageDefinition> i = this.covDefs.iterator();
+        while (i.hasNext()) {
+            CoverageDefinition c = i.next();
+            if (c.getName().equals(name)) {
                 return c;
             }
         }
@@ -416,7 +434,9 @@ public class Scenario implements Callable<Scenario>, Serializable, Cloneable {
             for (Constellation constel : covDef.getConstellations()) {
                 uniqueConstellations.add(constel);
                 for (Satellite satellite : constel.getSatellites()) {
-                    uniqueSatellites.add(satellite);
+                    if (uniqueSatellites.add(satellite)) {
+                        ephemerisHist.put(satellite, new EphemerisHistory());
+                    }
                     uniqueSatsAssignedToCovDef.get(covDef).add(satellite);
                 }
             }
@@ -531,8 +551,8 @@ public class Scenario implements Callable<Scenario>, Serializable, Cloneable {
     public AbsoluteDate getStartDate() {
         return startDate;
     }
-    
-    public String getName(){
+
+    public String getName() {
         return scenarioName;
     }
 
@@ -542,6 +562,7 @@ public class Scenario implements Callable<Scenario>, Serializable, Cloneable {
 
     /**
      * Returns the flag that marks the simulation as finished.
+     *
      * @return True if the simulation is done. Else false.
      */
     public boolean isDone() {
@@ -549,32 +570,49 @@ public class Scenario implements Callable<Scenario>, Serializable, Cloneable {
     }
 
     /**
-     * Returns the flag that marks whether each satellite's accesses should be saved.
-     * @return 
+     * Returns the flag that marks whether each satellite's accesses should be
+     * saved.
+     *
+     * @return
      */
     public boolean isSaveAllAccesses() {
         return saveAllAccesses;
     }
 
     /**
-     * Returns the computed accesses for each coverage definition by the combination of satellites assigned to that coverage definition
-     * @return 
+     * Returns the computed accesses for each coverage definition by the
+     * combination of satellites assigned to that coverage definition
+     *
+     * @return
      */
     public HashMap<CoverageDefinition, HashMap<CoveragePoint, TimeIntervalArray>> getFinalAccesses() {
         return finalAccesses;
     }
 
     /**
-     * Returns the computed accesses for each coverage definition by each of the satellites assigned to that coverage definition
-     * @return 
+     * Returns the computed accesses for each coverage definition by each of the
+     * satellites assigned to that coverage definition
+     *
+     * @return
      */
     public HashMap<CoverageDefinition, HashMap<Satellite, HashMap<CoveragePoint, TimeIntervalArray>>> getAllAccesses() {
         return allAccesses;
     }
 
     /**
+     * Gets the ephemeris history of a desired satellite
+     *
+     * @param satellite
+     * @return
+     */
+    public EphemerisHistory getEphemerisHistory(Satellite satellite) {
+        return ephemerisHist.get(satellite);
+    }
+
+    /**
      * Gets the timescale (e.g. UTC)
-     * @return 
+     *
+     * @return
      */
     public TimeScale getTimeScale() {
         return timeScale;
@@ -582,20 +620,23 @@ public class Scenario implements Callable<Scenario>, Serializable, Cloneable {
 
     /**
      * Returns the inertial frame used in this scenario
-     * @return 
+     *
+     * @return
      */
     public Frame getFrame() {
         return inertialFrame;
     }
 
     /**
-     * Gets the propagator factory used to create new propagators for this scenario
-     * @return 
+     * Gets the propagator factory used to create new propagators for this
+     * scenario
+     *
+     * @return
      */
     public PropagatorFactory getPropagatorFactory() {
         return propagatorFactory;
     }
-    
+
     @Override
     public String toString() {
         return "Scenario{" + "scenarioName=" + scenarioName + ", startDate=" + startDate + ", endDate= " + endDate + '}';
@@ -658,8 +699,6 @@ public class Scenario implements Callable<Scenario>, Serializable, Cloneable {
         }
         return true;
     }
-    
-    
 
     /**
      * This class is the task to parallelize within the scenario. It propagates
@@ -689,10 +728,44 @@ public class Scenario implements Callable<Scenario>, Serializable, Cloneable {
          * The results will be stored here
          */
         private final HashMap<CoveragePoint, TimeIntervalArray> results;
+        
+        /**
+         * The time step at which ephemeris is recorded
+         */
+        private final double tStep;
+        
+        /**
+         * The stephandler that records the ephemeris history 
+         */
+        private final EphemerisStepHandler stepHandler;
 
         /**
          * The constructor to create a new subtask to propagate forward a
-         * satellite.
+         * satellite. This propagator records the ephemeris at fixed time steps.
+         *
+         * @param satellte the satellite to propagate forward
+         * @param targetDate the target date to propagate the simulation forward
+         * to
+         * @param points the points the satellite is assigned to in this
+         * @param tStep the fixed time step at which ephemeris is recorded
+         * propagation
+         */
+        public PropagateTask(Satellite satellte, AbsoluteDate targetDate, Collection<CoveragePoint> points, double tStep) {
+            this.satellite = satellte;
+            this.targetDate = targetDate;
+            this.points = points;
+            this.results = new HashMap<>(points.size());
+            this.tStep = tStep;
+            if(tStep>0){
+                this.stepHandler = new EphemerisStepHandler();
+            }else{
+                this.stepHandler = null;
+            }
+        }
+        
+        /**
+         * The constructor to create a new subtask to propagate forward a
+         * satellite. This propagator will not record the ephemeris.
          *
          * @param satellte the satellite to propagate forward
          * @param targetDate the target date to propagate the simulation forward
@@ -701,12 +774,17 @@ public class Scenario implements Callable<Scenario>, Serializable, Cloneable {
          * propagation
          */
         public PropagateTask(Satellite satellte, AbsoluteDate targetDate, Collection<CoveragePoint> points) {
-            this.satellite = satellte;
-            this.targetDate = targetDate;
-            this.points = points;
-            this.results = new HashMap<>(points.size());
+            this(satellte, targetDate, points, -1);
         }
 
+        /**
+         * Creates a propagator. Can set an option to record ephemeris
+         *
+         * @param recordEphmeris true if ephemeris should be recorded
+         * @param tstep the fixed interval in which to record ephemeris
+         * @return
+         * @throws OrekitException
+         */
         private Propagator createPropagator() throws OrekitException {
 
             //create the propagator
@@ -719,7 +797,11 @@ public class Scenario implements Callable<Scenario>, Serializable, Cloneable {
             }
 
             Propagator prop = propagatorFactory.createPropagator(orbit, satellite.getGrossMass());
-            prop.setSlaveMode();
+            if (stepHandler!=null) {
+                prop.setMasterMode(tStep, stepHandler);
+            } else {
+                prop.setSlaveMode();
+            }
 
             //add an attitude provider (e.g. nadir pointing)
             if (satellite.getAttProv() != null) {
@@ -741,6 +823,7 @@ public class Scenario implements Callable<Scenario>, Serializable, Cloneable {
         @Override
         public PropagateTask call() throws Exception, OrekitException {
             Propagator propagator = createPropagator();
+            //attach a fov detector to each instrument-grid point pair
             for (Instrument inst : satellite.getPayload()) {
                 for (CoveragePoint pt : points) {
                     FOVDetector eventDec = new FOVDetector(pt, inst).withMaxCheck(1).withHandler(new FOVHandler());
@@ -749,15 +832,28 @@ public class Scenario implements Callable<Scenario>, Serializable, Cloneable {
             }
             propagator.propagate(targetDate);
 
+            //reset the accesses at each point after transferring information to this hashmap
             for (CoveragePoint pt : points) {
                 results.put(pt, pt.getAccesses());
                 pt.reset();
             }
+            
             return this;
         }
 
-        public HashMap<CoveragePoint, TimeIntervalArray> getResults() {
+        public HashMap<CoveragePoint, TimeIntervalArray> getAccesses() {
             return results;
+        }
+        
+        /**
+         * Returns the history of the satellites ephemeris
+         * @return 
+         */
+        public EphemerisHistory getEphemerisHistory(){
+            if(stepHandler != null)
+                return stepHandler.getEphemerisHistory();
+            else
+                return new EphemerisHistory();
         }
 
     }

@@ -48,7 +48,7 @@ public class ParallelCoverage {
          and save them
          */
         Iterator<CoverageDefinition> iter1 = coverageCollection.iterator();
-        int counter = 1;
+        int counter = 0;
         while (iter1.hasNext()) {
             CoverageDivider covdivider = new CoverageDivider();
             Collection<CoverageDefinition> covs = covdivider.divide(iter1.next(), ndivisions);
@@ -90,6 +90,7 @@ public class ParallelCoverage {
      * Loads, runs, and saves an Scenario.
      *
      * @param path path containing un-run subscenarios
+     * @param numThreads The number of threads to use to run the scenarios
      */
     public void loadRunAndSave(Path path, int numThreads) {
 
@@ -107,7 +108,7 @@ public class ParallelCoverage {
             File[] matchingFiles = path.toFile().listFiles(new FilenameFilter() {
                 @Override
                 public boolean accept(File dir, String name) {
-                    return name.endsWith(".ore");
+                    return name.endsWith(".subscen");
                 }
             });
 
@@ -124,8 +125,7 @@ public class ParallelCoverage {
             Logger.getLogger(ParallelCoverage.class.getName()).log(Level.SEVERE, null, ex);
         } catch (InterruptedException ex) {
             Logger.getLogger(ParallelCoverage.class.getName()).log(Level.SEVERE, null, ex);
-        } finally {
-            pool.shutdown();
         }
+        pool.shutdown();
     }
 }

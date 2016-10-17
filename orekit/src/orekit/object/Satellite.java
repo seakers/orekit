@@ -11,7 +11,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.orekit.attitudes.AttitudeProvider;
 import org.orekit.errors.OrekitException;
+import org.orekit.orbits.KeplerianOrbit;
 import org.orekit.orbits.Orbit;
+import org.orekit.orbits.OrbitType;
 import org.orekit.orbits.PositionAngle;
 import org.orekit.propagation.Propagator;
 import org.orekit.utils.ParameterDriver;
@@ -123,25 +125,8 @@ public class Satellite implements OrekitObject, Serializable {
     }
 
     public String ppOrbit() {
-        String out = "";
-        ParameterDriversList paramsList;
-        try {
-            //error for driver is arbitrarily set to 0 because only need the name of the drivers
-            paramsList = this.orbit.getType().getDrivers(0, orbit, PositionAngle.TRUE);
-            double[] orbParams = new double[paramsList.getNbParams()];
-            this.orbit.getType().mapOrbitToArray(orbit, PositionAngle.TRUE, orbParams);
-
-            //print out calculations are based on javadoc provided by EquinoctialOrbit class
-            int i = 0;
-            for (ParameterDriver param : paramsList.getDrivers()) {
-                out += String.format("%s: %f\t", param.getName(), orbParams[i]);
-                i++;
-            }
-        } catch (OrekitException ex) {
-            Logger.getLogger(Satellite.class.getName()).log(Level.SEVERE, null, ex);
-        }
-
-        return out;
+        KeplerianOrbit kepOrb = (KeplerianOrbit) OrbitType.KEPLERIAN.convertType(this.orbit);
+        return kepOrb.toString();
     }
 
     public String ppPayload() {

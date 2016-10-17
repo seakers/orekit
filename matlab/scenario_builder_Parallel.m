@@ -13,7 +13,7 @@ orekit.util.OrekitConfig.init([pwd,filesep,'orekit']);
 
 utc = org.orekit.time.TimeScalesFactory.getUTC();
 startDate = org.orekit.time.AbsoluteDate(2016, 1, 1, 16, 00, 00.000, utc);
-endDate   = org.orekit.time.AbsoluteDate(2016, 1, 2, 16, 00, 00.000, utc);
+endDate   = org.orekit.time.AbsoluteDate(2016, 3, 1, 16, 00, 00.000, utc);
 tSimulation = endDate.durationFrom(startDate);
 
 mu = org.orekit.utils.Constants.EGM96_EARTH_MU; % gravitation coefficient
@@ -91,7 +91,7 @@ for exp_i = 1:size(experiments, 1)
         filename = sprintf('a%.3f_e%.3f_i%.3f_w%.3f_o%.3f_v%.3f_fov%.3fx%.3f_start%s_end%s',...
             a(i), e(i), inc(i), argper(i), raan(i), m_anom(i),rect_fov(1),rect_fov(2),...
             strrep(tmps,'.','-'), strrep(tmpe,'.','-'));
-        files = dir(strcat(savepath,filesep,filename,'.ore'));
+        files = dir(strcat(savepath,filesep,filename,'.scen'));
         
         %Only run satellites that have not been propogated yet
         if isempty(files)
@@ -113,7 +113,7 @@ for exp_i = 1:size(experiments, 1)
             covDef.assignConstellation(constel);
             
             %set up the type of propagator here {KEPLERIAN, J2}
-            pf =  orekit.propagation.PropagatorFactory(orekit.propagation.PropagatorType.KEPLERIAN, initial_orbit);
+            pf =  orekit.propagation.PropagatorFactory(orekit.propagation.PropagatorType.J2, initial_orbit);
             scen = orekit.scenario.Scenario('test', startDate, endDate, utc, inertialFrame, pf, false, n_threads);
             scen.addCoverageDefinition(covDef);
             
@@ -123,15 +123,16 @@ for exp_i = 1:size(experiments, 1)
             parallelCoverage.createSubScenarios(scen,ndivisions,java.io.File(savepath));
             
             %run each of the subscenarios(need to be improved with future tasks)
-            subscenarios=dir(strcat(savepath,filesep,'*.ore'));
+            subscenarios=dir(strcat(savepath,filesep,'*.subscen'));
             nsubscenarios=size(subscenarios,1);
             for ind=1:nsubscenarios
-                parallelCoverage.loadRunAndSave(java.io.File(savepath).toPath,subscenarios(ind).name);
+%                 parallelCoverage.loadRunAndSave(java.io.File(savepath).toPath,subscenarios(ind).name);
+                parallelCoverage.loadRunAndSave(java.io.File(savepath).toPath,4);
             end
             
             %load all run subscenarios and put them in a Collection
             subscen_collection = java.util.ArrayList;
-            subscenarios=dir(strcat(savepath,filesep,'*.ore'));
+            subscenarios=dir(strcat(savepath,filesep,'*.subscen'));
             nsubscenarios=size(subscenarios,1);
             for ind=1:nsubscenarios
                 subscen_collection.add(orekit.scenario.ScenarioIO.loadSubScenario(java.io.File(savepath).toPath,subscenarios(ind).name));
@@ -145,7 +146,7 @@ for exp_i = 1:size(experiments, 1)
             access_collection.add(scen.getMergedAccesses(covDef));
             
         else
-            scen = orekit.scenario.ScenarioIO.load(java.io.File(savepath).toPath, strcat(filename,'.ore'));
+            scen = orekit.scenario.ScenarioIO.load(java.io.File(savepath).toPath, strcat(filename,'.scen'));
             covDef = scen.getCoverageDefinition([char(scen.getName()),'_final']);
             access_collection.add(scen.getMergedAccesses(covDef));
         end
