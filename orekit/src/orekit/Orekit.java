@@ -8,6 +8,13 @@ package orekit;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import orekit.analysis.Analysis;
+import orekit.analysis.CompoundAnalysis;
+import orekit.analysis.ephemeris.OrbitalElementsAnalysis;
+import orekit.analysis.vectors.VectorAngleAnalysis;
 import orekit.attitude.OscillatingYawSteering;
 import orekit.coverage.access.TimeIntervalArray;
 import orekit.object.Constellation;
@@ -17,7 +24,6 @@ import orekit.object.Instrument;
 import orekit.object.OrbitWizard;
 import orekit.object.Satellite;
 import orekit.object.fieldofview.RectangularFieldOfView;
-import orekit.object.fieldofview.SimpleConicalFieldOfView;
 import orekit.propagation.PropagatorFactory;
 import orekit.propagation.PropagatorType;
 import orekit.scenario.Scenario;
@@ -27,8 +33,9 @@ import org.hipparchus.geometry.euclidean.threed.Vector3D;
 import org.hipparchus.stat.descriptive.DescriptiveStatistics;
 import org.hipparchus.util.FastMath;
 import org.orekit.attitudes.NadirPointing;
-import org.orekit.attitudes.SpinStabilized;
 import org.orekit.bodies.BodyShape;
+import org.orekit.bodies.CelestialBody;
+import org.orekit.bodies.CelestialBodyFactory;
 import org.orekit.bodies.GeodeticPoint;
 import org.orekit.bodies.OneAxisEllipsoid;
 import org.orekit.errors.OrekitException;
@@ -37,6 +44,7 @@ import org.orekit.frames.FramesFactory;
 import org.orekit.orbits.KeplerianOrbit;
 import org.orekit.orbits.Orbit;
 import org.orekit.orbits.PositionAngle;
+import org.orekit.propagation.SpacecraftState;
 import org.orekit.time.AbsoluteDate;
 import org.orekit.time.TimeScale;
 import org.orekit.time.TimeScalesFactory;
@@ -70,17 +78,16 @@ public class Orekit {
         OrekitConfig.init();
 
         TimeScale utc = TimeScalesFactory.getUTC();
-        AbsoluteDate startDate = new AbsoluteDate(2016, 1, 1, 16, 00, 00.000, utc);
-        AbsoluteDate endDate = new AbsoluteDate(2016, 12, 31, 16, 00, 00.000, utc);
-
-        double mu = Constants.EGM96_EARTH_MU; // gravitation coefficient
+        AbsoluteDate startDate = new AbsoluteDate(2016, 1, 1, 0, 00, 00.000, utc);
+        AbsoluteDate endDate = new AbsoluteDate(2017, 1, 1, 0, 00, 00.000, utc);
+        double mu = Constants.GRIM5C1_EARTH_MU; // gravitation coefficient
 
         //must use these frames to be consistent with STK
         Frame earthFrame = FramesFactory.getITRF(IERSConventions.IERS_2003, true);
         Frame inertialFrame = FramesFactory.getEME2000();
 
-        BodyShape earthShape = new OneAxisEllipsoid(Constants.WGS84_EARTH_EQUATORIAL_RADIUS,
-                Constants.WGS84_EARTH_FLATTENING, earthFrame);
+        BodyShape earthShape = new OneAxisEllipsoid(Constants.GRIM5C1_EARTH_EQUATORIAL_RADIUS,
+                Constants.GRIM5C1_EARTH_FLATTENING, earthFrame);
 
         //Enter satellites
         double a = 6978137.0;
@@ -96,7 +103,6 @@ public class Orekit {
 
         NadirPointing nadPoint = new NadirPointing(inertialFrame, earthShape);
         OscillatingYawSteering yawSteer = new OscillatingYawSteering(nadPoint, startDate, Vector3D.PLUS_K, FastMath.toRadians(0.1), 0);
-        SpinStabilized spin = new SpinStabilized(nadPoint, startDate, Vector3D.PLUS_K, 0.2);
         Satellite sat1 = new Satellite("sat1", initialOrbit1, yawSteer);
         RectangularFieldOfView fov_rect = new RectangularFieldOfView(Vector3D.PLUS_K,
                 FastMath.toRadians(80), FastMath.toRadians(45), 0);
@@ -116,12 +122,46 @@ public class Orekit {
 
         covDef1.assignConstellation(constel1);
 
-        PropagatorFactory pf = new PropagatorFactory(PropagatorType.J2, initialOrbit2);
+        HashSet<CoverageDefinition> covDefs = new HashSet<>();
+        covDefs.add(covDef1);
 
-        Scenario scen = new Scenario("test", startDate, endDate, utc, inertialFrame, pf, false, 1);
-//        ScenarioStepWise scen = new ScenarioStepWise("test", startDate, endDate, utc, inertialFrame, pf);
+        PropagatorFactory pf = new PropagatorFactory(PropagatorType.J2, initialOrbit2.getType());
+        
+        double analysisTimeStep = 600;
+        ArrayList<Analysis> analysesList = new ArrayList<>();
+        analysesList.add(new OrbitalElementsAnalysis(analysisTimeStep));
+        analysesList.add(new VectorAngleAnalysis(earthFrame, analysisTimeStep) {
+            private static final long serialVersionUID = 4556305811451847873L;
+            
+            @Override
+            public Vector3D getVector1(SpacecraftState currentState, Frame frame) {
+                try {
+                    Vector3D earthsunPos = CelestialBodyFactory.getSun().getPVCoordinates(currentState.getDate(), frame).getPosition();
+//                    Vector3D earthPos = CelestialBodyFactory.getEarth().getPVCoordinates(currentState.getDate(), frame).getPosition();
+//                    Vector3D earthSun = sunPos.subtract(earthPos);
+                    return new Vector3D(earthsunPos.getX(),earthsunPos.getY(),0.0);
+                } catch (OrekitException ex) {
+                    Logger.getLogger(Orekit.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                return null;
+            }
+            
+            @Override
+            public Vector3D getVector2(SpacecraftState currentState, Frame frame) {
+                try {
+                    Vector3D vec = currentState.getPVCoordinates(frame).getPosition().crossProduct(currentState.getPVCoordinates(frame).getVelocity());
+                    return new Vector3D(vec.getX(),vec.getY(),0.0);
+                } catch (OrekitException ex) {
+                    Logger.getLogger(Orekit.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                return null;
+            }
+        });
+        CompoundAnalysis analyses = new CompoundAnalysis(analysesList);
 
-        scen.addCoverageDefinition(covDef1);
+        Scenario scen = new Scenario.Builder(startDate, endDate, utc).
+                analysis(analyses).covDefs(covDefs).name("test").numThreads(1).
+                propagatorFactory(pf).saveAllAccesses(false).build();
         scen.call();
 
         System.out.println(String.format("Done Running Scenario %s", scen));
@@ -162,7 +202,7 @@ public class Orekit {
 
         ScenarioIO.save(Paths.get(path, ""), filename, scen);
         ScenarioIO.saveReadMe(Paths.get(path, ""), filename, scen);
-        ScenarioIO.saveEphemeris(Paths.get(path, ""), scen);
+        ScenarioIO.saveAnalyses(Paths.get(path, ""), scen);
 
         long end = System.nanoTime();
         System.out.println("Took " + (end - start) / Math.pow(10, 9) + " sec");

@@ -20,10 +20,10 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import orekit.analysis.Analysis;
+import orekit.analysis.Record;
 import orekit.coverage.access.RiseSetTime;
 import orekit.coverage.access.TimeIntervalArray;
-import orekit.ephemeris.Ephemeris;
-import orekit.ephemeris.EphemerisHistory;
 import orekit.object.Constellation;
 import orekit.object.CoverageDefinition;
 import orekit.object.CoveragePoint;
@@ -114,33 +114,32 @@ public class ScenarioIO {
     }
 
     /**
-     * Saves the ephemeris data for each satellite in the scenario in a desired
-     * directory. File name is defined as name of scenario_name of satellite.eph
-     *
-     * @param path to the directory to save the file
-     * @param scenario Scenario that was simulated
-     * @return
+     * Saves all the computed analyses run during the scenario
+     * @param path
+     * @param scenario
+     * @return true if the analyses are successfuly saved
      */
-    public static boolean saveEphemeris(Path path, Scenario scenario) {
-        HashSet<Satellite> sats = scenario.getUniqueSatellites();
-        for (Satellite s : sats) {
-            File file = new File(path.toFile(), String.format("%s_%s.eph",scenario.getName(),s.getName()));
-            EphemerisHistory hist = scenario.getEphemerisHistory(s);
-            hist.sortByDate();
-            try (FileWriter fw = new FileWriter(file)) {
-                fw.append("EpochTime, semimajor axis[km], eccentricty, inclination[deg], raan[deg], arg. per. [deg], mean anom. [deg]\n");
-                for (int i=0; i<hist.size(); i++) {
-                    Ephemeris e = hist.get(i);
-                    fw.append(String.format("%f,%f,%f,%f,%f,%f,%f\n", 
-                            e.getDate().durationFrom(scenario.getStartDate()),
-                            e.getSa(), e.getEcc(), e.getInc(), e.getRaan(), e.getArgPer(), e.getMa()));
+    public static boolean saveAnalyses(Path path, Scenario scenario) {
+        for (Analysis analysis : scenario.getAnalyses()) {
+            HashSet<Satellite> sats = scenario.getUniqueSatellites();
+            for (Satellite s : sats) {
+                File file = new File(path.toFile(), String.format("%s_%s.%s", scenario.getName(), s.getName(), analysis.getExtension()));
+                Iterator<Record> histIter = scenario.getAnalysisResult(analysis, s).iterator();
+                try (FileWriter fw = new FileWriter(file)) {
+                    fw.append("#Epoch time," + analysis.getHeader() + "\n");
+                    while (histIter.hasNext()) {
+                        Record r = histIter.next();
+                        fw.append(String.format("%f,%s\n",
+                                r.getDate().durationFrom(scenario.getStartDate()),
+                                r.getValue()));
+                    }
                     fw.flush();
+                } catch (IOException ex) {
+                    Logger.getLogger(ScenarioIO.class.getName()).log(Level.SEVERE, null, ex);
+                    return false;
                 }
-            } catch (IOException ex) {
-                Logger.getLogger(ScenarioIO.class.getName()).log(Level.SEVERE, null, ex);
-                return false;
+                System.out.println(String.format("Saved %s for satellite %s in %s", analysis.getClass().getSimpleName(), s.getName(), file.toString()));
             }
-            System.out.println("Saved ephemeris in " + file.toString());
         }
         return true;
     }

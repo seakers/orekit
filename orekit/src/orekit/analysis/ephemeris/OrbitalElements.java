@@ -3,17 +3,16 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package orekit.ephemeris;
+package orekit.analysis.ephemeris;
 
 import java.io.Serializable;
 import org.hipparchus.util.FastMath;
-import org.orekit.time.AbsoluteDate;
 
 /**
  * 
  * @author nozomihitomi
  */
-public class Ephemeris implements Serializable, Comparable<Ephemeris>{
+public class OrbitalElements implements Serializable{
     private static final long serialVersionUID = -3726051095120448229L;
     
     /**
@@ -45,11 +44,6 @@ public class Ephemeris implements Serializable, Comparable<Ephemeris>{
      * mean anomaly [rad]
      */
     private final double ma;
-    
-    /**
-     * Date of the ephemeris
-     */
-    private final AbsoluteDate date;
 
     /**
      * 
@@ -59,16 +53,14 @@ public class Ephemeris implements Serializable, Comparable<Ephemeris>{
      * @param raan Right ascension of the ascending node[rad]
      * @param argPer argument of perigee [rad]
      * @param ma mean anomaly [rad]
-     * @param date Date of the ephemeris
      */
-    public Ephemeris(double sa, double ecc, double inc, double raan, double argPer, double ma, AbsoluteDate date) {
+    public OrbitalElements(double sa, double ecc, double inc, double raan, double argPer, double ma) {
         this.sa = sa;
         this.ecc = ecc;
         this.inc = inc;
         this.raan = raan;
         this.argPer = argPer;
         this.ma = ma;
-        this.date = date;
     }
 
     /**
@@ -118,24 +110,11 @@ public class Ephemeris implements Serializable, Comparable<Ephemeris>{
     public double getMa() {
         return FastMath.toDegrees(ma);
     }
-
-    /**
-     * Returns the date of the ephemeris
-     * @return 
-     */
-    public AbsoluteDate getDate() {
-        return date;
-    }
-
-    /**
-     * Use to compare the dates of two ephemeris data points
-     * @param o
-     * @return 
-     */
-    @Override
-    public int compareTo(Ephemeris o) {
-        return this.getDate().compareTo(o.getDate());
-    }
     
+    @Override
+    public String toString() {
+        return String.format("%f,%f,%f,%f,%f,%f",
+                            getSa(), getEcc(), getInc(), getRaan(), getArgPer(), getMa());
+    }
     
 }

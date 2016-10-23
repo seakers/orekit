@@ -31,9 +31,9 @@ public class PropagatorFactory implements Serializable {
     private final PropagatorType propType;
     private final OrbitType orbitType;
 
-    public PropagatorFactory(PropagatorType propType, Orbit template) {
+    public PropagatorFactory(PropagatorType propType, OrbitType orbitType) {
         this.propType = propType;
-        this.orbitType = template.getType();
+        this.orbitType = orbitType;
     }
 
     public Propagator createPropagator(Orbit orbit, double mass) throws OrekitException {
@@ -60,15 +60,15 @@ public class PropagatorFactory implements Serializable {
     }
 
     /**
-     * Creates a J2 propagator assuming an Earth-centric orbit
+     * Creates a J2 propagator assuming an Earth-centric orbit. Currently set for using GRIM5C1 model
      * @param orbit
      * @return
      * @throws OrekitException 
      */
     private Propagator createJ2Propagator(Orbit orbit, double mass) throws OrekitException{
         
-        return new EcksteinHechlerPropagator(orbit, mass, Constants.EIGEN5C_EARTH_EQUATORIAL_RADIUS,
-                        Constants.EIGEN5C_EARTH_MU, Constants.EIGEN5C_EARTH_C20, 0,0,0,0);
+        return new EcksteinHechlerPropagator(orbit, mass, Constants.GRIM5C1_EARTH_EQUATORIAL_RADIUS,
+                        Constants.GRIM5C1_EARTH_MU, Constants.GRIM5C1_EARTH_C20, 0,0,0,0);
     }
     /**
      * Creates a TLE propagator
