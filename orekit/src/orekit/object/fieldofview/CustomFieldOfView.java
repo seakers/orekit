@@ -61,4 +61,4 @@ public class CustomFieldOfView extends AbstractFieldOfViewDefinition{
 
     }
 
-}
+    }

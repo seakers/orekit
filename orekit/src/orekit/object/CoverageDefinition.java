@@ -44,7 +44,7 @@ public class CoverageDefinition implements OrekitObject, Serializable {
      * Shape used to project CoveragePoints
      */
     private final BodyShape planet;
-    
+
     /**
      * Creates a new grid of GeodeticPoints on the entire surface of a given
      * BodyShape ([-90 deg, 90 deg] in latitude and [0 deg, 360 deg] in
@@ -151,22 +151,22 @@ public class CoverageDefinition implements OrekitObject, Serializable {
         this.planet = refPt.getParentShape();
         AbsoluteDate startDate = refPt.getAccesses().getHead();
         AbsoluteDate endDate = refPt.getAccesses().getTail();
-        
+
         //check to see if points have all the same start and end dates with the same body shape
-        for(CoveragePoint pt: points){
+        for (CoveragePoint pt : points) {
 //            if(!pt.getParentShape().equals(this.planet)){
 //                throw new IllegalArgumentException(String.format("Expected all coverage points to have same planet shape %s",this.planet));
 //            }
-            if(!pt.getAccesses().getHead().equals(startDate)){
-                throw new IllegalArgumentException(String.format("Expected all coverage points to have same end date %s",startDate));
+            if (!pt.getAccesses().getHead().equals(startDate)) {
+                throw new IllegalArgumentException(String.format("Expected all coverage points to have same end date %s", startDate));
             }
-            if(!pt.getAccesses().getTail().equals(endDate)){
-                throw new IllegalArgumentException(String.format("Expected all coverage points to have same end date %s",endDate));
+            if (!pt.getAccesses().getTail().equals(endDate)) {
+                throw new IllegalArgumentException(String.format("Expected all coverage points to have same end date %s", endDate));
             }
         }
-        
+
         this.grid = new HashSet();
-        for (CoveragePoint pt: points) {
+        for (CoveragePoint pt : points) {
             this.grid.add(pt);
         }
     }
@@ -188,7 +188,7 @@ public class CoverageDefinition implements OrekitObject, Serializable {
      *
      * @param constellation
      */
-    public void assignToConstellations(Collection<Constellation> constellation) {
+    public void assignConstellation(Collection<Constellation> constellation) {
         this.constellations = new HashSet(constellation);
     }
 
@@ -294,7 +294,7 @@ public class CoverageDefinition implements OrekitObject, Serializable {
         hash = 59 * hash + Objects.hashCode(this.grid);
         hash = 59 * hash + Objects.hashCode(this.constellations);
         return hash;
-    }
+}
 
     @Override
     public boolean equals(Object obj) {

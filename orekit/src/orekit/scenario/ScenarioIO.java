@@ -49,9 +49,9 @@ public class ScenarioIO {
     public static boolean save(Path path, String filename, Scenario scenario) {
         File file;
         if (scenario instanceof SubScenario) {
-            file = new File(path.toFile(), filename + ".subscen");
+            file = new File(path.toFile(), String.format("%s_%s.subscen", filename, scenario.getName()));
         } else {
-            file = new File(path.toFile(), filename + ".scen");
+            file = new File(path.toFile(), String.format("%s_%s.scen", filename, scenario.getName()));
         }
         try (ObjectOutputStream os = new ObjectOutputStream(new FileOutputStream(file));) {
             os.writeObject(scenario);
@@ -75,7 +75,7 @@ public class ScenarioIO {
      * @return
      */
     public static boolean saveAccess(Path path, String filename, Scenario scenario, CoverageDefinition covdef) {
-        File file = new File(path.toFile(), filename + "_" + covdef.getName() + ".cva");
+        File file = new File(path.toFile(), String.format("%s_%s_%s.cva",filename, scenario.getName(), covdef.getName()));
         HashMap<CoveragePoint, TimeIntervalArray> cvaa = scenario.getMergedAccesses(covdef);
         try (FileWriter fw = new FileWriter(file)) {
             fw.append(String.format("EpochTime: %s\n\n", scenario.getStartDate()));

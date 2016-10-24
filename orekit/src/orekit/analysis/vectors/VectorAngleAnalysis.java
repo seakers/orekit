@@ -5,7 +5,6 @@
  */
 package orekit.analysis.vectors;
 
-import java.lang.reflect.Method;
 import java.util.Objects;
 import orekit.analysis.AbstractAnalysis;
 import orekit.analysis.Record;

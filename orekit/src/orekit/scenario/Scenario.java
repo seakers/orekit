@@ -223,9 +223,9 @@ public class Scenario implements Callable<Scenario>, Serializable {
                 subscenarios.iterator().next().getTimeScale(),
                 subscenarios.iterator().next().getFrame(),
                 subscenarios.iterator().next().getPropagatorFactory(),
-                new HashSet<CoveageDefinition>(),
+                new HashSet<>(),
                 subscenarios.iterator().next().isSaveAllAccesses(),
-                null);
+                new CompoundAnalysis(subscenarios.iterator().next().getAnalyses()), 1);
         /*
          Check if all the subscenarios are run and all come from the same Parent Scenario. 
          Otherwise throw an Exception
@@ -262,24 +262,41 @@ public class Scenario implements Callable<Scenario>, Serializable {
          */
         HashMap<Integer, HashMap<CoveragePoint, TimeIntervalArray>> allCovDefs = new HashMap<>();
         HashMap<Integer, String> allCovDefNames = new HashMap<>();
+        HashMap<Integer, Collection<Constellation>> allCovDefConstels = new HashMap<>();
+        ArrayList<CoveragePoint> pts2 = new ArrayList<>();
         for (SubScenario subscenario : subscenarios) {
             CoverageDefinition partCovDef = subscenario.getPartialCoverageDefinition();
-            int covHash = subscenario.getCovDefHash();
+            pts2.addAll(partCovDef.getPoints());
+            int covHash = subscenario.getOrigCovDefHash();
             if (!allCovDefs.containsKey(covHash)) {
-                allCovDefs.put(subscenario.getCovDefHash(), new HashMap<CoveragePoint, TimeIntervalArray>());
+                allCovDefs.put(covHash, new HashMap<CoveragePoint, TimeIntervalArray>());
                 allCovDefNames.put(covHash, subscenario.getOrigCovDefName());
+                allCovDefConstels.put(covHash, partCovDef.getConstellations());
             }
-            allCovDefs.put(covHash, partCovDef.getAccesses());
+            allCovDefs.get(covHash).putAll(subscenario.getMergedAccesses(partCovDef));
+
+            if (saveAllAccesses) {
+                allAccesses.putAll(subscenario.getAllAccesses());
+            }
         }
 
         //create new coverage definitions
         HashSet<CoverageDefinition> coverageDefinitions = new HashSet<>(allCovDefs.keySet().size());
+        HashMap<CoverageDefinition, Integer> covDefToHash = new HashMap<>(allCovDefs.keySet().size());
         for (Integer i : allCovDefs.keySet()) {
             String name = allCovDefNames.get(i);
-            Collection<CoveragePoint> pts = allCovDefs.get(i).keySet();
-            coverageDefinitions.add(new CoverageDefinition(name, pts));
+            Collection<CoveragePoint> pts = new HashSet(allCovDefs.get(i).keySet());
+            CoverageDefinition cov = new CoverageDefinition(name, pts);
+            cov.assignConstellation(allCovDefConstels.get(i));
+            coverageDefinitions.add(cov);
+            covDefToHash.put(cov, i);
         }
         includeCovDef(coverageDefinitions);
+        //collect the merged accesses from each coverage point
+        for (CoverageDefinition cdef : finalAccesses.keySet()) {
+            HashMap<CoveragePoint, TimeIntervalArray> accesses = allCovDefs.get(covDefToHash.get(cdef));
+            finalAccesses.get(cdef).putAll(accesses);
+        }
 
         //collect the computed analyses
         for (SubScenario subscenario : subscenarios) {
@@ -296,6 +313,8 @@ public class Scenario implements Callable<Scenario>, Serializable {
 
     private void includeCovDef(HashSet<CoverageDefinition> c) {
         for (CoverageDefinition cdef : c) {
+            covDefs.add(cdef);
+            
             uniqueSatsAssignedToCovDef.put(cdef, new HashSet());
             for (Constellation constel : cdef.getConstellations()) {
                 uniqueConstellations.add(constel);
@@ -308,7 +327,11 @@ public class Scenario implements Callable<Scenario>, Serializable {
             //create a new time interval array for each point in the coverage definition
             HashMap<CoveragePoint, TimeIntervalArray> ptAccesses = new HashMap<>();
             for (CoveragePoint pt : cdef.getPoints()) {
-                ptAccesses.put(pt, new TimeIntervalArray(startDate, endDate));
+                if (cdef.getAccesses().containsKey(pt)) {
+                    ptAccesses.put(pt, cdef.getAccesses().get(pt));
+                } else {
+                    ptAccesses.put(pt, new TimeIntervalArray(startDate, endDate));
+                }
             }
             finalAccesses.put(cdef, ptAccesses);
         }
@@ -325,12 +348,16 @@ public class Scenario implements Callable<Scenario>, Serializable {
         if (analysis instanceof CompoundAnalysis) {
             CompoundAnalysis compoundAnalysis = (CompoundAnalysis) analysis;
             for (Analysis a : compoundAnalysis.getAnalyses()) {
-                analysisResults.put(a, new HashMap<>());
-                out.add(a);
+                if (!analysisResults.containsKey(a)) {
+                    analysisResults.put(a, new HashMap<>());
+                    out.add(a);
+                }
             }
         } else {
-            analysisResults.put(analysis, new HashMap<>());
-            out.add(analysis);
+            if (!analysisResults.containsKey(analysis)) {
+                analysisResults.put(analysis, new HashMap<>());
+                out.add(analysis);
+            }
         }
         return out;
     }
@@ -338,7 +365,9 @@ public class Scenario implements Callable<Scenario>, Serializable {
     /**
      * A builder pattern to set parameters for scenario
      */
-    public static class Builder {
+    public static class Builder implements Serializable {
+
+        private static final long serialVersionUID = -2447754795882563741L;
 
         //required fields
         /**
@@ -581,7 +610,7 @@ public class Scenario implements Callable<Scenario>, Serializable {
      * @return
      */
     public HashSet<CoverageDefinition> getCoverageDefinitions() {
-        return covDefs;
+        return new HashSet<CoverageDefinition>(covDefs);
     }
 
     /**
@@ -590,7 +619,7 @@ public class Scenario implements Callable<Scenario>, Serializable {
      * @return
      */
     public HashSet<Constellation> getUniqueConstellations() {
-        return uniqueConstellations;
+        return new HashSet<Constellation>(uniqueConstellations);
     }
 
     /**
@@ -599,7 +628,7 @@ public class Scenario implements Callable<Scenario>, Serializable {
      * @return
      */
     public HashSet<Satellite> getUniqueSatellites() {
-        return uniqueSatellites;
+        return new HashSet<Satellite>(uniqueSatellites);
     }
 
     /**
@@ -625,7 +654,7 @@ public class Scenario implements Callable<Scenario>, Serializable {
      * @return
      */
     public Collection<Analysis> getAnalyses() {
-        return analysisResults.keySet();
+        return new HashSet<Analysis>(analysisResults.keySet());
     }
 
     /**

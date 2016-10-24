@@ -196,4 +196,4 @@ public abstract class AbstractFieldOfViewDefinition implements FieldOfViewDefini
 
         return new Rotation(nadirRef, orbitNormal, v1, v2);
     }
-}
+    }

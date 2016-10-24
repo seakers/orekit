@@ -5,10 +5,12 @@
  */
 package orekit;
 
+import java.io.File;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import orekit.analysis.Analysis;
@@ -17,6 +19,7 @@ import orekit.analysis.ephemeris.OrbitalElementsAnalysis;
 import orekit.analysis.vectors.VectorAngleAnalysis;
 import orekit.attitude.OscillatingYawSteering;
 import orekit.coverage.access.TimeIntervalArray;
+import orekit.coverage.parallel.ParallelCoverage;
 import orekit.object.Constellation;
 import orekit.object.CoverageDefinition;
 import orekit.object.CoveragePoint;
@@ -34,7 +37,6 @@ import org.hipparchus.stat.descriptive.DescriptiveStatistics;
 import org.hipparchus.util.FastMath;
 import org.orekit.attitudes.NadirPointing;
 import org.orekit.bodies.BodyShape;
-import org.orekit.bodies.CelestialBody;
 import org.orekit.bodies.CelestialBodyFactory;
 import org.orekit.bodies.GeodeticPoint;
 import org.orekit.bodies.OneAxisEllipsoid;
@@ -79,7 +81,7 @@ public class Orekit {
 
         TimeScale utc = TimeScalesFactory.getUTC();
         AbsoluteDate startDate = new AbsoluteDate(2016, 1, 1, 0, 00, 00.000, utc);
-        AbsoluteDate endDate = new AbsoluteDate(2017, 1, 1, 0, 00, 00.000, utc);
+        AbsoluteDate endDate = new AbsoluteDate(2016, 1, 3, 0, 00, 00.000, utc);
         double mu = Constants.GRIM5C1_EARTH_MU; // gravitation coefficient
 
         //must use these frames to be consistent with STK
@@ -103,7 +105,7 @@ public class Orekit {
 
         NadirPointing nadPoint = new NadirPointing(inertialFrame, earthShape);
         OscillatingYawSteering yawSteer = new OscillatingYawSteering(nadPoint, startDate, Vector3D.PLUS_K, FastMath.toRadians(0.1), 0);
-        Satellite sat1 = new Satellite("sat1", initialOrbit1, yawSteer);
+        Satellite sat1 = new Satellite("sat1", initialOrbit1);
         RectangularFieldOfView fov_rect = new RectangularFieldOfView(Vector3D.PLUS_K,
                 FastMath.toRadians(80), FastMath.toRadians(45), 0);
         Instrument view1 = new Instrument("view1", fov_rect);
@@ -117,14 +119,14 @@ public class Orekit {
         ArrayList<GeodeticPoint> pts = new ArrayList<>();
 //        pts.add(new GeodeticPoint(FastMath.PI / 2, 0, 0));
 //        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", 20, earthShape, startDate, endDate);
-        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", pts, earthShape, startDate, endDate);
-//        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", STKGRID.getPoints(), earthShape, startDate, endDate);
+//        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", pts, earthShape, startDate, endDate);
+        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", STKGRID.getPoints(), earthShape, startDate, endDate);
 
         covDef1.assignConstellation(constel1);
 
         HashSet<CoverageDefinition> covDefs = new HashSet<>();
         covDefs.add(covDef1);
-
+        
         PropagatorFactory pf = new PropagatorFactory(PropagatorType.J2, initialOrbit2.getType());
         
         double analysisTimeStep = 600;
@@ -160,13 +162,22 @@ public class Orekit {
         CompoundAnalysis analyses = new CompoundAnalysis(analysesList);
 
         Scenario scen = new Scenario.Builder(startDate, endDate, utc).
-                analysis(analyses).covDefs(covDefs).name("test").numThreads(1).
-                propagatorFactory(pf).saveAllAccesses(false).build();
-        scen.call();
+                analysis(analyses).covDefs(covDefs).name("test1").numThreads(1).
+                propagatorFactory(pf).saveAllAccesses(true).build();
+//        scen.call();
+        ParallelCoverage pc = new ParallelCoverage();
+//        try {
+//            pc.createSubScenarios(scen, 4, new File("/Users/nozomihitomi/Desktop"));
+//        } catch (InterruptedException ex) {
+//            Logger.getLogger(Orekit.class.getName()).log(Level.SEVERE, null, ex);
+//        }
+        
+        Scenario scenComp = new Scenario(pc.loadRunAndSave(new File("/Users/nozomihitomi/Desktop").toPath(), 2));
 
-        System.out.println(String.format("Done Running Scenario %s", scen));
+        System.out.println(String.format("Done Running Scenario %s", scenComp));
 
-        HashMap<CoveragePoint, TimeIntervalArray> covDefAccess = scen.getMergedAccesses(covDef1);
+        CoverageDefinition cdefToSave = scenComp.getCoverageDefinitions().iterator().next();
+        HashMap<CoveragePoint, TimeIntervalArray> covDefAccess = scenComp.getMergedAccesses(cdefToSave);
 
         DescriptiveStatistics accessStats = new DescriptiveStatistics();
         DescriptiveStatistics gapStats = new DescriptiveStatistics();
@@ -195,14 +206,14 @@ public class Orekit {
             System.out.println(String.format("80th gap time %s", gapStats.getPercentile(80)));
             System.out.println(String.format("90th gap time %s", gapStats.getPercentile(90)));
 
-            ScenarioIO.saveAccess(Paths.get(path, ""), filename, scen, covDef1);
+            ScenarioIO.saveAccess(Paths.get(path, ""), filename, scenComp, cdefToSave);
         }
 
         System.out.println("Saving scenario...");
 
-        ScenarioIO.save(Paths.get(path, ""), filename, scen);
-        ScenarioIO.saveReadMe(Paths.get(path, ""), filename, scen);
-        ScenarioIO.saveAnalyses(Paths.get(path, ""), scen);
+        ScenarioIO.save(Paths.get(path, ""), filename, scenComp);
+        ScenarioIO.saveReadMe(Paths.get(path, ""), filename, scenComp);
+        ScenarioIO.saveAnalyses(Paths.get(path, ""), scenComp);
 
         long end = System.nanoTime();
         System.out.println("Took " + (end - start) / Math.pow(10, 9) + " sec");

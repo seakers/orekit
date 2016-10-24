@@ -7,17 +7,11 @@ package orekit.object;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.orekit.attitudes.AttitudeProvider;
-import org.orekit.errors.OrekitException;
 import org.orekit.orbits.KeplerianOrbit;
 import org.orekit.orbits.Orbit;
 import org.orekit.orbits.OrbitType;
-import org.orekit.orbits.PositionAngle;
 import org.orekit.propagation.Propagator;
-import org.orekit.utils.ParameterDriver;
-import org.orekit.utils.ParameterDriversList;
 
 /**
  * A satellite is defined with an orbit and a payload Satellite +X axis is
@@ -143,4 +137,4 @@ public class Satellite implements OrekitObject, Serializable {
         return "Satellite{" + "payload=" + payload + ", orbit=" + orbit + ", name=" + name + ", attProv=" + attProv + ", wetMass=" + wetMass + ", dryMass=" + dryMass + ", grossMass=" + grossMass + '}';
     }
 
-}
+    }

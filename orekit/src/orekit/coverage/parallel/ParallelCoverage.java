@@ -10,7 +10,6 @@ import java.io.FilenameFilter;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -18,7 +17,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import orekit.object.CoverageDefinition;
 import orekit.scenario.*;
 import org.orekit.errors.OrekitException;
 
@@ -42,8 +40,42 @@ public class ParallelCoverage {
         Iterator<SubScenario> iter = subscenarios.iterator();
         while (iter.hasNext()) {
             SubScenario subscen = iter.next();
-            ScenarioIO.save(file.toPath(), subscen.getName(), subscen);
+            ScenarioIO.save(file.toPath(), "par", subscen);
         }
+    }
+
+    public Collection<SubScenario> runAndSave(Collection<SubScenario> subscenarios, Path path, int numThreads) {
+        /**
+         * pool of resources
+         */
+        ExecutorService pool = Executors.newFixedThreadPool(numThreads);
+
+        ArrayList<SubScenario> results = new ArrayList<>(subscenarios.size());
+        try {
+            /**
+             * List of future tasks to perform
+             */
+            ArrayList<Future<Scenario>> futures = new ArrayList<>();
+
+            for (SubScenario s : subscenarios) {
+                futures.add(pool.submit(s));
+            }
+
+            for (Future<Scenario> fut : futures) {
+                SubScenario s = (SubScenario) fut.get();
+                results.add(s);
+                ScenarioIO.save(path, "par_fin", s);
+                
+            }
+        } catch (ExecutionException ex) {
+            Logger.getLogger(ParallelCoverage.class
+                    .getName()).log(Level.SEVERE, null, ex);
+        } catch (InterruptedException ex) {
+            Logger.getLogger(ParallelCoverage.class
+                    .getName()).log(Level.SEVERE, null, ex);
+        }
+        pool.shutdown();
+        return results;
     }
 
     /**
@@ -73,44 +105,20 @@ public class ParallelCoverage {
      *
      * @param path path containing un-run subscenarios
      * @param numThreads The number of threads to use to run the scenarios
+     * @return 
      */
-    public void loadRunAndSave(Path path, int numThreads) {
+    public Collection<SubScenario> loadRunAndSave(Path path, int numThreads) {
 
-        /**
-         * pool of resources
-         */
-        ExecutorService pool = Executors.newFixedThreadPool(numThreads);
-
-        try {
-            /**
-             * List of future tasks to perform
-             */
-            ArrayList<Future<Scenario>> futures = new ArrayList<>();
-
-            File[] matchingFiles = path.toFile().listFiles(new FilenameFilter() {
-                @Override
-                public boolean accept(File dir, String name) {
-                    return name.endsWith(".subscen");
-                }
-            });
-
-            for (File f : matchingFiles) {
-                SubScenario s = ScenarioIO.loadSubScenario(path, f.getName());
-                futures.add(pool.submit(s));
+        ArrayList<SubScenario> subscenarios = new ArrayList<>();
+        File[] matchingFiles = path.toFile().listFiles(new FilenameFilter() {
+            @Override
+            public boolean accept(File dir, String name) {
+                return name.endsWith(".subscen");
             }
-
-            for (Future<Scenario> fut : futures) {
-                Scenario s = fut.get();
-                ScenarioIO.save(path, s.getName(), s);
-
-            }
-        } catch (ExecutionException ex) {
-            Logger.getLogger(ParallelCoverage.class
-                    .getName()).log(Level.SEVERE, null, ex);
-        } catch (InterruptedException ex) {
-            Logger.getLogger(ParallelCoverage.class
-                    .getName()).log(Level.SEVERE, null, ex);
+        });
+        for (File f : matchingFiles) {
+            subscenarios.add(ScenarioIO.loadSubScenario(path, f.getName()));
         }
-        pool.shutdown();
+        return runAndSave(subscenarios, path, numThreads);
     }
 }

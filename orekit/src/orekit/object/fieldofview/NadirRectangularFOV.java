@@ -12,7 +12,6 @@ import org.orekit.errors.OrekitException;
 import org.orekit.frames.TopocentricFrame;
 import org.orekit.propagation.SpacecraftState;
 import org.orekit.propagation.events.FieldOfView;
-import org.orekit.time.AbsoluteDate;
 
 /**
  * This class models a rectangular field of view. The field of view is defined

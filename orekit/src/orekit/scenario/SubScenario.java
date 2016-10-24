@@ -5,6 +5,7 @@
  */
 package orekit.scenario;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -42,7 +43,7 @@ public class SubScenario extends Scenario {
      * The hash value of the original coverage definition. Used to place parts
      * of the coverage definition in the same bin
      */
-    private final int covDefHash;
+    private final int origCovDefHash;
     
     /**
      * The name of the original coverage definition. 
@@ -80,14 +81,15 @@ public class SubScenario extends Scenario {
         this.parentScenarioName = s.getName();
         this.subscenarioID = subscenarioID;
         this.totalSubscenarios = totalSubscenarios;
-        this.covDefHash = origCovDefHash;
+        this.origCovDefHash = origCovDefHash;
         this.origCovDefName = origCovDefName;
     }
 
     /**
      * Builder that helps create subscenarios to distribute task of propagation
      */
-    public static class SubBuilder {
+    public static class SubBuilder implements Serializable{
+        private static final long serialVersionUID = 3730918796247122257L;
 
         //required fields
         private final Scenario parentScenario;
@@ -191,8 +193,8 @@ public class SubScenario extends Scenario {
             }
             ArrayList<CoverageDefinition> out = new ArrayList<>(numDivisions);
             for (int i = 0; i < numDivisions; i++) {
-                CoverageDefinition subDivision = new CoverageDefinition(cdef.getName() + "_i", points.get(i));
-                subDivision.assignToConstellations(cdef.getConstellations());
+                CoverageDefinition subDivision = new CoverageDefinition(cdef.getName() + "_" + i, points.get(i));
+                subDivision.assignConstellation(cdef.getConstellations());
                 out.add(subDivision);
             }
             return out;
@@ -211,8 +213,8 @@ public class SubScenario extends Scenario {
         return totalSubscenarios;
     }
 
-    public int getCovDefHash() {
-        return covDefHash;
+    public int getOrigCovDefHash() {
+        return origCovDefHash;
     }
 
     public String getOrigCovDefName() {

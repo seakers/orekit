@@ -51,4 +51,4 @@ public class Instrument implements OrekitObject, Serializable {
         return "Instrument{" + "Name=" + name + fov.toString();
     }
 
-}
+    }
