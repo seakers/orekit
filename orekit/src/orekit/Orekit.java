@@ -26,7 +26,10 @@ import orekit.object.CoveragePoint;
 import orekit.object.Instrument;
 import orekit.object.OrbitWizard;
 import orekit.object.Satellite;
+import orekit.object.fieldofview.NadirRectangularFOV;
+import orekit.object.fieldofview.NadirSimpleConicalFOV;
 import orekit.object.fieldofview.RectangularFieldOfView;
+import orekit.object.fieldofview.SimpleConicalFieldOfView;
 import orekit.propagation.PropagatorFactory;
 import orekit.propagation.PropagatorType;
 import orekit.scenario.Scenario;
@@ -72,8 +75,8 @@ public class Orekit {
             path = args[0];
             filename = args[1];
         } else {
-            path = "/Users/nozomihitomi/Desktop";
-//            path = "C:\\Users\\SEAK1\\Nozomi\\OREKIT\\";
+//            path = "/Users/nozomihitomi/Desktop";
+            path = "C:\\Users\\SEAK1\\Nozomi\\OREKIT\\";
             filename = "rotating";
         }
 
@@ -81,20 +84,21 @@ public class Orekit {
 
         TimeScale utc = TimeScalesFactory.getUTC();
         AbsoluteDate startDate = new AbsoluteDate(2016, 1, 1, 0, 00, 00.000, utc);
-        AbsoluteDate endDate = new AbsoluteDate(2016, 1, 3, 0, 00, 00.000, utc);
-        double mu = Constants.GRIM5C1_EARTH_MU; // gravitation coefficient
+        AbsoluteDate endDate = new AbsoluteDate(2016, 1, 8, 0, 00, 00.000, utc);
+        double mu = Constants.WGS84_EARTH_MU; // gravitation coefficient
 
         //must use these frames to be consistent with STK
         Frame earthFrame = FramesFactory.getITRF(IERSConventions.IERS_2003, true);
         Frame inertialFrame = FramesFactory.getEME2000();
 
-        BodyShape earthShape = new OneAxisEllipsoid(Constants.GRIM5C1_EARTH_EQUATORIAL_RADIUS,
-                Constants.GRIM5C1_EARTH_FLATTENING, earthFrame);
+        BodyShape earthShape = new OneAxisEllipsoid(Constants.WGS84_EARTH_EQUATORIAL_RADIUS,
+                Constants.WGS84_EARTH_FLATTENING, earthFrame);
 
         //Enter satellites
         double a = 6978137.0;
         double e = 0.0;
-        double i = OrbitWizard.SSOinc(a, e);
+//        double i = OrbitWizard.SSOinc(a, e);
+        double i = FastMath.toRadians(45);
         double argofperigee = 0.;
         double raan = 0;
         double anomaly = FastMath.toRadians(0);
@@ -106,9 +110,11 @@ public class Orekit {
         NadirPointing nadPoint = new NadirPointing(inertialFrame, earthShape);
         OscillatingYawSteering yawSteer = new OscillatingYawSteering(nadPoint, startDate, Vector3D.PLUS_K, FastMath.toRadians(0.1), 0);
         Satellite sat1 = new Satellite("sat1", initialOrbit1);
-        RectangularFieldOfView fov_rect = new RectangularFieldOfView(Vector3D.PLUS_K,
-                FastMath.toRadians(80), FastMath.toRadians(45), 0);
-        Instrument view1 = new Instrument("view1", fov_rect);
+//        RectangularFieldOfView fov_rect = new RectangularFieldOfView(Vector3D.PLUS_K,
+//                FastMath.toRadians(80), FastMath.toRadians(45), 0);
+        NadirSimpleConicalFOV fov = new NadirSimpleConicalFOV(Vector3D.PLUS_K,  FastMath.toRadians(45), earthShape);
+//        NadirRectangularFOV fov = new NadirRectangularFOV(earthShape, Vector3D.PLUS_K,  FastMath.toRadians(60), FastMath.toRadians(5), 0);
+        Instrument view1 = new Instrument("view1", fov);
         sat1.addInstrument(view1);
 
         ArrayList<Satellite> satGroup1 = new ArrayList<>();
@@ -167,12 +173,12 @@ public class Orekit {
 //        scen.call();
         ParallelCoverage pc = new ParallelCoverage();
 //        try {
-//            pc.createSubScenarios(scen, 4, new File("/Users/nozomihitomi/Desktop"));
+//            pc.createSubScenarios(scen, 4, new File(path));
 //        } catch (InterruptedException ex) {
 //            Logger.getLogger(Orekit.class.getName()).log(Level.SEVERE, null, ex);
 //        }
         
-        Scenario scenComp = new Scenario(pc.loadRunAndSave(new File("/Users/nozomihitomi/Desktop").toPath(), 2));
+        Scenario scenComp = new Scenario(pc.loadRunAndSave(new File(path).toPath(), 4));
 
         System.out.println(String.format("Done Running Scenario %s", scenComp));
 

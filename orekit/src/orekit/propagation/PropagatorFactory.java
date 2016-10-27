@@ -67,8 +67,8 @@ public class PropagatorFactory implements Serializable {
      */
     private Propagator createJ2Propagator(Orbit orbit, double mass) throws OrekitException{
         
-        return new EcksteinHechlerPropagator(orbit, mass, Constants.GRIM5C1_EARTH_EQUATORIAL_RADIUS,
-                        Constants.GRIM5C1_EARTH_MU, Constants.GRIM5C1_EARTH_C20, 0,0,0,0);
+        return new EcksteinHechlerPropagator(orbit, mass, Constants.WGS84_EARTH_EQUATORIAL_RADIUS,
+                        Constants.WGS84_EARTH_MU, Constants.WGS84_EARTH_C20, 0,0,0,0);
     }
     /**
      * Creates a TLE propagator
