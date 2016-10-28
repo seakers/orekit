@@ -48,7 +48,7 @@ public class Instrument implements OrekitObject, Serializable {
 
     @Override
     public String toString() {
-        return "Instrument{" + "Name=" + name + fov.toString();
+        return "Instrument{" + "Name=" + name + " " + fov.toString();
     }
 
     }

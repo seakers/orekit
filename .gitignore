@@ -2,3 +2,6 @@
 /orekit/dist/
 /orekit/nbproject/
 
+/orekitSource/nbproject/private/
+/orekitSource/build/
+/orekitSource/dist/
