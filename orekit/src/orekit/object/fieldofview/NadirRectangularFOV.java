@@ -47,12 +47,13 @@ public class NadirRectangularFOV extends CustomFieldOfView {
      * @param margin angular margin to apply to the zone (if positive,
      * the Field Of View will consider points slightly outside of the
      * zone are still visible)
+     * @param shape the shape of the body to define the nadir direction
      * @throws OrekitException 
      */
-    public NadirRectangularFOV(BodyShape shape,Vector3D center,
+    public NadirRectangularFOV(Vector3D center,
             double acrossTrackHalfAperture, double alongTrackHalfAperture,
-            double margin) throws OrekitException {
-        this(shape, Vector3D.PLUS_K, Vector3D.PLUS_I, acrossTrackHalfAperture, Vector3D.PLUS_J, alongTrackHalfAperture, margin);
+            double margin, BodyShape shape) throws OrekitException {
+        this(Vector3D.PLUS_K, Vector3D.PLUS_I, acrossTrackHalfAperture, Vector3D.PLUS_J, alongTrackHalfAperture, margin, shape);
     }
 
     /**
@@ -69,12 +70,13 @@ public class NadirRectangularFOV extends CustomFieldOfView {
      * @param margin angular margin to apply to the zone (if positive,
      * the Field Of View will consider points slightly outside of the
      * zone are still visible)
+     * @param shape the shape of the body to define the nadir direction
      * @throws OrekitException 
      */
-    public NadirRectangularFOV(BodyShape shape, Vector3D center,
+    public NadirRectangularFOV(Vector3D center,
             Vector3D axis1, double halfAperture1,
             Vector3D axis2, double halfAperture2,
-            double margin) throws OrekitException {
+            double margin, BodyShape shape) throws OrekitException {
         super(new FieldOfView(center, axis1, halfAperture1, axis2, halfAperture2, margin));
         this.center = center;
         this.axis1 = axis1;

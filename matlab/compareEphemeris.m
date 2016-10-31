@@ -3,7 +3,7 @@
 %assumes that the rows are taken at the same time during the simulation
 path = 'C:\Users\SEAK1\Nozomi\OREKIT\Documentation\Comparing STK vs orekit\';
 stkdata = csvread(strcat(path,'STK_j2_simpleconical45_orbital.csv'),1,0);
-orekitdata = csvread(strcat(path,'orekit_j2_simpleconical45_orbital.eph'),1,0);
+orekitdata = csvread(strcat(path,'test1_sat1.eph'),1,0);
 
 subplot(2,3,1)
 plot(orekitdata(:,1),stkdata(:,1),orekitdata(:,1),orekitdata(:,2))

@@ -7,15 +7,9 @@ package orekit.object.fieldofview;
 
 import org.hipparchus.geometry.euclidean.threed.Vector3D;
 import org.orekit.bodies.BodyShape;
-import org.orekit.bodies.GeodeticPoint;
 import org.orekit.errors.OrekitException;
-import org.orekit.frames.Frame;
 import org.orekit.frames.TopocentricFrame;
-import org.orekit.frames.Transform;
 import org.orekit.propagation.SpacecraftState;
-import org.orekit.time.AbsoluteDate;
-import org.orekit.utils.PVCoordinatesProvider;
-import org.orekit.utils.TimeStampedPVCoordinates;
 
 /**
  * This field of view models a simple cone that is always pointed nadir
@@ -42,6 +36,7 @@ public class NadirSimpleConicalFOV extends AbstractFieldOfViewDefinition {
      *
      * @param centerAxis Direction of the FOV center, in spacecraft frame
      * @param halfAngle FOV half aperture angle, must be less than π/2.
+     * @param shape the shape of the body to define the nadir direction
      */
     public NadirSimpleConicalFOV(Vector3D centerAxis, double halfAngle, BodyShape shape) {
         this.centerAxis = centerAxis;

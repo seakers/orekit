@@ -18,6 +18,7 @@ import orekit.analysis.CompoundAnalysis;
 import orekit.analysis.ephemeris.OrbitalElementsAnalysis;
 import orekit.analysis.vectors.VectorAngleAnalysis;
 import orekit.attitude.OscillatingYawSteering;
+import orekit.constellations.Walker;
 import orekit.coverage.access.TimeIntervalArray;
 import orekit.coverage.parallel.ParallelCoverage;
 import orekit.object.Constellation;
@@ -48,6 +49,7 @@ import org.orekit.frames.Frame;
 import org.orekit.frames.FramesFactory;
 import org.orekit.orbits.KeplerianOrbit;
 import org.orekit.orbits.Orbit;
+import org.orekit.orbits.OrbitType;
 import org.orekit.orbits.PositionAngle;
 import org.orekit.propagation.SpacecraftState;
 import org.orekit.time.AbsoluteDate;
@@ -83,8 +85,8 @@ public class Orekit {
         OrekitConfig.init();
 
         TimeScale utc = TimeScalesFactory.getUTC();
-        AbsoluteDate startDate = new AbsoluteDate(2016, 1, 1, 0, 00, 00.000, utc);
-        AbsoluteDate endDate = new AbsoluteDate(2016, 1, 8, 0, 00, 00.000, utc);
+        AbsoluteDate startDate = new AbsoluteDate(2016, 1, 1, 16, 00, 00.000, utc);
+        AbsoluteDate endDate = new AbsoluteDate(2016, 3, 1, 16, 00, 00.000, utc);
         double mu = Constants.WGS84_EARTH_MU; // gravitation coefficient
 
         //must use these frames to be consistent with STK
@@ -94,91 +96,53 @@ public class Orekit {
         BodyShape earthShape = new OneAxisEllipsoid(Constants.WGS84_EARTH_EQUATORIAL_RADIUS,
                 Constants.WGS84_EARTH_FLATTENING, earthFrame);
 
-        //Enter satellites
+        //Enter satellite orbital parameters
         double a = 6978137.0;
-        double e = 0.0;
-//        double i = OrbitWizard.SSOinc(a, e);
         double i = FastMath.toRadians(45);
-        double argofperigee = 0.;
-        double raan = 0;
-        double anomaly = FastMath.toRadians(0);
-        Orbit initialOrbit1 = new KeplerianOrbit(a, e, i, argofperigee, raan, anomaly, PositionAngle.TRUE, inertialFrame, startDate, mu);
 
-        double anomaly2 = FastMath.toRadians(90);
-        Orbit initialOrbit2 = new KeplerianOrbit(a, e, i, argofperigee, raan, anomaly2, PositionAngle.TRUE, inertialFrame, startDate, mu);
+        Walker walker = new Walker("walker1", i, 12, 3, 0, a, inertialFrame, startDate, mu);
 
-        NadirPointing nadPoint = new NadirPointing(inertialFrame, earthShape);
-        OscillatingYawSteering yawSteer = new OscillatingYawSteering(nadPoint, startDate, Vector3D.PLUS_K, FastMath.toRadians(0.1), 0);
-        Satellite sat1 = new Satellite("sat1", initialOrbit1);
-//        RectangularFieldOfView fov_rect = new RectangularFieldOfView(Vector3D.PLUS_K,
-//                FastMath.toRadians(80), FastMath.toRadians(45), 0);
-        NadirSimpleConicalFOV fov = new NadirSimpleConicalFOV(Vector3D.PLUS_K,  FastMath.toRadians(45), earthShape);
-//        NadirRectangularFOV fov = new NadirRectangularFOV(earthShape, Vector3D.PLUS_K,  FastMath.toRadians(60), FastMath.toRadians(5), 0);
+        //define instruments
+//        NadirSimpleConicalFOV fov = new NadirSimpleConicalFOV(Vector3D.PLUS_K, FastMath.toRadians(45), earthShape);
+        NadirRectangularFOV fov = new NadirRectangularFOV(Vector3D.PLUS_K,  FastMath.toRadians(57), FastMath.toRadians(5), 0, earthShape);
         Instrument view1 = new Instrument("view1", fov);
-        sat1.addInstrument(view1);
+        //assign instruments
+        for (Satellite sat : walker.getSatellites()) {
+            sat.addInstrument(view1);
+        }
 
-        ArrayList<Satellite> satGroup1 = new ArrayList<>();
-        satGroup1.add(sat1);
-
-        Constellation constel1 = new Constellation("constel1", satGroup1);
-
-        ArrayList<GeodeticPoint> pts = new ArrayList<>();
+//        ArrayList<GeodeticPoint> pts = new ArrayList<>();
 //        pts.add(new GeodeticPoint(FastMath.PI / 2, 0, 0));
 //        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", 20, earthShape, startDate, endDate);
 //        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", pts, earthShape, startDate, endDate);
-        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", STKGRID.getPoints(), earthShape, startDate, endDate);
+        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", STKGRID.getPoints6(), earthShape, startDate, endDate);
 
-        covDef1.assignConstellation(constel1);
+        covDef1.assignConstellation(walker);
 
         HashSet<CoverageDefinition> covDefs = new HashSet<>();
         covDefs.add(covDef1);
-        
-        PropagatorFactory pf = new PropagatorFactory(PropagatorType.J2, initialOrbit2.getType());
-        
+
+        PropagatorFactory pf = new PropagatorFactory(PropagatorType.J2, OrbitType.KEPLERIAN);
+
         double analysisTimeStep = 600;
         ArrayList<Analysis> analysesList = new ArrayList<>();
         analysesList.add(new OrbitalElementsAnalysis(analysisTimeStep));
-        analysesList.add(new VectorAngleAnalysis(earthFrame, analysisTimeStep) {
-            private static final long serialVersionUID = 4556305811451847873L;
-            
-            @Override
-            public Vector3D getVector1(SpacecraftState currentState, Frame frame) {
-                try {
-                    Vector3D earthsunPos = CelestialBodyFactory.getSun().getPVCoordinates(currentState.getDate(), frame).getPosition();
-//                    Vector3D earthPos = CelestialBodyFactory.getEarth().getPVCoordinates(currentState.getDate(), frame).getPosition();
-//                    Vector3D earthSun = sunPos.subtract(earthPos);
-                    return new Vector3D(earthsunPos.getX(),earthsunPos.getY(),0.0);
-                } catch (OrekitException ex) {
-                    Logger.getLogger(Orekit.class.getName()).log(Level.SEVERE, null, ex);
-                }
-                return null;
-            }
-            
-            @Override
-            public Vector3D getVector2(SpacecraftState currentState, Frame frame) {
-                try {
-                    Vector3D vec = currentState.getPVCoordinates(frame).getPosition().crossProduct(currentState.getPVCoordinates(frame).getVelocity());
-                    return new Vector3D(vec.getX(),vec.getY(),0.0);
-                } catch (OrekitException ex) {
-                    Logger.getLogger(Orekit.class.getName()).log(Level.SEVERE, null, ex);
-                }
-                return null;
-            }
-        });
+        
         CompoundAnalysis analyses = new CompoundAnalysis(analysesList);
 
         Scenario scen = new Scenario.Builder(startDate, endDate, utc).
-                analysis(analyses).covDefs(covDefs).name("test1").numThreads(1).
+                analysis(analyses).covDefs(covDefs).name("test1").numThreads(10).
                 propagatorFactory(pf).saveAllAccesses(true).build();
-//        scen.call();
+        scen.call();
         ParallelCoverage pc = new ParallelCoverage();
 //        try {
 //            pc.createSubScenarios(scen, 4, new File(path));
 //        } catch (InterruptedException ex) {
 //            Logger.getLogger(Orekit.class.getName()).log(Level.SEVERE, null, ex);
 //        }
-        
-        Scenario scenComp = new Scenario(pc.loadRunAndSave(new File(path).toPath(), 4));
+
+//        Scenario scenComp = new Scenario(pc.loadRunAndSave(new File(path).toPath(), 4));
+        Scenario scenComp = scen;
 
         System.out.println(String.format("Done Running Scenario %s", scenComp));
 

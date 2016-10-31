@@ -13,6 +13,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.concurrent.LinkedBlockingQueue;
 import orekit.analysis.CompoundAnalysis;
+import orekit.coverage.parallel.CoverageDivider;
 import orekit.object.CoverageDefinition;
 import orekit.object.CoveragePoint;
 import org.hipparchus.util.FastMath;
@@ -141,7 +142,7 @@ public class SubScenario extends Scenario {
             int counter = 0;
             while (iter1.hasNext()) {
                 CoverageDefinition parentCovDef = iter1.next();
-                Collection<CoverageDefinition> covs = divide(parentCovDef, numDivisions);
+                Collection<CoverageDefinition> covs = CoverageDivider.divide(parentCovDef, numDivisions);
                 Iterator<CoverageDefinition> iter2 = covs.iterator();
                 while (iter2.hasNext()) {
                     out.put(new SubScenario(parentScenario, counter, 
@@ -149,53 +150,6 @@ public class SubScenario extends Scenario {
                             parentCovDef.getName(),iter2.next(), numThreads));
                     counter++;
                 }
-            }
-            return out;
-        }
-
-        /**
-         * This method divides the coverage grid into subregions to break up the
-         * simulation in parts. The subregions can be then simulated
-         * sequentially or in parallel.
-         *
-         * @param cdef the coverage definition to divide
-         * @param numDivisions the number of divisions
-         * @return a collection of coverage definitions that are all identical
-         * except for the points internal to the coverage definition
-         */
-        private Collection<CoverageDefinition> divide(CoverageDefinition cdef, int numDivisions) {
-            ArrayList<CoverageDefinition> out = new ArrayList<>(numDivisions);
-            if (numDivisions == 1) {
-                out.add(cdef);
-            } else {
-                out.addAll(divideCoverage(cdef, numDivisions));
-            }
-            return out;
-        }
-
-        /**
-         * The implementation of the coverage division
-         *
-         * @param cdef
-         * @param numDivisions
-         * @return
-         */
-        private static Collection<CoverageDefinition> divideCoverage(CoverageDefinition cdef, int numDivisions) {
-            //TODO implement map coloring to efficiently distribute points
-            ArrayList<ArrayList<CoveragePoint>> points = new ArrayList<>(numDivisions);
-            for (int i = 0; i < numDivisions; i++) {
-                points.add(new ArrayList());
-            }
-            int j = 0;
-            for (CoveragePoint pt : cdef.getPoints()) {
-                points.get(FastMath.floorMod(j, numDivisions)).add(pt);
-                j++;
-            }
-            ArrayList<CoverageDefinition> out = new ArrayList<>(numDivisions);
-            for (int i = 0; i < numDivisions; i++) {
-                CoverageDefinition subDivision = new CoverageDefinition(cdef.getName() + "_" + i, points.get(i));
-                subDivision.assignConstellation(cdef.getConstellations());
-                out.add(subDivision);
             }
             return out;
         }

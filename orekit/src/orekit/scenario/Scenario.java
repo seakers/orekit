@@ -10,6 +10,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -26,6 +27,8 @@ import orekit.analysis.CompoundAnalysis;
 import orekit.coverage.access.CoverageAccessMerger;
 import orekit.coverage.access.FOVHandler;
 import orekit.coverage.access.TimeIntervalArray;
+import orekit.coverage.parallel.CoverageDivider;
+import orekit.coverage.parallel.ParallelCoverage;
 import orekit.object.Constellation;
 import orekit.object.CoverageDefinition;
 import orekit.object.CoveragePoint;
@@ -523,9 +526,19 @@ public class Scenario implements Callable<Scenario>, Serializable {
                 for (Satellite sat : uniqueSatsAssignedToCovDef.get(cdef)) {
                     HashMap<CoveragePoint, TimeIntervalArray> satAccesses = new HashMap<>(cdef.getNumberOfPoints());
 
-                    //assign future tasks
-                    PropagateTask task = new PropagateTask(sat, endDate, cdef.getPoints(), analyses);
-                    futureTasks.add(pool.submit(task));
+                    //assign future tasks by dividing coverage definition into the number of threads available
+                    Collection<Collection<CoveragePoint>> pointGroups = CoverageDivider.divide(cdef.getPoints(), numThreads);
+                    boolean addedAnalysis = false; //only add the analyses to one task
+                    System.out.println(String.format("Initiating %d propagation tasks", numThreads));
+                    for(Collection<CoveragePoint> group : pointGroups){
+                        PropagateTask task;
+                        if(!addedAnalysis){
+                            task = new PropagateTask(sat, endDate, group, analyses);
+                        }else{
+                            task = new PropagateTask(sat, endDate, group, null);
+                        }
+                        futureTasks.add(pool.submit(task));
+                    }
 
                     //call future tasks and combine accesses from each point into one results object 
                     System.out.println(String.format("Propagating satellite %s to date %s", sat, endDate));
@@ -720,6 +733,7 @@ public class Scenario implements Callable<Scenario>, Serializable {
             out += "\tName: " + constel.getName() + "{\n";
             for (Satellite sat : constel.getSatellites()) {
                 out += "\t\tSatellite{\n";
+                out += "\t\t\tName: " + sat.getName() +"\n";
                 out += "\t\t\tOrbit: {" + sat.ppOrbit() + "}\n";
                 out += "\t\t\tPayload {\n";
                 for (Instrument inst : sat.getPayload()) {
@@ -753,7 +767,9 @@ public class Scenario implements Callable<Scenario>, Serializable {
             out += "\t\t}\n";
             out += "\t\tNumber of Points: " + covdef.getNumberOfPoints() + "\n";
             out += "\t\tLatitude\tLongitude\tAltitude:\n";
-            for (TopocentricFrame topoPt : covdef.getPoints()) {
+            ArrayList<CoveragePoint> sortedTopoPts = new ArrayList(covdef.getPoints());
+            Collections.sort(sortedTopoPts);
+            for (CoveragePoint topoPt : sortedTopoPts) {
                 GeodeticPoint pt = topoPt.getPoint();
                 out += String.format("\t\t%1$03.6f", FastMath.toDegrees(pt.getLatitude()));
                 out += String.format("\t%1$03.6f", FastMath.toDegrees(pt.getLongitude()));
