@@ -5,32 +5,23 @@
  */
 package orekit;
 
-import java.io.File;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Objects;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import orekit.analysis.Analysis;
 import orekit.analysis.CompoundAnalysis;
 import orekit.analysis.ephemeris.OrbitalElementsAnalysis;
-import orekit.analysis.vectors.VectorAngleAnalysis;
-import orekit.attitude.OscillatingYawSteering;
 import orekit.constellations.Walker;
 import orekit.coverage.access.TimeIntervalArray;
 import orekit.coverage.parallel.ParallelCoverage;
-import orekit.object.Constellation;
 import orekit.object.CoverageDefinition;
 import orekit.object.CoveragePoint;
 import orekit.object.Instrument;
-import orekit.object.OrbitWizard;
 import orekit.object.Satellite;
 import orekit.object.fieldofview.NadirRectangularFOV;
 import orekit.object.fieldofview.NadirSimpleConicalFOV;
-import orekit.object.fieldofview.RectangularFieldOfView;
-import orekit.object.fieldofview.SimpleConicalFieldOfView;
 import orekit.propagation.PropagatorFactory;
 import orekit.propagation.PropagatorType;
 import orekit.scenario.Scenario;
@@ -39,19 +30,12 @@ import orekit.util.OrekitConfig;
 import org.hipparchus.geometry.euclidean.threed.Vector3D;
 import org.hipparchus.stat.descriptive.DescriptiveStatistics;
 import org.hipparchus.util.FastMath;
-import org.orekit.attitudes.NadirPointing;
 import org.orekit.bodies.BodyShape;
-import org.orekit.bodies.CelestialBodyFactory;
-import org.orekit.bodies.GeodeticPoint;
 import org.orekit.bodies.OneAxisEllipsoid;
 import org.orekit.errors.OrekitException;
 import org.orekit.frames.Frame;
 import org.orekit.frames.FramesFactory;
-import org.orekit.orbits.KeplerianOrbit;
-import org.orekit.orbits.Orbit;
 import org.orekit.orbits.OrbitType;
-import org.orekit.orbits.PositionAngle;
-import org.orekit.propagation.SpacecraftState;
 import org.orekit.time.AbsoluteDate;
 import org.orekit.time.TimeScale;
 import org.orekit.time.TimeScalesFactory;
@@ -77,16 +61,16 @@ public class Orekit {
             path = args[0];
             filename = args[1];
         } else {
-//            path = "/Users/nozomihitomi/Desktop";
-            path = "C:\\Users\\SEAK1\\Nozomi\\OREKIT\\";
+            path = "/Users/nozomihitomi/Desktop";
+//            path = "C:\\Users\\SEAK1\\Nozomi\\OREKIT\\";
             filename = "rotating";
         }
 
         OrekitConfig.init();
 
         TimeScale utc = TimeScalesFactory.getUTC();
-        AbsoluteDate startDate = new AbsoluteDate(2016, 1, 1, 16, 00, 00.000, utc);
-        AbsoluteDate endDate = new AbsoluteDate(2016, 3, 1, 16, 00, 00.000, utc);
+        AbsoluteDate startDate = new AbsoluteDate(2016, 1, 1, 00, 00, 00.000, utc);
+        AbsoluteDate endDate = new AbsoluteDate(2016, 1, 8, 00, 00, 00.000, utc);
         double mu = Constants.WGS84_EARTH_MU; // gravitation coefficient
 
         //must use these frames to be consistent with STK
@@ -100,12 +84,12 @@ public class Orekit {
         double a = 6978137.0;
         double i = FastMath.toRadians(45);
 
-        Walker walker = new Walker("walker1", i, 12, 3, 0, a, inertialFrame, startDate, mu);
+        Walker walker = new Walker("walker1", i, 1, 1, 0, a, inertialFrame, startDate, mu);
 
         //define instruments
-//        NadirSimpleConicalFOV fov = new NadirSimpleConicalFOV(Vector3D.PLUS_K, FastMath.toRadians(45), earthShape);
-        NadirRectangularFOV fov = new NadirRectangularFOV(Vector3D.PLUS_K,  FastMath.toRadians(57), FastMath.toRadians(5), 0, earthShape);
-        Instrument view1 = new Instrument("view1", fov);
+        NadirSimpleConicalFOV fov = new NadirSimpleConicalFOV(Vector3D.PLUS_K, FastMath.toRadians(45), earthShape);
+//        NadirRectangularFOV fov = new NadirRectangularFOV(Vector3D.PLUS_K,  FastMath.toRadians(57), FastMath.toRadians(5), 0, earthShape);
+        Instrument view1 = new Instrument("view1", fov, 100, 100);
         //assign instruments
         for (Satellite sat : walker.getSatellites()) {
             sat.addInstrument(view1);
@@ -115,14 +99,14 @@ public class Orekit {
 //        pts.add(new GeodeticPoint(FastMath.PI / 2, 0, 0));
 //        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", 20, earthShape, startDate, endDate);
 //        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", pts, earthShape, startDate, endDate);
-        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", STKGRID.getPoints6(), earthShape, startDate, endDate);
+        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", STKGRID.getPoints20(), earthShape);
 
         covDef1.assignConstellation(walker);
 
         HashSet<CoverageDefinition> covDefs = new HashSet<>();
         covDefs.add(covDef1);
 
-        PropagatorFactory pf = new PropagatorFactory(PropagatorType.J2, OrbitType.KEPLERIAN);
+        PropagatorFactory pf = new PropagatorFactory(PropagatorType.KEPLERIAN, OrbitType.KEPLERIAN);
 
         double analysisTimeStep = 600;
         ArrayList<Analysis> analysesList = new ArrayList<>();
@@ -131,8 +115,8 @@ public class Orekit {
         CompoundAnalysis analyses = new CompoundAnalysis(analysesList);
 
         Scenario scen = new Scenario.Builder(startDate, endDate, utc).
-                analysis(analyses).covDefs(covDefs).name("test1").numThreads(10).
-                propagatorFactory(pf).saveAllAccesses(true).build();
+                analysis(analyses).covDefs(covDefs).name("test1").numThreads(2).
+                propagatorFactory(pf).saveAllAccesses(true).saveToDB(true).build();
         scen.call();
         ParallelCoverage pc = new ParallelCoverage();
 //        try {
@@ -181,7 +165,7 @@ public class Orekit {
 
         System.out.println("Saving scenario...");
 
-        ScenarioIO.save(Paths.get(path, ""), filename, scenComp);
+//        ScenarioIO.save(Paths.get(path, ""), filename, scenComp);
         ScenarioIO.saveReadMe(Paths.get(path, ""), filename, scenComp);
         ScenarioIO.saveAnalyses(Paths.get(path, ""), scenComp);
 

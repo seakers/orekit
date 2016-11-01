@@ -27,10 +27,7 @@ public class OrekitConfig {
      * Loads in default datasets
      */
     public static void init(){
-        StringBuffer pathBuffer = new StringBuffer();
-        final File currrentDir = new File(System.getProperty("user.dir"));
-        appendIfExists(pathBuffer, new File(currrentDir,    "orekit-data"));
-        System.setProperty(DataProvidersManager.OREKIT_DATA_PATH, pathBuffer.toString());
+        OrekitConfig.init(System.getProperty("user.dir"));
     }
     
     /**
@@ -43,6 +40,11 @@ public class OrekitConfig {
         final File currrentDir = new File(currentDirectory);
         appendIfExists(pathBuffer, new File(currrentDir,    "orekit-data"));
         System.setProperty(DataProvidersManager.OREKIT_DATA_PATH, pathBuffer.toString());
+        File covDB = new File(currrentDir,"CoverageDatabase");
+        if(!covDB.isDirectory()){
+            throw new IllegalArgumentException(String.format("Expected coverage database to be a directory. Found %s to not be a directory.", covDB.getAbsolutePath()));
+        }
+        System.setProperty("CoverageDatabase", covDB.getAbsolutePath());
     }
     
      /** Append a directory/zip archive to the path if it exists.

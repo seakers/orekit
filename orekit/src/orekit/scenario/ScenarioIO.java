@@ -49,9 +49,9 @@ public class ScenarioIO {
     public static boolean save(Path path, String filename, Scenario scenario) {
         File file;
         if (scenario instanceof SubScenario) {
-            file = new File(path.toFile(), String.format("%s_%s.subscen", filename, scenario.getName()));
+            file = new File(path.toFile(), String.format("%s.subscen", filename));
         } else {
-            file = new File(path.toFile(), String.format("%s_%s.scen", filename, scenario.getName()));
+            file = new File(path.toFile(), String.format("%s.scen", filename));
         }
         try (ObjectOutputStream os = new ObjectOutputStream(new FileOutputStream(file));) {
             os.writeObject(scenario);
@@ -75,7 +75,7 @@ public class ScenarioIO {
      * @return
      */
     public static boolean saveAccess(Path path, String filename, Scenario scenario, CoverageDefinition covdef) {
-        File file = new File(path.toFile(), String.format("%s_%s_%s.cva",filename, scenario.getName(), covdef.getName()));
+        File file = new File(path.toFile(), String.format("%s_%s_%s.cva", filename, scenario.getName(), covdef.getName()));
         HashMap<CoveragePoint, TimeIntervalArray> cvaa = scenario.getMergedAccesses(covdef);
         try (FileWriter fw = new FileWriter(file)) {
             fw.append(String.format("EpochTime: %s\n\n", scenario.getStartDate()));
@@ -115,6 +115,7 @@ public class ScenarioIO {
 
     /**
      * Saves all the computed analyses run during the scenario
+     *
      * @param path
      * @param scenario
      * @return true if the analyses are successfuly saved
@@ -169,6 +170,16 @@ public class ScenarioIO {
         return (SubScenario) load(path, filename);
     }
 
+    /**
+     * Saves a human read-able text file that contains input parameters that
+     * define the scenario such as the satellites, their payload, the coverage
+     * definition, the propagation type, and the scenario dates
+     *
+     * @param path
+     * @param filename
+     * @param scenario
+     * @return
+     */
     public static boolean saveReadMe(Path path, String filename, Scenario scenario) {
         File file = new File(path.toFile(), filename + ".txtore");
 
@@ -186,5 +197,49 @@ public class ScenarioIO {
         }
         System.out.println("Saved readme in " + file.toString());
         return true;
+    }
+
+    /**
+     * This method looks to see if the satellites in the scenario have already
+     * been run and saved in the database. If so, the previously run scenario is
+     * loaded with the access times.
+     *
+     * @param scenarioToRun
+     * @return　null if the scenario does not exist in the database. Otherwise,
+     * the scenario that is stored in the database
+     */
+    public static Scenario checkDatabase(Scenario scenarioToRun) {
+        String fileName = String.format("%d.scen", scenarioToRun.hashCode());
+        File covDB = new File(System.getProperty("CoverageDatabase"));
+        File file = new File(covDB, fileName);
+        if (file.exists()) {
+            return ScenarioIO.load(covDB.toPath(), fileName);
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * This method saves a simulated scenario to the database. If the scenario
+     * is not run yet, it will not be saved. In addition, if the scenario
+     * already exists in the database, the given scenario will not be saved
+     *
+     * @param scenario the scenario that has already been simulated
+     * @return　true if the scenario was successfully saved. else false
+     */
+    public static boolean saveToDatabase(Scenario scenario) {
+        if (!scenario.isDone()) {
+            return false;
+        }
+
+        String fileName = String.format("%d.scen", scenario.hashCode());
+        File covDB = new File(System.getProperty("CoverageDatabase"));
+        File file = new File(covDB, fileName);
+        if (file.exists()) {
+            return false;
+        } else {
+            ScenarioIO.save(covDB.toPath(), String.valueOf(scenario.hashCode()), scenario);
+            return true;
+        }
     }
 }

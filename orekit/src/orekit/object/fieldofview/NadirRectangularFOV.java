@@ -5,6 +5,7 @@
  */
 package orekit.object.fieldofview;
 
+import java.util.Objects;
 import org.hipparchus.geometry.euclidean.threed.Rotation;
 import org.hipparchus.geometry.euclidean.threed.Vector3D;
 import org.orekit.bodies.BodyShape;
@@ -143,4 +144,44 @@ public class NadirRectangularFOV extends CustomFieldOfView {
     public String toString() {
         return "RectangularFieldOfView{ HalfAngle1=" + halfAperture1 + ", HalfAngle2=" + halfAperture2 + "}"; 
     }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 17 * hash + Objects.hashCode(this.center);
+        hash = 17 * hash + Objects.hashCode(this.axis1);
+        hash = 17 * hash + Objects.hashCode(this.axis2);
+        hash = 17 * hash + (int) (Double.doubleToLongBits(this.halfAperture1) ^ (Double.doubleToLongBits(this.halfAperture1) >>> 32));
+        hash = 17 * hash + (int) (Double.doubleToLongBits(this.halfAperture2) ^ (Double.doubleToLongBits(this.halfAperture2) >>> 32));
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final NadirRectangularFOV other = (NadirRectangularFOV) obj;
+        if (!Objects.equals(this.center, other.center)) {
+            return false;
+        }
+        if (!Objects.equals(this.axis1, other.axis1)) {
+            return false;
+        }
+        if (!Objects.equals(this.axis2, other.axis2)) {
+            return false;
+        }
+        if (Double.doubleToLongBits(this.halfAperture1) != Double.doubleToLongBits(other.halfAperture1)) {
+            return false;
+        }
+        if (Double.doubleToLongBits(this.halfAperture2) != Double.doubleToLongBits(other.halfAperture2)) {
+            return false;
+        }
+        return true;
+    }
+    
+    
 }

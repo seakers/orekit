@@ -5,6 +5,7 @@
  */
 package orekit.object.fieldofview;
 
+import java.util.Objects;
 import org.hipparchus.geometry.euclidean.threed.Vector3D;
 import org.orekit.errors.OrekitException;
 import org.orekit.frames.TopocentricFrame;
@@ -72,5 +73,33 @@ public class SimpleConicalFieldOfView extends AbstractFieldOfViewDefinition{
     public String toString() {
         return "SimpleConicalFieldOfView{" + "halfAngle=" + halfAngle + '}';
     }
+
+    @Override
+    public int hashCode() {
+        int hash = 5;
+        hash = 31 * hash + Objects.hashCode(this.centerAxis);
+        hash = 31 * hash + (int) (Double.doubleToLongBits(this.halfAngle) ^ (Double.doubleToLongBits(this.halfAngle) >>> 32));
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final SimpleConicalFieldOfView other = (SimpleConicalFieldOfView) obj;
+        if (!Objects.equals(this.centerAxis, other.centerAxis)) {
+            return false;
+        }
+        if (Double.doubleToLongBits(this.halfAngle) != Double.doubleToLongBits(other.halfAngle)) {
+            return false;
+        }
+        return true;
+    }
+    
+    
 
 }

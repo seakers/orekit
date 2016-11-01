@@ -8,6 +8,7 @@ package orekit.object;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Objects;
 
 /**
  * A collection of satellites
@@ -45,5 +46,29 @@ public class Constellation implements OrekitObject, Serializable{
     public String toString() {
         return "Constellation{" + "name=" + name + ", number of satellites=" + satellites.size() + '}';
     }
+
+    @Override
+    public int hashCode() {
+        int hash = 3;
+        hash = 59 * hash + Objects.hashCode(this.satellites);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (!(obj instanceof Constellation)) {
+            return false;
+        }
+        final Constellation other = (Constellation) obj;
+        if (!Objects.equals(this.satellites, other.satellites)) {
+            return false;
+        }
+        return true;
+    }
+    
+    
     
 }

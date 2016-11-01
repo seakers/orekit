@@ -6,7 +6,6 @@
 package orekit.scenario;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
@@ -15,8 +14,6 @@ import java.util.concurrent.LinkedBlockingQueue;
 import orekit.analysis.CompoundAnalysis;
 import orekit.coverage.parallel.CoverageDivider;
 import orekit.object.CoverageDefinition;
-import orekit.object.CoveragePoint;
-import org.hipparchus.util.FastMath;
 
 /**
  * This class extends Scenario and is intended to be used as a means to
@@ -76,7 +73,8 @@ public class SubScenario extends Scenario {
         super(String.format(s.getName() + "_subscen%d", subscenarioID), 
                 s.getStartDate(), s.getEndDate(), s.getTimeScale(), 
                 s.getFrame(), s.getPropagatorFactory(), 
-                new HashSet<>(Arrays.asList(covDef)), s.isSaveAllAccesses(),
+                new HashSet<>(Arrays.asList(new CoverageDefinition[]{covDef})),
+                s.isSaveAllAccesses(), s.isSaveToDB(), 
                 new CompoundAnalysis(s.getAnalyses()), numThreads);
         this.parentScenarioHash = s.hashCode();
         this.parentScenarioName = s.getName();
