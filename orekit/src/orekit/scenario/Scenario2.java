@@ -5,10 +5,8 @@
  */
 package orekit.scenario;
 
-import orekit.object.fieldofview.FOVDetector;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.Collections;
@@ -17,27 +15,21 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import orekit.analysis.Analysis;
 import orekit.analysis.CompoundAnalysis;
 import orekit.coverage.access.CoverageAccessMerger;
 import orekit.coverage.access.FOVHandler;
 import orekit.coverage.access.TimeIntervalArray;
-import orekit.coverage.parallel.CoverageDivider;
 import orekit.object.Constellation;
 import orekit.object.CoverageDefinition;
 import orekit.object.CoveragePoint;
 import orekit.object.Instrument;
-import orekit.object.PositionMatrix;
 import orekit.object.Satellite;
 import orekit.propagation.PropagatorFactory;
 import orekit.propagation.PropagatorType;
-import org.hipparchus.geometry.euclidean.threed.Vector3D;
 import org.hipparchus.linear.Array2DRowRealMatrix;
 import org.hipparchus.linear.MatrixUtils;
 import org.hipparchus.linear.RealMatrix;

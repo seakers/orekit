@@ -120,10 +120,11 @@ public class Orekit {
         for(CoveragePoint pt : covDef1.getPoints()){
             fovs.add( new FOVDetector(pt, view1).withMaxCheck(1));
         }
-        analysesList.add(new EventAnalysis(analysisTimeStep, fovs));
+//        analysesList.add(new EventAnalysis(analysisTimeStep, fovs));
         analysesList.add(new EventAnalysis2(analysisTimeStep, new ArrayList(covDef1.getPoints()), earthShape,  new FieldOfView(Vector3D.PLUS_K,
                        Vector3D.PLUS_I, FastMath.toRadians(45),
-                       Vector3D.PLUS_J, FastMath.toRadians(45),0)));
+                       Vector3D.PLUS_J, FastMath.toRadians(45),0),
+                        inertialFrame, startDate));
         
         CompoundAnalysis analyses = new CompoundAnalysis(analysesList);
 

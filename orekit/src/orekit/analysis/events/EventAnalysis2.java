@@ -6,8 +6,10 @@
 package orekit.analysis.events;
 
 import java.util.Collection;
+import java.util.HashMap;
 import orekit.analysis.AbstractAnalysis;
 import orekit.analysis.Record;
+import orekit.object.CoveragePoint;
 import org.hipparchus.geometry.enclosing.EnclosingBall;
 import org.hipparchus.geometry.euclidean.threed.Rotation;
 import org.hipparchus.geometry.euclidean.threed.Vector3D;
@@ -15,8 +17,10 @@ import org.hipparchus.geometry.spherical.twod.S2Point;
 import org.hipparchus.geometry.spherical.twod.Sphere2D;
 import org.hipparchus.geometry.spherical.twod.SphericalPolygonsSet;
 import org.hipparchus.linear.Array2DRowRealMatrix;
+import org.hipparchus.linear.ArrayRealVector;
 import org.hipparchus.linear.MatrixUtils;
 import org.hipparchus.linear.RealMatrix;
+import org.hipparchus.linear.RealVector;
 import org.hipparchus.util.FastMath;
 import org.orekit.bodies.BodyShape;
 import org.orekit.bodies.GeodeticPoint;
@@ -45,12 +49,29 @@ public class EventAnalysis2 extends AbstractAnalysis<GValues> {
     private final double minRadius = Constants.WGS84_EARTH_EQUATORIAL_RADIUS * (1 - Constants.WGS84_EARTH_FLATTENING);
 
     private final FieldOfView fov;
+    
+    private final HashMap<TopocentricFrame, Integer> pointMap;
+    
+    private final Frame inertialFrame;
+    
+    private final RealMatrix initPointPos;
 
-    public EventAnalysis2(double timeStep, Collection<TopocentricFrame> points, BodyShape shape, FieldOfView fov) {
+    public EventAnalysis2(double timeStep, Collection<TopocentricFrame> points, BodyShape shape, FieldOfView fov, Frame inertialFrame, AbsoluteDate startDate) throws OrekitException {
         super(timeStep);
         this.points = points;
         this.shape = shape;
         this.fov = fov;
+
+        //build initial position vector matrix that can be reused by rotation matrix
+        this.initPointPos = new Array2DRowRealMatrix(3, points.size());
+        int col = 0;
+        this.pointMap = new HashMap<>(points.size());
+        for (TopocentricFrame pt : points) {
+            initPointPos.setColumn(col, pt.getPVCoordinates(startDate, inertialFrame).getPosition().normalize().toArray());
+            pointMap.put(pt, col);
+            col++;
+        }
+        this.inertialFrame = inertialFrame;
     }
 
     @Override
@@ -60,37 +81,49 @@ public class EventAnalysis2 extends AbstractAnalysis<GValues> {
 
     @Override
     public void handleStep(SpacecraftState currentState, boolean isLast) throws OrekitException {
-        RealMatrix mPos = MatrixUtils.createRealMatrix(points.size(), 3);
-        int row = 0;
+        //The spacecraft position in the inertial frame
+        RealVector satPosInert = new ArrayRealVector(currentState.getPVCoordinates().getPosition().toArray());
+        RealVector satPosInertNorm = satPosInert.mapDivideToSelf(satPosInert.getNorm());
+        //The normalized position vectors of the points in the inertial frame
+        RealMatrix ptPosInertNorm = MatrixUtils.createRealMatrix(3, points.size());
+        //The vector between the satellite and point position in the inertial frame
+        RealMatrix sat2ptLineInert = MatrixUtils.createRealMatrix(3, points.size());
+        
+        RealMatrix pointRotation = new Array2DRowRealMatrix(shape.getBodyFrame().
+                    getTransformTo(inertialFrame, currentState.getDate()).getInverse().
+                    getRotation().getMatrix());
+        
+        RealMatrix ptPosInert = pointRotation.multiply(pointRotation);
+        
+        int col = 0;
         for (TopocentricFrame pt : points) {
-            mPos.setRow(row, pt.getPVCoordinates(currentState.getDate(), currentState.getFrame()).getPosition().normalize().toArray());
-            row++;
+//            Vector3D pointPos = pt.getPVCoordinates(currentState.getDate(), currentState.getFrame()).getPosition();
+            ptPosInertNorm.setColumnVector(col, ptPosInert.getColumnVector(col).mapDivideToSelf(ptPosInert.getColumnVector(col).getNorm()));
+            sat2ptLineInert.setColumnVector(col, satPosInert.subtract(ptPosInert.getColumnVector(col)));
+            col++;
         }
-        RealMatrix sPos = new Array2DRowRealMatrix(currentState.getPVCoordinates().getPosition().normalize().toArray());
-        RealMatrix cosThetas = mPos.multiply(sPos);
+        RealVector cosThetas = ptPosInertNorm.preMultiply(satPosInertNorm);
 
         double minCosTheta = minRadius / currentState.getA();
 
+        //rot is rotation matrix from inertial frame to spacecraft body-center-pointing frame
+        Rotation rot = alignWithNadirAndNormal(Vector3D.PLUS_K, Vector3D.PLUS_J, currentState, currentState.getOrbit(), shape, currentState.getFrame());
+        RealMatrix rotMatrix = new Array2DRowRealMatrix(rot.getMatrix());
+        //line of sight vectors in spacecraft frame
+        RealMatrix losSC = rotMatrix.multiply(sat2ptLineInert);
+
         GValues<TopocentricFrame> gvals = new GValues();
 
-        row = 0;
+        col = 0;
         for (TopocentricFrame pt : points) {
-            double losVal = cosThetas.getEntry(row, 0) - minCosTheta;
+            double losVal = cosThetas.getEntry(col) - minCosTheta;
             if (losVal < 0) {
                 gvals.put(pt, losVal);
-
             } else {
-                //r is rotation matrix from inertial frame to spacecraft body-center-pointing frame
-                Vector3D targetPosInert = pt.getPVCoordinates(currentState.getDate(), currentState.getFrame()).getPosition();
-                Vector3D spacecraftPosInert = currentState.getPVCoordinates(currentState.getFrame()).getPosition();
-                Vector3D losInert = spacecraftPosInert.subtract(targetPosInert);
-                Rotation rot = alignWithNadirAndNormal(Vector3D.PLUS_K, Vector3D.PLUS_J, currentState, currentState.getOrbit(), shape, currentState.getFrame());
-                Vector3D lineOfSightSC = rot.applyTo(losInert);
-
-                gvals.put(pt, -fov.offsetFromBoundary(lineOfSightSC.negate()));
+                gvals.put(pt, -fov.offsetFromBoundary((new Vector3D(losSC.getColumn(col))).negate()));
             }
 
-            row++;
+            col++;
         }
 
         Record<GValues> e = new Record(currentState.getDate(), gvals);
