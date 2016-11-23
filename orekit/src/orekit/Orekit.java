@@ -13,6 +13,8 @@ import java.util.Objects;
 import orekit.analysis.Analysis;
 import orekit.analysis.CompoundAnalysis;
 import orekit.analysis.ephemeris.OrbitalElementsAnalysis;
+import orekit.analysis.events.EventAnalysis;
+import orekit.analysis.events.EventAnalysis2;
 import orekit.constellations.Walker;
 import orekit.coverage.access.TimeIntervalArray;
 import orekit.coverage.parallel.ParallelCoverage;
@@ -20,6 +22,7 @@ import orekit.object.CoverageDefinition;
 import orekit.object.CoveragePoint;
 import orekit.object.Instrument;
 import orekit.object.Satellite;
+import orekit.object.fieldofview.FOVDetector;
 import orekit.object.fieldofview.NadirRectangularFOV;
 import orekit.object.fieldofview.NadirSimpleConicalFOV;
 import orekit.propagation.PropagatorFactory;
@@ -31,11 +34,13 @@ import org.hipparchus.geometry.euclidean.threed.Vector3D;
 import org.hipparchus.stat.descriptive.DescriptiveStatistics;
 import org.hipparchus.util.FastMath;
 import org.orekit.bodies.BodyShape;
+import org.orekit.bodies.GeodeticPoint;
 import org.orekit.bodies.OneAxisEllipsoid;
 import org.orekit.errors.OrekitException;
 import org.orekit.frames.Frame;
 import org.orekit.frames.FramesFactory;
 import org.orekit.orbits.OrbitType;
+import org.orekit.propagation.events.FieldOfView;
 import org.orekit.time.AbsoluteDate;
 import org.orekit.time.TimeScale;
 import org.orekit.time.TimeScalesFactory;
@@ -61,8 +66,8 @@ public class Orekit {
             path = args[0];
             filename = args[1];
         } else {
-            path = "/Users/nozomihitomi/Desktop";
-//            path = "C:\\Users\\SEAK1\\Nozomi\\OREKIT\\";
+//            path = "/Users/nozomihitomi/Desktop";
+            path = "C:\\Users\\SEAK1\\Nozomi\\OREKIT\\";
             filename = "rotating";
         }
 
@@ -70,7 +75,7 @@ public class Orekit {
 
         TimeScale utc = TimeScalesFactory.getUTC();
         AbsoluteDate startDate = new AbsoluteDate(2016, 1, 1, 00, 00, 00.000, utc);
-        AbsoluteDate endDate = new AbsoluteDate(2016, 1, 8, 00, 00, 00.000, utc);
+        AbsoluteDate endDate = new AbsoluteDate(2016, 1, 2, 00, 00, 00.000, utc);
         double mu = Constants.WGS84_EARTH_MU; // gravitation coefficient
 
         //must use these frames to be consistent with STK
@@ -82,24 +87,24 @@ public class Orekit {
 
         //Enter satellite orbital parameters
         double a = 6978137.0;
-        double i = FastMath.toRadians(45);
+        double i = FastMath.toRadians(90);
 
         Walker walker = new Walker("walker1", i, 1, 1, 0, a, inertialFrame, startDate, mu);
 
         //define instruments
-        NadirSimpleConicalFOV fov = new NadirSimpleConicalFOV(Vector3D.PLUS_K, FastMath.toRadians(45), earthShape);
-//        NadirRectangularFOV fov = new NadirRectangularFOV(Vector3D.PLUS_K,  FastMath.toRadians(57), FastMath.toRadians(5), 0, earthShape);
+//        NadirSimpleConicalFOV fov = new NadirSimpleConicalFOV(Vector3D.PLUS_K, FastMath.toRadians(45), earthShape);
+        NadirRectangularFOV fov = new NadirRectangularFOV(Vector3D.PLUS_K,  FastMath.toRadians(45), FastMath.toRadians(45), 0, earthShape);
         Instrument view1 = new Instrument("view1", fov, 100, 100);
         //assign instruments
         for (Satellite sat : walker.getSatellites()) {
             sat.addInstrument(view1);
         }
 
-//        ArrayList<GeodeticPoint> pts = new ArrayList<>();
-//        pts.add(new GeodeticPoint(FastMath.PI / 2, 0, 0));
-//        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", 20, earthShape, startDate, endDate);
-//        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", pts, earthShape, startDate, endDate);
-        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", STKGRID.getPoints20(), earthShape);
+        ArrayList<GeodeticPoint> pts = new ArrayList<>();
+        pts.add(new GeodeticPoint(FastMath.PI / 2, 0, 0));
+//        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", 20, earthShape);
+        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", pts, earthShape);
+//        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", STKGRID.getPoints20(), earthShape);
 
         covDef1.assignConstellation(walker);
 
@@ -108,14 +113,23 @@ public class Orekit {
 
         PropagatorFactory pf = new PropagatorFactory(PropagatorType.KEPLERIAN, OrbitType.KEPLERIAN);
 
-        double analysisTimeStep = 600;
+        double analysisTimeStep = 1;
         ArrayList<Analysis> analysesList = new ArrayList<>();
         analysesList.add(new OrbitalElementsAnalysis(analysisTimeStep));
+        ArrayList<FOVDetector> fovs = new ArrayList<FOVDetector>();
+        for(CoveragePoint pt : covDef1.getPoints()){
+            fovs.add( new FOVDetector(pt, view1).withMaxCheck(1));
+        }
+//        analysesList.add(new EventAnalysis(analysisTimeStep, fovs));
+        analysesList.add(new EventAnalysis2(analysisTimeStep, new ArrayList(covDef1.getPoints()), earthShape,  new FieldOfView(Vector3D.PLUS_K,
+                       Vector3D.PLUS_I, FastMath.toRadians(45),
+                       Vector3D.PLUS_J, FastMath.toRadians(45),0),
+                        inertialFrame, startDate));
         
         CompoundAnalysis analyses = new CompoundAnalysis(analysesList);
 
         Scenario scen = new Scenario.Builder(startDate, endDate, utc).
-                analysis(analyses).covDefs(covDefs).name("test1").numThreads(2).
+                analysis(analyses).covDefs(covDefs).name("test1").numThreads(1).
                 propagatorFactory(pf).saveAllAccesses(true).saveToDB(true).build();
         scen.call();
         ParallelCoverage pc = new ParallelCoverage();
