@@ -52,7 +52,7 @@ public class NadirSimpleConicalFOV extends AbstractFieldOfViewDefinition {
     public double getHalfAngle() {
         return halfAngle;
     }
-
+    
     /**
      * {@inheritDoc}
      * <p>

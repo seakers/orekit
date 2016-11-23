@@ -18,17 +18,12 @@ public class RecordHistory<T> extends ArrayList<Record<T>> {
     private static final long serialVersionUID = -3805527690941619591L;
 
     /**
-     * Container for each ephemeris data point
-     */
-    private final ArrayList<Record<T>> history;
-
-    /**
      * flag to keep track if the history is sorted by date
      */
     private boolean sorted;
 
     public RecordHistory() {
-        this.history = new ArrayList<>();
+        super();
     }
 
     @Override

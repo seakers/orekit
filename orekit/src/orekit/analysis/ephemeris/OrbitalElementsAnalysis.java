@@ -50,7 +50,7 @@ public class OrbitalElementsAnalysis extends AbstractAnalysis<OrbitalElements> i
         Record<OrbitalElements> e = new Record(currentState.getDate(), new OrbitalElements(o.getA(), o.getE(), o.getI(),
                 o.getRightAscensionOfAscendingNode(), o.getPerigeeArgument(),
                 o.getMeanAnomaly()));
-        history.add(e);
+        addRecord(e);
     }
 
     

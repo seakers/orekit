@@ -6,7 +6,7 @@ function orekit_init()
 %Add the java class path for the orekit jar file
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 jarFile1 = ['.',filesep,'orekit',filesep,'dist',filesep,'orekit.jar'];
-jarFile2 = ['.',filesep,'orekit',filesep,'dist',filesep,'lib',filesep,'orekit-8.0.jar'];
+jarFile2 = ['.',filesep,'orekit',filesep,'dist',filesep,'lib',filesep,'OrekitSource.jar'];
 jarFile3 = ['.',filesep,'orekit',filesep,'dist',filesep,'lib',filesep,'hipparchus-geometry-1.0.jar'];
 tmp = javaclasspath;
 javaclasspathadded1 = false;
@@ -32,7 +32,7 @@ if ~javaclasspathadded1
     javaaddpath(['.',filesep,'orekit',filesep,'dist',filesep,'orekit.jar']);
 end
 if ~javaclasspathadded2
-    javaaddpath(['.',filesep,'orekit',filesep,'dist',filesep,'lib',filesep,'orekit-8.0.jar']);
+    javaaddpath(['.',filesep,'orekit',filesep,'dist',filesep,'lib',filesep,'OrekitSource.jar']);
 end
 if ~javaclasspathadded3
     javaaddpath(['.',filesep,'orekit',filesep,'dist',filesep,'lib',filesep,'hipparchus-geometry-1.0.jar']);

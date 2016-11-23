@@ -4,9 +4,9 @@ function results = compareAccessGaps()
 %assumes file input is a csv with the first column containing start times
 %and the second column containing end times
 
-path = 'C:\Users\SEAK1\Nozomi\OREKIT\Documentation\Comparing STK vs orekit\';
+% path = 'C:\Users\SEAK1\Nozomi\OREKIT\Documentation\Comparing STK vs orekit\';
+path = '/Users/nozomihitomi/Dropbox/OREKIT/Documentation/Comparing STK vs orekit/';
 
-stkdata = read_stk_cva(strcat(path,'STK_j2_simpleconical45.cvaa'));
 stkdata = read_orekit_cva(strcat(path,'orekit_j2_simpleconical45.cva'));
 orekitdata = read_orekit_cva(strcat(path,'rotating_test1_covdef1.cva'));
 

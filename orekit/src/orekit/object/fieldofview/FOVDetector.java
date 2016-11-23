@@ -28,12 +28,28 @@ public class FOVDetector extends AbstractDetector<FOVDetector> {
     private final Instrument instrument;
 
     /**
-     * Constructor for the detector. Must use a instrument/target pair
+     * Constructor for the detector. Must use a instrument/target pair.
+     * Threshold for event detection is set to default 1e-6 seconds
+     *
      * @param target the target to attach the detector to
      * @param instrument the instrument that will observe the target\
      */
     public FOVDetector(TopocentricFrame target, Instrument instrument) {
         this(DEFAULT_MAXCHECK, DEFAULT_THRESHOLD, DEFAULT_MAX_ITER,
+                new StopOnIncreasing<>(), target, instrument);
+    }
+
+    /**
+     * Constructor for the detector. Must use a instrument/target pair. Can set
+     * the resolution at which access time is computed
+     *
+     * @param target the target to attach the detector to
+     * @param instrument the instrument that will observe the target\
+     * @param threshold threshold in seconds that determines the temporal
+     * resolution of the access times
+     */
+    public FOVDetector(TopocentricFrame target, Instrument instrument, double threshold) {
+        this(DEFAULT_MAXCHECK, threshold, DEFAULT_MAX_ITER,
                 new StopOnIncreasing<>(), target, instrument);
     }
 
