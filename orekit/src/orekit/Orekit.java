@@ -66,8 +66,8 @@ public class Orekit {
             path = args[0];
             filename = args[1];
         } else {
-//            path = "/Users/nozomihitomi/Desktop";
-            path = "C:\\Users\\SEAK1\\Nozomi\\OREKIT\\";
+            path = "/Users/nozomihitomi/Desktop";
+//            path = "C:\\Users\\SEAK1\\Nozomi\\OREKIT\\";
             filename = "rotating";
         }
 
@@ -75,7 +75,7 @@ public class Orekit {
 
         TimeScale utc = TimeScalesFactory.getUTC();
         AbsoluteDate startDate = new AbsoluteDate(2016, 1, 1, 00, 00, 00.000, utc);
-        AbsoluteDate endDate = new AbsoluteDate(2016, 1, 2, 00, 00, 00.000, utc);
+        AbsoluteDate endDate = new AbsoluteDate(2016, 1, 1, 12, 00, 00.000, utc);
         double mu = Constants.WGS84_EARTH_MU; // gravitation coefficient
 
         //must use these frames to be consistent with STK
@@ -120,7 +120,7 @@ public class Orekit {
         for(CoveragePoint pt : covDef1.getPoints()){
             fovs.add( new FOVDetector(pt, view1).withMaxCheck(1));
         }
-//        analysesList.add(new EventAnalysis(analysisTimeStep, fovs));
+        analysesList.add(new EventAnalysis(analysisTimeStep, fovs));
         analysesList.add(new EventAnalysis2(analysisTimeStep, new ArrayList(covDef1.getPoints()), earthShape,  new FieldOfView(Vector3D.PLUS_K,
                        Vector3D.PLUS_I, FastMath.toRadians(45),
                        Vector3D.PLUS_J, FastMath.toRadians(45),0),

@@ -9,19 +9,13 @@ import java.util.Collection;
 import java.util.HashMap;
 import orekit.analysis.AbstractAnalysis;
 import orekit.analysis.Record;
-import orekit.object.CoveragePoint;
-import org.hipparchus.geometry.enclosing.EnclosingBall;
 import org.hipparchus.geometry.euclidean.threed.Rotation;
 import org.hipparchus.geometry.euclidean.threed.Vector3D;
-import org.hipparchus.geometry.spherical.twod.S2Point;
-import org.hipparchus.geometry.spherical.twod.Sphere2D;
-import org.hipparchus.geometry.spherical.twod.SphericalPolygonsSet;
 import org.hipparchus.linear.Array2DRowRealMatrix;
 import org.hipparchus.linear.ArrayRealVector;
 import org.hipparchus.linear.MatrixUtils;
 import org.hipparchus.linear.RealMatrix;
 import org.hipparchus.linear.RealVector;
-import org.hipparchus.util.FastMath;
 import org.orekit.bodies.BodyShape;
 import org.orekit.bodies.GeodeticPoint;
 import org.orekit.errors.OrekitException;
@@ -67,7 +61,7 @@ public class EventAnalysis2 extends AbstractAnalysis<GValues> {
         int col = 0;
         this.pointMap = new HashMap<>(points.size());
         for (TopocentricFrame pt : points) {
-            initPointPos.setColumn(col, pt.getPVCoordinates(startDate, inertialFrame).getPosition().normalize().toArray());
+            initPointPos.setColumn(col, pt.getPVCoordinates(startDate, shape.getBodyFrame()).getPosition().toArray());
             pointMap.put(pt, col);
             col++;
         }
@@ -83,23 +77,24 @@ public class EventAnalysis2 extends AbstractAnalysis<GValues> {
     public void handleStep(SpacecraftState currentState, boolean isLast) throws OrekitException {
         //The spacecraft position in the inertial frame
         RealVector satPosInert = new ArrayRealVector(currentState.getPVCoordinates().getPosition().toArray());
-        RealVector satPosInertNorm = satPosInert.mapDivideToSelf(satPosInert.getNorm());
+        RealVector satPosInertNorm = satPosInert.copy().mapDivideToSelf(satPosInert.getNorm());
         //The normalized position vectors of the points in the inertial frame
         RealMatrix ptPosInertNorm = MatrixUtils.createRealMatrix(3, points.size());
         //The vector between the satellite and point position in the inertial frame
         RealMatrix sat2ptLineInert = MatrixUtils.createRealMatrix(3, points.size());
         
-        RealMatrix pointRotation = new Array2DRowRealMatrix(shape.getBodyFrame().
-                    getTransformTo(inertialFrame, currentState.getDate()).getInverse().
+        //rotate points from rotating body shape frame to inertial frame
+        RealMatrix pointRotation1 = new Array2DRowRealMatrix(shape.getBodyFrame().
+                    getTransformTo(inertialFrame, currentState.getDate()).
                     getRotation().getMatrix());
+        RealMatrix ptPosInert = pointRotation1.multiply(initPointPos);
         
-        RealMatrix ptPosInert = pointRotation.multiply(pointRotation);
         
         int col = 0;
         for (TopocentricFrame pt : points) {
 //            Vector3D pointPos = pt.getPVCoordinates(currentState.getDate(), currentState.getFrame()).getPosition();
             ptPosInertNorm.setColumnVector(col, ptPosInert.getColumnVector(col).mapDivideToSelf(ptPosInert.getColumnVector(col).getNorm()));
-            sat2ptLineInert.setColumnVector(col, satPosInert.subtract(ptPosInert.getColumnVector(col)));
+            sat2ptLineInert.setColumnVector(col, ptPosInert.getColumnVector(col).subtract(satPosInert));
             col++;
         }
         RealVector cosThetas = ptPosInertNorm.preMultiply(satPosInertNorm);
@@ -120,7 +115,13 @@ public class EventAnalysis2 extends AbstractAnalysis<GValues> {
             if (losVal < 0) {
                 gvals.put(pt, losVal);
             } else {
-                gvals.put(pt, -fov.offsetFromBoundary((new Vector3D(losSC.getColumn(col))).negate()));
+                Vector3D targetPosInert = pt.getPVCoordinates(currentState.getDate(), currentState.getFrame()).getPosition();
+                Vector3D spacecraftPosInert = currentState.getPVCoordinates(currentState.getFrame()).getPosition();
+                Vector3D losInert = targetPosInert.subtract(spacecraftPosInert);
+                Vector3D lineOfSightSC = rot.applyTo(losInert);
+//
+////                gvals.put(pt, -fov.offsetFromBoundary(lineOfSightSC));
+                gvals.put(pt, -fov.offsetFromBoundary((new Vector3D(losSC.getColumn(col)))));
             }
 
             col++;
