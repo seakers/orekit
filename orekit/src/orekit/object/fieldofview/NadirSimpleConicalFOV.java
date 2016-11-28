@@ -26,8 +26,6 @@ public class NadirSimpleConicalFOV extends AbstractFieldOfViewDefinition {
 
     private static final long serialVersionUID = -5871573780685218252L;
 
-    private final Vector3D centerAxis;
-
     private final double halfAngle;
 
     private final BodyShape shape;
@@ -40,13 +38,8 @@ public class NadirSimpleConicalFOV extends AbstractFieldOfViewDefinition {
      * @param shape the shape of the body to define the nadir direction
      */
     public NadirSimpleConicalFOV(Vector3D centerAxis, double halfAngle, BodyShape shape) {
-        this.centerAxis = centerAxis;
         this.halfAngle = halfAngle;
         this.shape = shape;
-    }
-
-    public Vector3D getCenterAxis() {
-        return centerAxis;
     }
 
     public double getHalfAngle() {
@@ -78,6 +71,7 @@ public class NadirSimpleConicalFOV extends AbstractFieldOfViewDefinition {
         // target direction and field of view center. It is positive inside the FOV and negative outside.
         return  halfAngle - Vector3D.angle(targetPosInert, spacecraftToNadirPosition);
     }
+    
 
     @Override
     public String toString() {
@@ -87,7 +81,6 @@ public class NadirSimpleConicalFOV extends AbstractFieldOfViewDefinition {
     @Override
     public int hashCode() {
         int hash = 7;
-        hash = 59 * hash + Objects.hashCode(this.centerAxis);
         hash = 59 * hash + (int) (Double.doubleToLongBits(this.halfAngle) ^ (Double.doubleToLongBits(this.halfAngle) >>> 32));
         return hash;
     }
@@ -101,13 +94,15 @@ public class NadirSimpleConicalFOV extends AbstractFieldOfViewDefinition {
             return false;
         }
         final NadirSimpleConicalFOV other = (NadirSimpleConicalFOV) obj;
-        if (!Objects.equals(this.centerAxis, other.centerAxis)) {
-            return false;
-        }
         if (Double.doubleToLongBits(this.halfAngle) != Double.doubleToLongBits(other.halfAngle)) {
             return false;
         }
         return true;
+    }
+
+    @Override
+    public double offsetFromBoundary(Vector3D lineOfSight) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     
     

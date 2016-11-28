@@ -99,6 +99,11 @@ public class SimpleConicalFieldOfView extends AbstractFieldOfViewDefinition{
         }
         return true;
     }
+
+    @Override
+    public double offsetFromBoundary(Vector3D lineOfSight) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
     
     
 

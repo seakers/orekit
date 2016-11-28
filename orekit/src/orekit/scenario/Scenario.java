@@ -635,31 +635,6 @@ public class Scenario implements Callable<Scenario>, Serializable {
         System.out.println(String.format("Running scenario: %s...", this));
         if (!isDone) {
             for (CoverageDefinition cdef : covDefs) {
-//                //first propagate all points at a fixed time step
-//                double stepSize = 60;
-//                //build initial position vector matrix that can be reused by rotation matrix
-//                RealMatrix initPos = new Array2DRowRealMatrix(3, cdef.getNumberOfPoints());
-//                int col = 0;
-//                HashMap<CoveragePoint, Integer> pointMap = new HashMap<>(cdef.getNumberOfPoints());
-//                for(CoveragePoint pt : cdef.getPoints()){
-//                    initPos.setColumn(col, pt.getPVCoordinates(startDate, inertialFrame).getPosition().toArray());
-//                    pointMap.put(pt, col);
-//                    col++;
-//                }
-//                
-//                PositionMatrix posMat = new PositionMatrix(cdef.getPoints(), startDate, endDate, stepSize);
-//                double simulationDuration = endDate.durationFrom(startDate);
-//                Frame bodyFrame = cdef.getPlanetShape().getBodyFrame();
-//                for(double time = 0; time < simulationDuration; time += stepSize){
-//                    AbsoluteDate currentDate = startDate.shiftedBy(time);
-//                    Transform transform = bodyFrame.getTransformTo(inertialFrame, currentDate);
-//                    RealMatrix rotation = MatrixUtils.createRealMatrix(transform.getRotation().getMatrix());
-//                    RealMatrix currentPos = rotation.multiply(initPos);
-//                    for(CoveragePoint pt : cdef.getPoints()){
-//                        posMat.add(pt, currentDate, new Vector3D(currentPos.getColumn(pointMap.get(pt))));
-//                    }
-//                }
-
                 System.out.println(String.format("Acquiring access times for %s...", cdef));
                 if (saveAllAccesses) {
                     allAccesses.put(cdef, new HashMap());
@@ -727,25 +702,25 @@ public class Scenario implements Callable<Scenario>, Serializable {
                         }
                     }
 
-//                    //save the satellite accesses 
-//                    if (saveAllAccesses) {
-//                        allAccesses.get(cdef).put(sat, satAccesses);
-//                    }
-//
-//                    //merge the time accesses across all satellite for each coverage definition
-//                    if (finalAccesses.containsKey(cdef)) {
-//                        HashMap<CoveragePoint, TimeIntervalArray> mergedAccesses
-//                                = accessMerger.mergeCoverageDefinitionAccesses(finalAccesses.get(cdef), satAccesses, false);
-//                        finalAccesses.put(cdef, mergedAccesses);
-//                    } else {
-//                        finalAccesses.put(cdef, satAccesses);
-//                    }
+                    //save the satellite accesses 
+                    if (saveAllAccesses) {
+                        allAccesses.get(cdef).put(sat, satAccesses);
+                    }
+
+                    //merge the time accesses across all satellite for each coverage definition
+                    if (finalAccesses.containsKey(cdef)) {
+                        HashMap<CoveragePoint, TimeIntervalArray> mergedAccesses
+                                = accessMerger.mergeCoverageDefinitionAccesses(finalAccesses.get(cdef), satAccesses, false);
+                        finalAccesses.put(cdef, mergedAccesses);
+                    } else {
+                        finalAccesses.put(cdef, satAccesses);
+                    }
                 }
-//
-//                //Make all time intervals stored in finalAccesses immutable
-//                for (CoveragePoint pt : finalAccesses.get(cdef).keySet()) {
-//                    finalAccesses.get(cdef).put(pt, finalAccesses.get(cdef).get(pt).createImmutable());
-//                }
+
+                //Make all time intervals stored in finalAccesses immutable
+                for (CoveragePoint pt : finalAccesses.get(cdef).keySet()) {
+                    finalAccesses.get(cdef).put(pt, finalAccesses.get(cdef).get(pt).createImmutable());
+                }
             }
 
             isDone = true;
@@ -1283,15 +1258,15 @@ public class Scenario implements Callable<Scenario>, Serializable {
             Propagator propagator = createPropagator();
             ArrayList<FOVHandler> fovHandlers = new ArrayList();
             //attach a fov detector to each instrument-grid point pair
-//            for (Instrument inst : satellite.getPayload()) {
-//                for (CoveragePoint pt : points) {
-//                    FOVHandler handler = new FOVHandler(pt, startDate, endDate);
-//                    FOVDetector eventDec = new FOVDetector(pt, inst).
-//                            withMaxCheck(1).withHandler(handler);
-//                    propagator.addEventDetector(eventDec);
-//                    fovHandlers.add(handler);
-//                }
-//            }
+            for (Instrument inst : satellite.getPayload()) {
+                for (CoveragePoint pt : points) {
+                    FOVHandler handler = new FOVHandler(pt, startDate, endDate);
+                    FOVDetector eventDec = new FOVDetector(pt, inst).
+                            withMaxCheck(1).withHandler(handler);
+                    propagator.addEventDetector(eventDec);
+                    fovHandlers.add(handler);
+                }
+            }
             propagator.propagate(targetDate);
 
             //reset the accesses at each point after transferring information to this hashmap

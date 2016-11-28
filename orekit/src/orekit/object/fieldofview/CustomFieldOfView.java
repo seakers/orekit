@@ -61,4 +61,9 @@ public class CustomFieldOfView extends AbstractFieldOfViewDefinition{
 
     }
 
+    @Override
+    public double offsetFromBoundary(Vector3D lineOfSight) {
+        return fov.offsetFromBoundary(lineOfSight);
+    }
+
     }

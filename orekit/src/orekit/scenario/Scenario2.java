@@ -20,6 +20,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import orekit.analysis.Analysis;
 import orekit.analysis.CompoundAnalysis;
+import orekit.analysis.events.EventOccurence;
+import orekit.analysis.events.GValues;
 import orekit.coverage.access.CoverageAccessMerger;
 import orekit.coverage.access.FOVHandler;
 import orekit.coverage.access.TimeIntervalArray;
@@ -30,14 +32,20 @@ import orekit.object.Instrument;
 import orekit.object.Satellite;
 import orekit.propagation.PropagatorFactory;
 import orekit.propagation.PropagatorType;
+import org.hipparchus.geometry.euclidean.threed.Rotation;
+import org.hipparchus.geometry.euclidean.threed.Vector3D;
 import org.hipparchus.linear.Array2DRowRealMatrix;
+import org.hipparchus.linear.ArrayRealVector;
 import org.hipparchus.linear.MatrixUtils;
 import org.hipparchus.linear.RealMatrix;
+import org.hipparchus.linear.RealVector;
 import org.hipparchus.util.FastMath;
+import org.orekit.bodies.BodyShape;
 import org.orekit.bodies.GeodeticPoint;
 import org.orekit.errors.OrekitException;
 import org.orekit.frames.Frame;
 import org.orekit.frames.FramesFactory;
+import org.orekit.frames.TopocentricFrame;
 import org.orekit.frames.Transform;
 import org.orekit.orbits.Orbit;
 import org.orekit.orbits.OrbitType;
@@ -45,6 +53,9 @@ import org.orekit.propagation.Propagator;
 import org.orekit.propagation.SpacecraftState;
 import org.orekit.time.AbsoluteDate;
 import org.orekit.time.TimeScale;
+import org.orekit.utils.Constants;
+import org.orekit.utils.PVCoordinatesProvider;
+import org.orekit.utils.TimeStampedPVCoordinates;
 
 /**
  * Stores information about the scenario or simulation including information of
@@ -161,6 +172,12 @@ public class Scenario2 implements Callable<Scenario2>, Serializable {
      * The values recorded
      */
     private final HashMap<Analysis, HashMap<Satellite, Collection>> analysisResults;
+    
+    
+    /**
+     * The minimum radius of the earth (north-south direction)
+     */
+    private final double minRadius = Constants.WGS84_EARTH_EQUATORIAL_RADIUS * (1 - Constants.WGS84_EARTH_FLATTENING);
 
     /**
      * Creates a new scenario.
@@ -630,13 +647,21 @@ public class Scenario2 implements Callable<Scenario2>, Serializable {
         if (!isDone) {
             for (CoverageDefinition cdef : covDefs) {
                 //first propagate all points at a fixed time step
-                double stepSize = 60;
+                double stepSize = 1;
                 //build initial position vector matrix that can be reused by rotation matrix
+
+                //mapping of points to some id number to keep track of which
+                //row the point is represented in the initPointPos matrix that
+                //stores the initial positions of the points in the internal
+                //frame
+                HashMap<TopocentricFrame, Integer> pointMap = new HashMap<>(cdef.getNumberOfPoints());
+                // matrix that stores the initial positions of the points in the
+                // internal frame
                 RealMatrix initPointPos = new Array2DRowRealMatrix(3, cdef.getNumberOfPoints());
+
                 int col = 0;
-                HashMap<CoveragePoint, Integer> pointMap = new HashMap<>(cdef.getNumberOfPoints());
-                for (CoveragePoint pt : cdef.getPoints()) {
-                    initPointPos.setColumn(col, pt.getPVCoordinates(startDate, inertialFrame).getPosition().normalize().toArray());
+                for (TopocentricFrame pt : cdef.getPoints()) {
+                    initPointPos.setColumn(col, pt.getPVCoordinates(startDate, cdef.getPlanetShape().getBodyFrame()).getPosition().toArray());
                     pointMap.put(pt, col);
                     col++;
                 }
@@ -645,49 +670,114 @@ public class Scenario2 implements Callable<Scenario2>, Serializable {
                 if (saveAllAccesses) {
                     allAccesses.put(cdef, new HashMap());
                 }
+                
+                Collection<CoveragePoint> points = cdef.getPoints();
 
                 //propogate each satellite individually
                 for (Satellite sat : uniqueSatsAssignedToCovDef.get(cdef)) {
                     //before propagation, check that the satellite's propagation for this coverage definition is not stored in database
-                    HashMap<CoveragePoint, TimeIntervalArray> satAccesses;
-                    satAccesses = new HashMap<>(cdef.getNumberOfPoints());
+                    HashMap<CoveragePoint, TimeIntervalArray> satAccesses = new HashMap<>(cdef.getNumberOfPoints());
                     System.out.println(String.format("Initiating %d propagation tasks", numThreads));
-                    
+
                     Propagator prop = propagatorFactory.createPropagator(sat.getOrbit(), sat.getGrossMass());
-                    
+
                     double simulationDuration = endDate.durationFrom(startDate);
                     Frame bodyFrame = cdef.getPlanetShape().getBodyFrame();
-                    
+
+                    //First pass: obtain changes when gvalues change signs
+                    HashMap<CoveragePoint, ArrayList<EventOccurence>> eventsMap = new HashMap<>(cdef.getNumberOfPoints());
+                    for(CoveragePoint pt : points){
+                        eventsMap.put(pt, new ArrayList<>());
+                    }
+                    HashMap<CoveragePoint, Double> gValMap = new HashMap<>(cdef.getNumberOfPoints());
                     for (double time = 0; time < simulationDuration; time += stepSize) {
                         AbsoluteDate currentDate = startDate.shiftedBy(time);
                         SpacecraftState s = prop.propagate(currentDate);
-                        Transform transform = bodyFrame.getTransformTo(inertialFrame, currentDate);
-                        RealMatrix rotation = MatrixUtils.createRealMatrix(transform.getRotation().getMatrix());
-                        RealMatrix pointPos = rotation.multiply(initPointPos);
                         
-                        RealMatrix sPos = new Array2DRowRealMatrix(s.getPVCoordinates().getPosition().normalize().toArray());
-                        RealMatrix sDotPt = pointPos.multiply(sPos); //the dot products between all the point pos. vectors and the satellite position vector
+                        // The spacecraft position in the inertial frame
+                        RealVector satPosInert = new ArrayRealVector(s.getPVCoordinates().getPosition().toArray());
+                        RealVector satPosInertNorm = satPosInert.copy().mapDivideToSelf(satPosInert.getNorm());
+                        //The normalized position vectors of the points in the inertial frame
+                        RealMatrix ptPosInertNorm = MatrixUtils.createRealMatrix(3, points.size());
+                        //The vector between the satellite and point position in the inertial frame
+                        RealMatrix sat2ptLineInert = MatrixUtils.createRealMatrix(3, points.size());
+
+                        //rotate points from rotating body shape frame to inertial frame
+                        RealMatrix pointRotation1 = new Array2DRowRealMatrix(bodyFrame.
+                                getTransformTo(inertialFrame, s.getDate()).
+                                getRotation().getMatrix());
+                        RealMatrix ptPosInert = pointRotation1.multiply(initPointPos);
+
+                        col = 0;
+                        for (CoveragePoint pt : points) {
+                            ptPosInertNorm.setColumnVector(col, ptPosInert.getColumnVector(col).mapDivideToSelf(ptPosInert.getColumnVector(col).getNorm()));
+                            sat2ptLineInert.setColumnVector(col, ptPosInert.getColumnVector(col).subtract(satPosInert));
+                            col++;
+                        }
+                        RealVector cosThetas = ptPosInertNorm.preMultiply(satPosInertNorm);
+
+                        double minCosTheta = minRadius / s.getA();
+
+                        //rot is rotation matrix from inertial frame to spacecraft body-nadir-pointing frame
+                        Rotation rot = alignWithNadirAndNormal(Vector3D.PLUS_K, Vector3D.PLUS_J, s, cdef.getPlanetShape());
+                        RealMatrix rotMatrix = new Array2DRowRealMatrix(rot.getMatrix());
+                        //line of sight vectors in spacecraft frame
+                        RealMatrix losSC = rotMatrix.multiply(sat2ptLineInert);
                         
+                        col = 0;
+                        for (CoveragePoint pt : points) {
+                            //check if satellite has line of sight. losVal > 0 means that sat has line of sight
+                            double losVal = cosThetas.getEntry(col) - minCosTheta;
+                            if (losVal > 0){
+                                for(Instrument inst : sat.getPayload()){
+                                    double gval = -inst.getFOV().offsetFromBoundary((new Vector3D(losSC.getColumn(col))));
+                                    Double oldVal = gValMap.put(pt, gval);
+                                    //If the current value and the previous value have different signs, then record sign change
+                                    if(oldVal!=null && FastMath.signum(oldVal)!=FastMath.signum(gval)){
+                                        eventsMap.get(pt).add(new EventOccurence(time-stepSize, time, oldVal, gval));
+                                    }
+                                }
+                            }
+                            col++;
+                        }
                     }
-//                    //save the satellite accesses 
-//                    if (saveAllAccesses) {
-//                        allAccesses.get(cdef).put(sat, satAccesses);
-//                    }
-//
-//                    //merge the time accesses across all satellite for each coverage definition
-//                    if (finalAccesses.containsKey(cdef)) {
-//                        HashMap<CoveragePoint, TimeIntervalArray> mergedAccesses
-//                                = accessMerger.mergeCoverageDefinitionAccesses(finalAccesses.get(cdef), satAccesses, false);
-//                        finalAccesses.put(cdef, mergedAccesses);
-//                    } else {
-//                        finalAccesses.put(cdef, satAccesses);
-//                    }
+                    
+                    //second pass, find when the event occured through interpolation
+                    for (CoveragePoint pt : points) {
+                        TimeIntervalArray tarray = new TimeIntervalArray(startDate, endDate);
+                        for(EventOccurence event : eventsMap.get(pt)){
+                            double deltaG = event.getValAfter()-event.getValBefore();
+                            double deltaTime = event.getDateAfter()-event.getDateBefore();
+                            double m = deltaG/deltaTime;
+                            double b = -m*event.getDateAfter() + event.getValAfter();
+                            double eventTime = -b/m;
+                            if(deltaG > 0){
+                                tarray.addRiseTime(eventTime);
+                            }else{
+                                tarray.addSetTime(eventTime);
+                            }
+                        }
+                        satAccesses.put(pt, tarray.createImmutable());
+                    }
+                    //save the satellite accesses 
+                    if (saveAllAccesses) {
+                        allAccesses.get(cdef).put(sat, satAccesses);
+                    }
+
+                    //merge the time accesses across all satellite for each coverage definition
+                    if (finalAccesses.containsKey(cdef)) {
+                        HashMap<CoveragePoint, TimeIntervalArray> mergedAccesses
+                                = accessMerger.mergeCoverageDefinitionAccesses(finalAccesses.get(cdef), satAccesses, false);
+                        finalAccesses.put(cdef, mergedAccesses);
+                    } else {
+                        finalAccesses.put(cdef, satAccesses);
+                    }
                 }
-//
-//                //Make all time intervals stored in finalAccesses immutable
-//                for (CoveragePoint pt : finalAccesses.get(cdef).keySet()) {
-//                    finalAccesses.get(cdef).put(pt, finalAccesses.get(cdef).get(pt).createImmutable());
-//                }
+
+                //Make all time intervals stored in finalAccesses immutable
+                for (CoveragePoint pt : finalAccesses.get(cdef).keySet()) {
+                    finalAccesses.get(cdef).put(pt, finalAccesses.get(cdef).get(pt).createImmutable());
+                }
             }
 
             isDone = true;
@@ -696,6 +786,47 @@ public class Scenario2 implements Callable<Scenario2>, Serializable {
 
         pool.shutdown();
         return this;
+    }
+    
+
+    /**
+     * This method returns a rotation matrix that will transform vectors v1 and
+     * v2 to point toward nadir and the vector that is normal to the orbital
+     * plane, respectively. Normal vector is used instead of the velocity vector
+     * because the velocity vector and nadir vector may not be orthogonal
+     *
+     * @param v1 Vector to line up with nadir
+     * @param v2 Vector to line up with the velocity vector
+     * @param s the current spacecraft state
+     * @param shape the shape of the body to define nadir direction
+     * @return
+     * @throws OrekitException
+     */
+    private Rotation alignWithNadirAndNormal(Vector3D v1, Vector3D v2,
+            final SpacecraftState s, final BodyShape shape) throws OrekitException {
+        
+        Frame frame = s.getFrame();
+        
+        //transform from specified reference frame to body frame
+        final Transform refToBody = frame.getTransformTo(shape.getBodyFrame(), s.getDate());
+        
+        //Gets the nadir pointing vector at the current spacecraft state in reference frame. 
+        //This method is based on the nadir pointing law NadirPointing
+         final Vector3D satInBodyFrame = refToBody.transformPosition(s.getPVCoordinates().getPosition());
+        // satellite position in geodetic coordinates
+        final GeodeticPoint gpSat = shape.transform(satInBodyFrame, shape.getBodyFrame(), s.getDate());
+        // nadir position in geodetic coordinates
+        final GeodeticPoint gpNadir = new GeodeticPoint(gpSat.getLatitude(), gpSat.getLongitude(), 0.0);
+        // nadir point position in body frame
+        final Vector3D pNadirBody = shape.transform(gpNadir);
+        // nadir point position in reference frame
+        final Vector3D pNadirRef = refToBody.getInverse().transformPosition(pNadirBody);
+        TimeStampedPVCoordinates nadirPosRefPV = new TimeStampedPVCoordinates(s.getDate(), pNadirRef, Vector3D.ZERO, Vector3D.ZERO);
+        Vector3D nadirPosRef = nadirPosRefPV.getPosition();
+        final Vector3D nadirRef = nadirPosRef.subtract(s.getPVCoordinates(frame).getPosition()).normalize();
+        Vector3D velRef = s.getPVCoordinates(frame).getVelocity().normalize();
+        Vector3D orbitNormal = nadirRef.crossProduct(velRef).normalize();
+        return new Rotation(nadirRef, orbitNormal, v1, v2);
     }
 
     /**
@@ -1048,6 +1179,7 @@ public class Scenario2 implements Callable<Scenario2>, Serializable {
             return false;
         }
         return true;
+
     }
 
     /**

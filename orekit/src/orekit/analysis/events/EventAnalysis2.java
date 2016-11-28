@@ -92,7 +92,6 @@ public class EventAnalysis2 extends AbstractAnalysis<GValues> {
         
         int col = 0;
         for (TopocentricFrame pt : points) {
-//            Vector3D pointPos = pt.getPVCoordinates(currentState.getDate(), currentState.getFrame()).getPosition();
             ptPosInertNorm.setColumnVector(col, ptPosInert.getColumnVector(col).mapDivideToSelf(ptPosInert.getColumnVector(col).getNorm()));
             sat2ptLineInert.setColumnVector(col, ptPosInert.getColumnVector(col).subtract(satPosInert));
             col++;
@@ -102,7 +101,7 @@ public class EventAnalysis2 extends AbstractAnalysis<GValues> {
         double minCosTheta = minRadius / currentState.getA();
 
         //rot is rotation matrix from inertial frame to spacecraft body-center-pointing frame
-        Rotation rot = alignWithNadirAndNormal(Vector3D.PLUS_K, Vector3D.PLUS_J, currentState, currentState.getOrbit(), shape, currentState.getFrame());
+        Rotation rot = alignWithNadirAndNormal(Vector3D.PLUS_K, Vector3D.PLUS_J, currentState, shape);
         RealMatrix rotMatrix = new Array2DRowRealMatrix(rot.getMatrix());
         //line of sight vectors in spacecraft frame
         RealMatrix losSC = rotMatrix.multiply(sat2ptLineInert);
@@ -115,12 +114,6 @@ public class EventAnalysis2 extends AbstractAnalysis<GValues> {
             if (losVal < 0) {
                 gvals.put(pt, losVal);
             } else {
-                Vector3D targetPosInert = pt.getPVCoordinates(currentState.getDate(), currentState.getFrame()).getPosition();
-                Vector3D spacecraftPosInert = currentState.getPVCoordinates(currentState.getFrame()).getPosition();
-                Vector3D losInert = targetPosInert.subtract(spacecraftPosInert);
-                Vector3D lineOfSightSC = rot.applyTo(losInert);
-//
-////                gvals.put(pt, -fov.offsetFromBoundary(lineOfSightSC));
                 gvals.put(pt, -fov.offsetFromBoundary((new Vector3D(losSC.getColumn(col)))));
             }
 
@@ -131,73 +124,7 @@ public class EventAnalysis2 extends AbstractAnalysis<GValues> {
         history.add(e);
     }
 
-    /**
-     * Gets the nadir pointing vector at the current spacecraft state.
-     *
-     * @param s current spacecraft state
-     * @param pvProv
-     * @param shape
-     * @param frame
-     * @return
-     * @throws OrekitException
-     */
-    protected Vector3D getSpacecraftToNadirPosition(final SpacecraftState s, final PVCoordinatesProvider pvProv, final BodyShape shape,
-            final Frame frame) throws OrekitException {
-        final Vector3D nadirPosRef = getNadirPosition(pvProv, shape, s.getDate(), frame);
-        return nadirPosRef.subtract(s.getPVCoordinates(s.getFrame()).getPosition());
-    }
-
-    /**
-     * Gets the nadir position in the spacecraft frame
-     *
-     * @param pvProv pv coordinate provider for the spacecraft
-     * @param shape The shape of the body which the satellite orbits
-     * @param date The date at which to obtain the nadir position
-     * @param frame The frame in which to obtain the nadir vector
-     * @return The position vector of the nadir point in the given frame of
-     * reference
-     * @throws org.orekit.errors.OrekitException
-     */
-    protected Vector3D getNadirPosition(final PVCoordinatesProvider pvProv, final BodyShape shape,
-            final AbsoluteDate date, final Frame frame) throws OrekitException {
-
-        // transform from specified reference frame to body frame
-        final Transform refToBody = frame.getTransformTo(shape.getBodyFrame(), date);
-        return nadirRef(pvProv.getPVCoordinates(date, frame), shape, refToBody).getPosition();
-    }
-
-    /**
-     * Compute ground point in nadir direction, in reference frame. This method
-     * is based on the nadir pointing law NadirPointin
-     *
-     * @param scRef spacecraft coordinates in reference frame
-     * @param The shape of the body which the satellite orbits
-     * @param refToBody transform from reference frame to body frame
-     * @return intersection point in body frame (only the position is set!)
-     * @exception OrekitException if line of sight does not intersect body
-     */
-    private TimeStampedPVCoordinates nadirRef(final TimeStampedPVCoordinates scRef, final BodyShape shape, final Transform refToBody)
-            throws OrekitException {
-
-        final Vector3D satInBodyFrame = refToBody.transformPosition(scRef.getPosition());
-
-        // satellite position in geodetic coordinates
-        final GeodeticPoint gpSat = shape.transform(satInBodyFrame, shape.getBodyFrame(), scRef.getDate());
-
-        // nadir position in geodetic coordinates
-        final GeodeticPoint gpNadir = new GeodeticPoint(gpSat.getLatitude(), gpSat.getLongitude(), 0.0);
-
-        // nadir point position in body frame
-        final Vector3D pNadirBody = shape.transform(gpNadir);
-
-        // nadir point position in reference frame
-        final Vector3D pNadirRef = refToBody.getInverse().transformPosition(pNadirBody);
-
-        return new TimeStampedPVCoordinates(scRef.getDate(), pNadirRef, Vector3D.ZERO, Vector3D.ZERO);
-
-    }
-
-    /**
+/**
      * This method returns a rotation matrix that will transform vectors v1 and
      * v2 to point toward nadir and the vector that is normal to the orbital
      * plane, respectively. Normal vector is used instead of the velocity vector
@@ -206,19 +133,34 @@ public class EventAnalysis2 extends AbstractAnalysis<GValues> {
      * @param v1 Vector to line up with nadir
      * @param v2 Vector to line up with the velocity vector
      * @param s the current spacecraft state
-     * @param pvProv the pv provider for the satellite
      * @param shape the shape of the body to define nadir direction
-     * @param frame the reference frame to translate vectors to
      * @return
      * @throws OrekitException
      */
-    protected Rotation alignWithNadirAndNormal(Vector3D v1, Vector3D v2,
-            final SpacecraftState s, final PVCoordinatesProvider pvProv, final BodyShape shape,
-            final Frame frame) throws OrekitException {
-        final Vector3D nadirRef = getSpacecraftToNadirPosition(s, pvProv, shape, frame).normalize();
-        Vector3D velRef = pvProv.getPVCoordinates(s.getDate(), frame).getVelocity().normalize();
+    private Rotation alignWithNadirAndNormal(Vector3D v1, Vector3D v2,
+            final SpacecraftState s, final BodyShape shape) throws OrekitException {
+        
+        Frame frame = s.getFrame();
+        
+        //transform from specified reference frame to body frame
+        final Transform refToBody = frame.getTransformTo(shape.getBodyFrame(), s.getDate());
+        
+        //Gets the nadir pointing vector at the current spacecraft state in reference frame. 
+        //This method is based on the nadir pointing law NadirPointing
+         final Vector3D satInBodyFrame = refToBody.transformPosition(s.getPVCoordinates().getPosition());
+        // satellite position in geodetic coordinates
+        final GeodeticPoint gpSat = shape.transform(satInBodyFrame, shape.getBodyFrame(), s.getDate());
+        // nadir position in geodetic coordinates
+        final GeodeticPoint gpNadir = new GeodeticPoint(gpSat.getLatitude(), gpSat.getLongitude(), 0.0);
+        // nadir point position in body frame
+        final Vector3D pNadirBody = shape.transform(gpNadir);
+        // nadir point position in reference frame
+        final Vector3D pNadirRef = refToBody.getInverse().transformPosition(pNadirBody);
+        TimeStampedPVCoordinates nadirPosRefPV = new TimeStampedPVCoordinates(s.getDate(), pNadirRef, Vector3D.ZERO, Vector3D.ZERO);
+        Vector3D nadirPosRef = nadirPosRefPV.getPosition();
+        final Vector3D nadirRef = nadirPosRef.subtract(s.getPVCoordinates(frame).getPosition()).normalize();
+        Vector3D velRef = s.getPVCoordinates(frame).getVelocity().normalize();
         Vector3D orbitNormal = nadirRef.crossProduct(velRef).normalize();
-
         return new Rotation(nadirRef, orbitNormal, v1, v2);
     }
 }

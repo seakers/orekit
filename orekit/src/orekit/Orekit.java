@@ -28,6 +28,7 @@ import orekit.object.fieldofview.NadirSimpleConicalFOV;
 import orekit.propagation.PropagatorFactory;
 import orekit.propagation.PropagatorType;
 import orekit.scenario.Scenario;
+import orekit.scenario.Scenario2;
 import orekit.scenario.ScenarioIO;
 import orekit.util.OrekitConfig;
 import org.hipparchus.geometry.euclidean.threed.Vector3D;
@@ -75,10 +76,10 @@ public class Orekit {
 
         TimeScale utc = TimeScalesFactory.getUTC();
         AbsoluteDate startDate = new AbsoluteDate(2016, 1, 1, 00, 00, 00.000, utc);
-        AbsoluteDate endDate = new AbsoluteDate(2016, 1, 1, 12, 00, 00.000, utc);
+        AbsoluteDate endDate = new AbsoluteDate(2016, 3, 1, 00, 00, 00.000, utc);
         double mu = Constants.WGS84_EARTH_MU; // gravitation coefficient
 
-        //must use these frames to be consistent with STK
+        //must use IERS_2003 and EME2000 frames to be consistent with STK
         Frame earthFrame = FramesFactory.getITRF(IERSConventions.IERS_2003, true);
         Frame inertialFrame = FramesFactory.getEME2000();
 
@@ -93,18 +94,20 @@ public class Orekit {
 
         //define instruments
 //        NadirSimpleConicalFOV fov = new NadirSimpleConicalFOV(Vector3D.PLUS_K, FastMath.toRadians(45), earthShape);
-        NadirRectangularFOV fov = new NadirRectangularFOV(Vector3D.PLUS_K,  FastMath.toRadians(45), FastMath.toRadians(45), 0, earthShape);
+        NadirRectangularFOV fov = new NadirRectangularFOV(Vector3D.PLUS_K,  FastMath.toRadians(80), FastMath.toRadians(45), 0, earthShape);
         Instrument view1 = new Instrument("view1", fov, 100, 100);
         //assign instruments
         for (Satellite sat : walker.getSatellites()) {
             sat.addInstrument(view1);
         }
 
-        ArrayList<GeodeticPoint> pts = new ArrayList<>();
-        pts.add(new GeodeticPoint(FastMath.PI / 2, 0, 0));
+//        ArrayList<GeodeticPoint> pts = new ArrayList<>();
+//        pts.add(new GeodeticPoint(-0.1745329251994330, 6.0737457969402699, 0.0));
+//        pts.add(new GeodeticPoint(-0.8726646259971650, 3.1415926535897900, 0.0));
+//        pts.add(new GeodeticPoint(1.5707963267949001, 0.0000000000000000, 0.0));
+//        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", pts, earthShape);
 //        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", 20, earthShape);
-        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", pts, earthShape);
-//        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", STKGRID.getPoints20(), earthShape);
+        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", STKGRID.getPoints20(), earthShape);
 
         covDef1.assignConstellation(walker);
 
@@ -113,22 +116,22 @@ public class Orekit {
 
         PropagatorFactory pf = new PropagatorFactory(PropagatorType.KEPLERIAN, OrbitType.KEPLERIAN);
 
-        double analysisTimeStep = 1;
+        double analysisTimeStep = 60;
         ArrayList<Analysis> analysesList = new ArrayList<>();
         analysesList.add(new OrbitalElementsAnalysis(analysisTimeStep));
-        ArrayList<FOVDetector> fovs = new ArrayList<FOVDetector>();
-        for(CoveragePoint pt : covDef1.getPoints()){
-            fovs.add( new FOVDetector(pt, view1).withMaxCheck(1));
-        }
-        analysesList.add(new EventAnalysis(analysisTimeStep, fovs));
-        analysesList.add(new EventAnalysis2(analysisTimeStep, new ArrayList(covDef1.getPoints()), earthShape,  new FieldOfView(Vector3D.PLUS_K,
-                       Vector3D.PLUS_I, FastMath.toRadians(45),
-                       Vector3D.PLUS_J, FastMath.toRadians(45),0),
-                        inertialFrame, startDate));
+//        ArrayList<FOVDetector> fovs = new ArrayList<FOVDetector>();
+//        for(CoveragePoint pt : covDef1.getPoints()){
+//            fovs.add( new FOVDetector(pt, view1).withMaxCheck(1));
+//        }
+//        analysesList.add(new EventAnalysis(analysisTimeStep, fovs));
+//        analysesList.add(new EventAnalysis2(analysisTimeStep, new ArrayList(covDef1.getPoints()), earthShape,  new FieldOfView(Vector3D.PLUS_K,
+//                       Vector3D.PLUS_I, FastMath.toRadians(45),
+//                       Vector3D.PLUS_J, FastMath.toRadians(45),0),
+//                        inertialFrame, startDate));
         
         CompoundAnalysis analyses = new CompoundAnalysis(analysesList);
 
-        Scenario scen = new Scenario.Builder(startDate, endDate, utc).
+        Scenario2 scen = new Scenario2.Builder(startDate, endDate, utc).
                 analysis(analyses).covDefs(covDefs).name("test1").numThreads(1).
                 propagatorFactory(pf).saveAllAccesses(true).saveToDB(true).build();
         scen.call();
@@ -140,7 +143,7 @@ public class Orekit {
 //        }
 
 //        Scenario scenComp = new Scenario(pc.loadRunAndSave(new File(path).toPath(), 4));
-        Scenario scenComp = scen;
+        Scenario2 scenComp = scen;
 
         System.out.println(String.format("Done Running Scenario %s", scenComp));
 
@@ -180,8 +183,8 @@ public class Orekit {
         System.out.println("Saving scenario...");
 
 //        ScenarioIO.save(Paths.get(path, ""), filename, scenComp);
-        ScenarioIO.saveReadMe(Paths.get(path, ""), filename, scenComp);
-        ScenarioIO.saveAnalyses(Paths.get(path, ""), scenComp);
+//        ScenarioIO.saveReadMe(Paths.get(path, ""), filename, scenComp);
+//        ScenarioIO.saveAnalyses(Paths.get(path, ""), scenComp);
 
         long end = System.nanoTime();
         System.out.println("Took " + (end - start) / Math.pow(10, 9) + " sec");
