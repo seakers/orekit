@@ -45,12 +45,12 @@ public abstract class VectorAnalysis extends AbstractAnalysis<Vector3D> {
 
     @Override
     public String getHeader() {
-        return super.getHeader() + ",angle[rad]"; //To change body of generated methods, choose Tools | Templates.
+        return super.getHeader() + ",x,y,z"; //To change body of generated methods, choose Tools | Templates.
     }
     
     @Override
     public String getExtension() {
-        return  "vecang";
+        return  "vec";
     } 
 
     @Override

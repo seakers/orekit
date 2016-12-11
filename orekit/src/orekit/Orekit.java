@@ -32,6 +32,7 @@ import orekit.propagation.PropagatorFactory;
 import orekit.propagation.PropagatorType;
 import orekit.scenario.Scenario;
 import orekit.scenario.Scenario2;
+import orekit.scenario.Scenario3;
 import orekit.scenario.ScenarioIO;
 import orekit.util.OrekitConfig;
 import org.hipparchus.geometry.euclidean.threed.Vector3D;
@@ -71,9 +72,9 @@ public class Orekit {
             path = args[0];
             filename = args[1];
         } else {
-            path = "/Users/nozomihitomi/Desktop";
-//            path = "C:\\Users\\SEAK1\\Nozomi\\OREKIT\\";
-            filename = "rotating";
+//            path = "/Users/nozomihitomi/Desktop";
+            path = "C:\\Users\\SEAK1\\Nozomi\\OREKIT\\";
+            filename = "tropics_test";
         }
 
         OrekitConfig.init();
@@ -92,13 +93,13 @@ public class Orekit {
 
         //Enter satellite orbital parameters
         double a = 6978137.0;
-        double i = FastMath.toRadians(90);
+        double i = FastMath.toRadians(30);
 
-        Walker walker = new Walker("walker1", i, 1, 1, 0, a, inertialFrame, startDate, mu);
+        Walker walker = new Walker("walker1", i, 12, 3, 0, a, inertialFrame, startDate, mu);
 
         //define instruments
 //        NadirSimpleConicalFOV fov = new NadirSimpleConicalFOV(Vector3D.PLUS_K, FastMath.toRadians(45), earthShape);
-        NadirRectangularFOV fov = new NadirRectangularFOV(Vector3D.PLUS_K, FastMath.toRadians(80), FastMath.toRadians(45), 0, earthShape);
+        NadirRectangularFOV fov = new NadirRectangularFOV(Vector3D.PLUS_K,  FastMath.toRadians(57), FastMath.toRadians(2.5), 0, earthShape);
         Instrument view1 = new Instrument("view1", fov, 100, 100);
         //assign instruments
         for (Satellite sat : walker.getSatellites()) {
@@ -108,10 +109,10 @@ public class Orekit {
         ArrayList<GeodeticPoint> pts = new ArrayList<>();
 //        pts.add(new GeodeticPoint(-0.1745329251994330, 6.0737457969402699, 0.0));
 //        pts.add(new GeodeticPoint(-0.8726646259971650, 3.1415926535897900, 0.0));
-        pts.add(new GeodeticPoint(1.5707963267949001, 0.0000000000000000, 0.0));
-        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", pts, earthShape);
-//        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", 20, earthShape);
-//        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", STKGRID.getPoints20(), earthShape);
+//        pts.add(new GeodeticPoint(1.5707963267949001, 0.0000000000000000, 0.0));
+//        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", pts, earthShape);
+//        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", 6, 0, 20, 0, 20, earthShape);
+        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", STKGRID.getPoints6(), earthShape);
 
         covDef1.assignConstellation(walker);
 

@@ -102,7 +102,8 @@ public class NadirSimpleConicalFOV extends AbstractFieldOfViewDefinition {
 
     @Override
     public double offsetFromBoundary(Vector3D lineOfSight) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        //Assuming plusK is the nadir direction
+        return Vector3D.angle(Vector3D.PLUS_K, lineOfSight) - halfAngle;
     }
     
     

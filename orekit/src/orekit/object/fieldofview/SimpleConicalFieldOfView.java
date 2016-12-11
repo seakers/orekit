@@ -102,7 +102,7 @@ public class SimpleConicalFieldOfView extends AbstractFieldOfViewDefinition{
 
     @Override
     public double offsetFromBoundary(Vector3D lineOfSight) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return Vector3D.angle(centerAxis, lineOfSight) - halfAngle;
     }
     
     
