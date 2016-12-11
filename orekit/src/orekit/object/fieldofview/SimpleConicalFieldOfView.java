@@ -7,6 +7,10 @@ package orekit.object.fieldofview;
 
 import java.util.Objects;
 import org.hipparchus.geometry.euclidean.threed.Vector3D;
+import org.hipparchus.linear.ArrayRealVector;
+import org.hipparchus.linear.RealMatrix;
+import org.hipparchus.linear.RealVector;
+import org.hipparchus.util.FastMath;
 import org.orekit.errors.OrekitException;
 import org.orekit.frames.TopocentricFrame;
 import org.orekit.propagation.SpacecraftState;
@@ -23,6 +27,13 @@ public class SimpleConicalFieldOfView extends AbstractFieldOfViewDefinition{
     private final Vector3D centerAxis;
 
     private final double halfAngle;
+    
+    
+    /**
+     * The threshold value for cos(halfAngle)
+     */
+    private final double cosAngle;
+
 
     /**
      * Constructor to create a simple conical field of view
@@ -31,8 +42,9 @@ public class SimpleConicalFieldOfView extends AbstractFieldOfViewDefinition{
      * @param halfAngle FOV half aperture angle, must be less than π/2.
      */
     public SimpleConicalFieldOfView(Vector3D centerAxis, double halfAngle) {
-        this.centerAxis = centerAxis;
+        this.centerAxis = centerAxis.normalize();
         this.halfAngle = halfAngle;
+        this.cosAngle = FastMath.cos(halfAngle);
     }
 
     public Vector3D getCenterAxis() {
@@ -105,6 +117,12 @@ public class SimpleConicalFieldOfView extends AbstractFieldOfViewDefinition{
         return Vector3D.angle(centerAxis, lineOfSight) - halfAngle;
     }
     
-    
+    @Override
+    public RealVector g_FOV(RealMatrix lineOfSight) {
+        //Assuming plusK is the nadir direction
+        return lineOfSight.preMultiply(
+                new ArrayRealVector(centerAxis.toArray()))
+                .mapSubtractToSelf(cosAngle);
+    }
 
 }

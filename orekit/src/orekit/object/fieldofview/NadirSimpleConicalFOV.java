@@ -5,7 +5,6 @@
  */
 package orekit.object.fieldofview;
 
-import java.util.Objects;
 import org.hipparchus.geometry.euclidean.threed.Vector3D;
 import org.orekit.bodies.BodyShape;
 import org.orekit.errors.OrekitException;
@@ -22,28 +21,22 @@ import org.orekit.propagation.SpacecraftState;
  *
  * @author nozomihitomi
  */
-public class NadirSimpleConicalFOV extends AbstractFieldOfViewDefinition {
+public class NadirSimpleConicalFOV extends SimpleConicalFieldOfView {
 
     private static final long serialVersionUID = -5871573780685218252L;
 
-    private final double halfAngle;
-
     private final BodyShape shape;
+   
 
     /**
      * Constructor to create a simple conical field of view
      *
-     * @param centerAxis Direction of the FOV center, in spacecraft frame
-     * @param halfAngle FOV half aperture angle, must be less than π/2.
+     * @param halfAngle FOV half aperture angle [rad], must be less than π/2.
      * @param shape the shape of the body to define the nadir direction
      */
-    public NadirSimpleConicalFOV(Vector3D centerAxis, double halfAngle, BodyShape shape) {
-        this.halfAngle = halfAngle;
+    public NadirSimpleConicalFOV(double halfAngle, BodyShape shape) {
+        super(Vector3D.PLUS_K, halfAngle);
         this.shape = shape;
-    }
-
-    public double getHalfAngle() {
-        return halfAngle;
     }
     
     /**
@@ -69,43 +62,13 @@ public class NadirSimpleConicalFOV extends AbstractFieldOfViewDefinition {
         // Target is in the field of view if the absolute value that angle is smaller than FOV half aperture.
         // g function value is the difference between FOV half aperture and the absolute value of the angle between
         // target direction and field of view center. It is positive inside the FOV and negative outside.
-        return  halfAngle - Vector3D.angle(targetPosInert, spacecraftToNadirPosition);
+        return  getHalfAngle() - Vector3D.angle(targetPosInert, spacecraftToNadirPosition);
     }
     
 
     @Override
     public String toString() {
-        return "SimpleConicalFieldOfView{" + "halfAngle=" + halfAngle + '}';
+        return "NadirSimpleConicalFieldOfView{" + "halfAngle=" + getHalfAngle() + '}';
     }
-
-    @Override
-    public int hashCode() {
-        int hash = 7;
-        hash = 59 * hash + (int) (Double.doubleToLongBits(this.halfAngle) ^ (Double.doubleToLongBits(this.halfAngle) >>> 32));
-        return hash;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == null) {
-            return false;
-        }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        final NadirSimpleConicalFOV other = (NadirSimpleConicalFOV) obj;
-        if (Double.doubleToLongBits(this.halfAngle) != Double.doubleToLongBits(other.halfAngle)) {
-            return false;
-        }
-        return true;
-    }
-
-    @Override
-    public double offsetFromBoundary(Vector3D lineOfSight) {
-        //Assuming plusK is the nadir direction
-        return Vector3D.angle(Vector3D.PLUS_K, lineOfSight) - halfAngle;
-    }
-    
-    
 
 }

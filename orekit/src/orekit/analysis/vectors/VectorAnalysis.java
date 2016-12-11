@@ -20,7 +20,7 @@ import org.orekit.propagation.SpacecraftState;
  *
  * @author nozomihitomi
  */
-public abstract class VectorAnalysis extends AbstractAnalysis<Vector3D> {
+public abstract class VectorAnalysis extends AbstractAnalysis<String> {
     private static final long serialVersionUID = 920486541477495142L;
 
     /**
@@ -55,7 +55,9 @@ public abstract class VectorAnalysis extends AbstractAnalysis<Vector3D> {
 
     @Override
     public void handleStep(SpacecraftState currentState, boolean isLast) throws OrekitException {
-        addRecord(new Record(currentState.getDate(),getVector(currentState, frame)));
+        Vector3D pos = getVector(currentState, frame);
+        String str = String.format("%f,%f%f", pos.getX(),pos.getY(),pos.getZ());
+        addRecord(new Record(currentState.getDate(),str));
     }
 
     @Override
@@ -79,10 +81,4 @@ public abstract class VectorAnalysis extends AbstractAnalysis<Vector3D> {
         }
         return true;
     }
-
-    
-    
-    
-    
-
 }
