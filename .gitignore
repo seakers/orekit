@@ -1,4 +1,5 @@
 /orekit/build/
+/orekit/nbuild.xml
 /orekit/dist/
 /orekit/nbproject/
 
