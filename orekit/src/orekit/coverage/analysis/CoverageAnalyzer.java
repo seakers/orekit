@@ -196,7 +196,7 @@ public class CoverageAnalyzer {
     }
 
     /**
-     * Gets the minimum access duration of a specified point
+     * Gets the minimum access duration of a specified latitude
      *
      * @param latitude the latitude of interest
      * @return NaN if specified point is not in the coverage definition
@@ -233,7 +233,7 @@ public class CoverageAnalyzer {
     }
 
     /**
-     * Gets the mean access duration of a specified point
+     * Gets the mean access duration of a specified latitude
      *
      * @param latitude the latitude of interest
      * @return NaN if specified latitude is not in the coverage definition
@@ -273,7 +273,7 @@ public class CoverageAnalyzer {
     }
 
     /**
-     * Gets the specified percentile access duration of a specified point
+     * Gets the specified percentile access duration of a specified latitude
      *
      * @param latitude the latitude of interest
      * @param pct specified percentile
@@ -321,7 +321,7 @@ public class CoverageAnalyzer {
     }
 
     /**
-     * Gets the specified percentile access duration of a specified point
+     * Gets the specified percentile access duration of a specified latitude
      *
      * @param latitude the latitude of interest
      * @return NaN if specified latitude is not in the coverage definition
@@ -364,7 +364,7 @@ public class CoverageAnalyzer {
     }
 
     /**
-     * Gets the sum of all access durations over of a specified point
+     * Gets the sum of all access durations over of a specified latitude
      *
      * @param latitude the latitude of interest
      *
@@ -404,7 +404,7 @@ public class CoverageAnalyzer {
     }
 
     /**
-     * Gets the variance in the access durations of a specified point
+     * Gets the variance in the access durations of a specified latitude
      *
      * @param latitude the latitude of interest
      *
@@ -445,7 +445,7 @@ public class CoverageAnalyzer {
     }
 
     /**
-     * Gets all the access durations of a specified point
+     * Gets all the access durations of a specified latitude
      *
      * @param latitude the latitude of interest
      *
@@ -486,7 +486,7 @@ public class CoverageAnalyzer {
     }
 
     /**
-     * Gets the maximum access duration of a specified point
+     * Gets the maximum access duration of a specified latitude
      *
      * @param latitude the latitude of interest
      *
@@ -526,7 +526,7 @@ public class CoverageAnalyzer {
     }
 
     /**
-     * Gets the minimum access duration of a specified point
+     * Gets the minimum access duration of a specified latitude
      *
      * @param latitude the latitude of interest
      *
@@ -564,7 +564,7 @@ public class CoverageAnalyzer {
     }
 
     /**
-     * Gets the mean access duration of a specified point
+     * Gets the mean access duration of a specified latitude
      *
      * @param latitude the latitude of interest
      * @return NaN if specified latitude is not in the coverage definition
@@ -604,7 +604,7 @@ public class CoverageAnalyzer {
     }
 
     /**
-     * Gets the specified percentile access duration of a specified point
+     * Gets the specified percentile access duration of a specified latitude
      *
      * @param latitude the latitude of interest
      * @param pct specified percentile
@@ -654,7 +654,7 @@ public class CoverageAnalyzer {
 
     /**
      * Gets the empirical cdf that describes the gap durations of a specified
-     * point
+     * latitude
      *
      * @param latitude the latitude of interest
      * @return empty double array if specified latitude is not in coverage
@@ -698,7 +698,7 @@ public class CoverageAnalyzer {
     }
 
     /**
-     * Gets the sum of all access durations of a specified point
+     * Gets the sum of all access durations of a specified latitude
      *
      * @param latitude the latitude of interest
      *
@@ -738,7 +738,7 @@ public class CoverageAnalyzer {
     }
 
     /**
-     * Gets the variance in the access durations of a specified point
+     * Gets the variance in the access durations of a specified latitude
      *
      * @param latitude the latitude of interest
      *
@@ -781,7 +781,7 @@ public class CoverageAnalyzer {
     }
 
     /**
-     * Gets all the gap durations of a specified point
+     * Gets all the gap durations of a specified latitude
      *
      * @param latitude the latitude of interest
      *
@@ -796,5 +796,243 @@ public class CoverageAnalyzer {
             return new double[0];
         }
 
+    }
+    
+    /**
+     * Gets the Mean Response Time of a specified coverage point
+     * @param pt point of interest
+     * @return
+     */
+    public double getMeanResponseTime(CoveragePoint pt){
+        double sumsquares=gapsPerPoint.get(pt).getSumOfSquares();
+        double T=accessesPerPoint.get(pt).getSum()+gapsPerPoint.get(pt).getSum();
+        return sumsquares/(2*T);
+    }
+    
+    /**
+     * Gets the Time Average Gap of a specified coverage point
+     * @param pt point of interest
+     * @return
+     */
+    public double getTimeAverageGap(CoveragePoint pt){
+        return 2*getMeanResponseTime(pt);
+    }
+    
+    /**
+     * Gets the Percent Time Coverage of a specified coverage point
+     * @param pt point of interest
+     * @return
+     */
+    public double getPercentCoverage(CoveragePoint pt){
+        double sum = accessesPerPoint.get(pt).getSum();
+        double T=accessesPerPoint.get(pt).getSum()+gapsPerPoint.get(pt).getSum();
+        return sum/(T);
+    }
+    
+    /**
+     * Gets the Average of the Mean Response Time of all the points in the 
+     * coverage grid
+     * @return
+     */
+    public double getMeanResponseTimeGlobal(){
+        ArrayList<CoveragePoint> points=this.getCoveragePoints();
+        DescriptiveStatistics meanResponseTimes=new DescriptiveStatistics();
+        for (CoveragePoint point:points){
+            meanResponseTimes.addValue(this.getMeanResponseTime(point));
+        }
+        return meanResponseTimes.getMean();
+    }
+    
+    /**
+     * Gets the maximum Mean Response Time of all the points in the coverage
+     * grid
+     * @return
+     */
+    public double getMaxMeanResponseTimeGlobal(){
+        ArrayList<CoveragePoint> points=this.getCoveragePoints();
+        DescriptiveStatistics meanResponseTimes=new DescriptiveStatistics();
+        for (CoveragePoint point:points){
+            meanResponseTimes.addValue(this.getMeanResponseTime(point));
+        }
+        return meanResponseTimes.getMax();
+    }
+    
+    /**
+     * Gets the minimum Mean Response Time of all the points in the coverage
+     * grid
+     * @return
+     */
+    public double getMinMeanResponseTimeGlobal(){
+        ArrayList<CoveragePoint> points=this.getCoveragePoints();
+        DescriptiveStatistics meanResponseTimes=new DescriptiveStatistics();
+        for (CoveragePoint point:points){
+            meanResponseTimes.addValue(this.getMeanResponseTime(point));
+        }
+        return meanResponseTimes.getMin();
+    }
+    
+    /**
+     * Gets the specified percentile Mean Response Time of all the points in the
+     * grid
+     * @param pct specified percentile
+     * @return
+     */
+    public double getPercentileMeanResponseTimeGlobal(double pct){
+        ArrayList<CoveragePoint> points=this.getCoveragePoints();
+        DescriptiveStatistics meanResponseTimes=new DescriptiveStatistics();
+        for (CoveragePoint point:points){
+            meanResponseTimes.addValue(this.getMeanResponseTime(point));
+        }
+        return meanResponseTimes.getPercentile(pct);
+    }
+    
+    /**
+     * Gets the CDF of the Mean Response Time of all the points in the grid
+     * @return
+     */
+    public double[] getCDFMeanResponseTimeGlobal(){
+        double[] out = new double[99];
+        for (int i = 1; i < 99; i++) {
+            out[i] = this.getPercentileMeanResponseTimeGlobal(i);
+        }
+        return out;
+    }
+        
+    /**
+     * Gets the Average of the Time Average Gap of all the points in the 
+     * coverage grid
+     * @return
+     */
+    public double getTimeAverageGapGlobal(){
+        ArrayList<CoveragePoint> points=this.getCoveragePoints();
+        DescriptiveStatistics timeAverageGaps=new DescriptiveStatistics();
+        for (CoveragePoint point:points){
+            timeAverageGaps.addValue(this.getTimeAverageGap(point));
+        }
+        return timeAverageGaps.getMean();
+    }
+    
+    /**
+     * Gets the maximum Time Average Gap of all the points in the coverage
+     * grid
+     * @return
+     */
+    public double getMaxTimeAverageGapGlobal(){
+        ArrayList<CoveragePoint> points=this.getCoveragePoints();
+        DescriptiveStatistics timeAverageGaps=new DescriptiveStatistics();
+        for (CoveragePoint point:points){
+            timeAverageGaps.addValue(this.getTimeAverageGap(point));
+        }
+        return timeAverageGaps.getMax();
+    }
+    
+    /**
+     * Gets the minimum Time Average Gap of all the points in the coverage
+     * grid
+     * @return
+     */
+    public double getMinTimeAverageGapGlobal(){
+        ArrayList<CoveragePoint> points=this.getCoveragePoints();
+        DescriptiveStatistics timeAverageGaps=new DescriptiveStatistics();
+        for (CoveragePoint point:points){
+            timeAverageGaps.addValue(this.getTimeAverageGap(point));
+        }
+        return timeAverageGaps.getMin();
+    }
+    
+    /**
+     * Gets the specified percentile Time Average Gap of all the points in the
+     * grid
+     * @param pct specified percentile
+     * @return
+     */
+    public double getPercentileTimeAverageGapGlobal(double pct){
+        ArrayList<CoveragePoint> points=this.getCoveragePoints();
+        DescriptiveStatistics timeAverageGaps=new DescriptiveStatistics();
+        for (CoveragePoint point:points){
+            timeAverageGaps.addValue(this.getTimeAverageGap(point));
+        }
+        return timeAverageGaps.getPercentile(pct);
+    }
+    
+    /**
+     * Gets the CDF of the Time Average Gap of all the points in the grid
+     * @return
+     */
+    public double[] getCDFTimeAverageGapGlobal(){
+        double[] out = new double[99];
+        for (int i = 1; i < 99; i++) {
+            out[i] = this.getPercentileTimeAverageGapGlobal(i);
+        }
+        return out;
+    }
+    
+    /**
+     * Gets the Average of the Percent Coverage of all the points in the 
+     * coverage grid
+     * @return
+     */
+    public double getPercentCoverageGlobal(){
+        ArrayList<CoveragePoint> points=this.getCoveragePoints();
+        DescriptiveStatistics percentCoverages=new DescriptiveStatistics();
+        for (CoveragePoint point:points){
+            percentCoverages.addValue(this.getPercentCoverage(point));
+        }
+        return percentCoverages.getMean();
+    }
+    
+    /**
+     * Gets the maximum Percent Coverage of all the points in the coverage
+     * grid
+     * @return
+     */
+    public double getMaxPercentCoverageGlobal(){
+        ArrayList<CoveragePoint> points=this.getCoveragePoints();
+        DescriptiveStatistics percentCoverages=new DescriptiveStatistics();
+        for (CoveragePoint point:points){
+            percentCoverages.addValue(this.getPercentCoverage(point));
+        }
+        return percentCoverages.getMax();
+    }
+    
+    /**
+     * Gets the minimum Percent Coverage of all the points in the coverage
+     * grid
+     * @return
+     */
+    public double getMinPercentCoverageGlobal(){
+        ArrayList<CoveragePoint> points=this.getCoveragePoints();
+        DescriptiveStatistics percentCoverages=new DescriptiveStatistics();
+        for (CoveragePoint point:points){
+            percentCoverages.addValue(this.getPercentCoverage(point));
+        }
+        return percentCoverages.getMin();
+    }
+    
+    /**
+     * Gets the specified percentile Percent Coverage of all the points in the
+     * grid
+     * @param pct specified percentile
+     * @return
+     */
+    public double getPercentilePercentCoverageGlobal(double pct){
+        ArrayList<CoveragePoint> points=this.getCoveragePoints();
+        DescriptiveStatistics percentCoverages=new DescriptiveStatistics();
+        for (CoveragePoint point:points){
+            percentCoverages.addValue(this.getPercentCoverage(point));
+        }
+        return percentCoverages.getPercentile(pct);
+    }
+    
+    /**
+     * Gets the CDF of the Percent Coverage of all the points in the grid
+     * @return
+     */
+    public double[] getCDFPercentCoverageGlobal(){
+        double[] out = new double[99];
+        for (int i = 1; i < 99; i++) {
+            out[i] = this.getPercentilePercentCoverageGlobal(i);
+        }
+        return out;
     }
 }
