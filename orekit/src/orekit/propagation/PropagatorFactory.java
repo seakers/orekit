@@ -6,6 +6,7 @@
 package orekit.propagation;
 
 import java.io.Serializable;
+import java.util.Objects;
 import org.orekit.errors.OrekitException;
 import org.orekit.orbits.Orbit;
 import org.orekit.orbits.OrbitType;
@@ -89,5 +90,33 @@ public class PropagatorFactory implements Serializable {
     public PropagatorType getPropType() {
         return propType;
     }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 59 * hash + Objects.hashCode(this.propType.toString());
+        hash = 59 * hash + Objects.hashCode(this.orbitType.toString());
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final PropagatorFactory other = (PropagatorFactory) obj;
+        if (this.propType != other.propType) {
+            return false;
+        }
+        if (this.orbitType != other.orbitType) {
+            return false;
+        }
+        return true;
+    }
+    
+    
 
 }

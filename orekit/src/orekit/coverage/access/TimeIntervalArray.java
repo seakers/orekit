@@ -22,7 +22,8 @@ public class TimeIntervalArray implements Iterable<RiseSetTime>, Serializable {
 
     private static final long serialVersionUID = 394081713593567685L;
 
-    private final ArrayList<RiseSetTime> timeArray;
+    protected final ArrayList<RiseSetTime> timeArray;
+
     private boolean accessing; //boolean to track if a rise time has a corresponding set time
 
     /**
@@ -33,7 +34,7 @@ public class TimeIntervalArray implements Iterable<RiseSetTime>, Serializable {
      * Head is the ending date of the timeline
      */
     private final AbsoluteDate tail;
-    
+
     /**
      * Time between the head and the tail dates
      */
@@ -66,7 +67,7 @@ public class TimeIntervalArray implements Iterable<RiseSetTime>, Serializable {
     public boolean addRiseTime(AbsoluteDate riseTime) {
         return addRiseTime(riseTime.durationFrom(head));
     }
-    
+
     /**
      * Adds a new rise time to the array to the start of a time interval. If
      * previous intervals exists, the newly added rise time must occur after the
@@ -103,7 +104,7 @@ public class TimeIntervalArray implements Iterable<RiseSetTime>, Serializable {
     public boolean addSetTime(AbsoluteDate setTime) {
         return addSetTime(setTime.durationFrom(head));
     }
-    
+
     /**
      * Adds a new set time to the array to the end of a time interval. The newly
      * added set time must occur after the rise time of the current interval. If
@@ -213,7 +214,7 @@ public class TimeIntervalArray implements Iterable<RiseSetTime>, Serializable {
         }
         if (isTailOpen()) {
             endInd--;
-            durations[nIntervals - 1] = timeArray.get(endInd).getTime()-timeArray.get(endInd - 1).getTime();
+            durations[nIntervals - 1] = timeArray.get(endInd).getTime() - timeArray.get(endInd - 1).getTime();
         }
 
         for (int i = startInd; i < endInd; i += 2) {
@@ -290,6 +291,56 @@ public class TimeIntervalArray implements Iterable<RiseSetTime>, Serializable {
      */
     public boolean isEmpty() {
         return timeArray.isEmpty();
+    }
+
+    /**
+     * This method returns a time interval array instance that is immutable. In
+     * other words, the methods to add times will no longer be available to the
+     * user. Attempts to add new times will throw an
+     * UnsupportedOperationException. Note that this instance will remain
+     * mutable
+     *
+     * @return  a time interval array instance that is immutable
+     */
+    public TimeIntervalArray createImmutable() {
+        return new ImmutableTimeIntervalArray(this);
+    }
+
+    /**
+     * This class of time interval array is immutable, so add methods are not
+     * supported and will throw an unsupported operation exception
+     *
+     * @author nozomihitomi
+     */
+    private class ImmutableTimeIntervalArray extends TimeIntervalArray {
+
+        private static final long serialVersionUID = 2589419421517789562L;
+
+        public ImmutableTimeIntervalArray(TimeIntervalArray original) {
+            super(original.getHead(), original.getTail());
+            this.timeArray.addAll(original.getRiseSetTimes());
+        }
+
+        @Override
+        public boolean addSetTime(double setTime) {
+            throw new UnsupportedOperationException("Attempted to modifiy an immutable instance of time interval array.");
+        }
+
+        @Override
+        public boolean addSetTime(AbsoluteDate setTime) {
+            throw new UnsupportedOperationException("Attempted to modifiy an immutable instance of time interval array.");
+        }
+
+        @Override
+        public boolean addRiseTime(double riseTime) {
+            throw new UnsupportedOperationException("Attempted to modifiy an immutable instance of time interval array.");
+        }
+
+        @Override
+        public boolean addRiseTime(AbsoluteDate riseTime) {
+            throw new UnsupportedOperationException("Attempted to modifiy an immutable instance of time interval array.");
+        }
+
     }
 
 }

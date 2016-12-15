@@ -5,7 +5,12 @@
  */
 package orekit.object.fieldofview;
 
+import java.util.Objects;
 import org.hipparchus.geometry.euclidean.threed.Vector3D;
+import org.hipparchus.linear.ArrayRealVector;
+import org.hipparchus.linear.RealMatrix;
+import org.hipparchus.linear.RealVector;
+import org.hipparchus.util.FastMath;
 import org.orekit.errors.OrekitException;
 import org.orekit.frames.TopocentricFrame;
 import org.orekit.propagation.SpacecraftState;
@@ -22,6 +27,13 @@ public class SimpleConicalFieldOfView extends AbstractFieldOfViewDefinition{
     private final Vector3D centerAxis;
 
     private final double halfAngle;
+    
+    
+    /**
+     * The threshold value for cos(halfAngle)
+     */
+    private final double cosAngle;
+
 
     /**
      * Constructor to create a simple conical field of view
@@ -30,8 +42,9 @@ public class SimpleConicalFieldOfView extends AbstractFieldOfViewDefinition{
      * @param halfAngle FOV half aperture angle, must be less than π/2.
      */
     public SimpleConicalFieldOfView(Vector3D centerAxis, double halfAngle) {
-        this.centerAxis = centerAxis;
+        this.centerAxis = centerAxis.normalize();
         this.halfAngle = halfAngle;
+        this.cosAngle = FastMath.cos(halfAngle);
     }
 
     public Vector3D getCenterAxis() {
@@ -71,6 +84,45 @@ public class SimpleConicalFieldOfView extends AbstractFieldOfViewDefinition{
     @Override
     public String toString() {
         return "SimpleConicalFieldOfView{" + "halfAngle=" + halfAngle + '}';
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 5;
+        hash = 31 * hash + Objects.hashCode(this.centerAxis);
+        hash = 31 * hash + (int) (Double.doubleToLongBits(this.halfAngle) ^ (Double.doubleToLongBits(this.halfAngle) >>> 32));
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final SimpleConicalFieldOfView other = (SimpleConicalFieldOfView) obj;
+        if (!Objects.equals(this.centerAxis, other.centerAxis)) {
+            return false;
+        }
+        if (Double.doubleToLongBits(this.halfAngle) != Double.doubleToLongBits(other.halfAngle)) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public double offsetFromBoundary(Vector3D lineOfSight) {
+        return Vector3D.angle(centerAxis, lineOfSight) - halfAngle;
+    }
+    
+    @Override
+    public RealVector g_FOV(RealMatrix lineOfSight) {
+        //Assuming plusK is the nadir direction
+        return lineOfSight.preMultiply(
+                new ArrayRealVector(centerAxis.toArray()))
+                .mapSubtractToSelf(cosAngle);
     }
 
 }

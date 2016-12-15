@@ -24,6 +24,7 @@ import org.orekit.time.AbsoluteDate;
  * @author SEAK1
  */
 public class Walker extends Constellation {
+    private static final long serialVersionUID = 6994388604876873748L;
 
     /**
      * Creates a walker delta-pattern constellation in the specified Walker
@@ -122,5 +123,5 @@ public class Walker extends Constellation {
         }
         return walker;
     }
-
+    
 }

@@ -8,6 +8,7 @@ package orekit.scenario;
 import orekit.object.fieldofview.FOVDetector;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.Collections;
@@ -28,7 +29,6 @@ import orekit.coverage.access.CoverageAccessMerger;
 import orekit.coverage.access.FOVHandler;
 import orekit.coverage.access.TimeIntervalArray;
 import orekit.coverage.parallel.CoverageDivider;
-import orekit.coverage.parallel.ParallelCoverage;
 import orekit.object.Constellation;
 import orekit.object.CoverageDefinition;
 import orekit.object.CoveragePoint;
@@ -36,12 +36,16 @@ import orekit.object.Instrument;
 import orekit.object.Satellite;
 import orekit.propagation.PropagatorFactory;
 import orekit.propagation.PropagatorType;
+import org.hipparchus.geometry.euclidean.threed.Vector3D;
+import org.hipparchus.linear.Array2DRowRealMatrix;
+import org.hipparchus.linear.MatrixUtils;
+import org.hipparchus.linear.RealMatrix;
 import org.hipparchus.util.FastMath;
 import org.orekit.bodies.GeodeticPoint;
 import org.orekit.errors.OrekitException;
 import org.orekit.frames.Frame;
 import org.orekit.frames.FramesFactory;
-import org.orekit.frames.TopocentricFrame;
+import org.orekit.frames.Transform;
 import org.orekit.orbits.Orbit;
 import org.orekit.orbits.OrbitType;
 import org.orekit.propagation.Propagator;
@@ -128,6 +132,12 @@ public class Scenario implements Callable<Scenario>, Serializable {
     private final boolean saveAllAccesses;
 
     /**
+     * flag to dictate whether the coverage accesses of individual satellites
+     * should be saved to the coverage database
+     */
+    private boolean saveToDB = false;
+
+    /**
      * Stores all the accesses of each satellite if saveAllAccesses is true.
      */
     private HashMap<CoverageDefinition, HashMap<Satellite, HashMap<CoveragePoint, TimeIntervalArray>>> allAccesses;
@@ -171,6 +181,8 @@ public class Scenario implements Callable<Scenario>, Serializable {
      * @param saveAllAccesses true if user wants to maintain all the accesses
      * from each individual satellite. false if user would like to only get the
      * merged accesses between all satellites (this saves memory).
+     * @param saveToDB flag to dictate whether the coverage accesses of
+     * individual satellites should be saved to the coverage database
      * @param analyses the analyses to conduct during the propagation of this
      * scenario
      * @param numThreads number of threads to uses in parallelization of the
@@ -178,8 +190,8 @@ public class Scenario implements Callable<Scenario>, Serializable {
      */
     public Scenario(String name, AbsoluteDate startDate, AbsoluteDate endDate,
             TimeScale timeScale, Frame inertialFrame, PropagatorFactory propagatorFactory,
-            HashSet<CoverageDefinition> covDefs, boolean saveAllAccesses, Analysis analyses,
-            int numThreads) {
+            HashSet<CoverageDefinition> covDefs, boolean saveAllAccesses,
+            boolean saveToDB, Analysis analyses, int numThreads) {
         this.scenarioName = name;
         this.startDate = startDate;
         this.endDate = endDate;
@@ -190,6 +202,7 @@ public class Scenario implements Callable<Scenario>, Serializable {
         if (saveAllAccesses) {
             this.allAccesses = new HashMap();
         }
+        this.saveToDB = saveToDB;
 
         this.covDefs = covDefs;
         //record all unique satellite and constellations
@@ -228,6 +241,7 @@ public class Scenario implements Callable<Scenario>, Serializable {
                 subscenarios.iterator().next().getPropagatorFactory(),
                 new HashSet<>(),
                 subscenarios.iterator().next().isSaveAllAccesses(),
+                false,
                 new CompoundAnalysis(subscenarios.iterator().next().getAnalyses()), 1);
         /*
          Check if all the subscenarios are run and all come from the same Parent Scenario. 
@@ -272,7 +286,7 @@ public class Scenario implements Callable<Scenario>, Serializable {
             pts2.addAll(partCovDef.getPoints());
             int covHash = subscenario.getOrigCovDefHash();
             if (!allCovDefs.containsKey(covHash)) {
-                allCovDefs.put(covHash, new HashMap<CoveragePoint, TimeIntervalArray>());
+                allCovDefs.put(covHash, new HashMap<>());
                 allCovDefNames.put(covHash, subscenario.getOrigCovDefName());
                 allCovDefConstels.put(covHash, partCovDef.getConstellations());
             }
@@ -314,10 +328,42 @@ public class Scenario implements Callable<Scenario>, Serializable {
         this.isDone = true;
     }
 
+    /**
+     * Constructor that creates a new instance of this scenario carrying over
+     * all the information and setting the results to the specified results
+     *
+     * @param s the scenario to clone
+     * @param finalAccesses the final accesses of the entire constellation
+     * obtained by a simulation
+     * @param allAccesses the accesses for each satellite obtained by a
+     * simulation
+     * @param analysisResults the results obtained by a simulation
+     */
+    private Scenario(Scenario s,
+            HashMap<CoverageDefinition, HashMap<CoveragePoint, TimeIntervalArray>> finalAccesses,
+            HashMap<CoverageDefinition, HashMap<Satellite, HashMap<CoveragePoint, TimeIntervalArray>>> allAccesses,
+            HashMap<Analysis, HashMap<Satellite, Collection>> analysisResults) {
+        this(s.getName(), s.getStartDate(), s.getEndDate(), s.getTimeScale(),
+                s.getFrame(), s.getPropagatorFactory(),
+                s.getCoverageDefinitions(), s.isSaveAllAccesses(),
+                s.isSaveToDB(), new CompoundAnalysis(s.getAnalyses()), 1);
+        this.finalAccesses.putAll(finalAccesses);
+        this.allAccesses = allAccesses;
+        this.analysisResults.putAll(analysisResults);
+        this.isDone = true;
+    }
+
+    /**
+     * This should only be called in the constructor in order to prevent
+     * changing the accesses times or the mapping between satellites to coverage
+     * definitions
+     *
+     * @param c
+     */
     private void includeCovDef(HashSet<CoverageDefinition> c) {
         for (CoverageDefinition cdef : c) {
             covDefs.add(cdef);
-            
+
             uniqueSatsAssignedToCovDef.put(cdef, new HashSet());
             for (Constellation constel : cdef.getConstellations()) {
                 uniqueConstellations.add(constel);
@@ -330,11 +376,7 @@ public class Scenario implements Callable<Scenario>, Serializable {
             //create a new time interval array for each point in the coverage definition
             HashMap<CoveragePoint, TimeIntervalArray> ptAccesses = new HashMap<>();
             for (CoveragePoint pt : cdef.getPoints()) {
-                if (cdef.getAccesses().containsKey(pt)) {
-                    ptAccesses.put(pt, cdef.getAccesses().get(pt));
-                } else {
-                    ptAccesses.put(pt, new TimeIntervalArray(startDate, endDate));
-                }
+                ptAccesses.put(pt, new TimeIntervalArray(startDate, endDate));
             }
             finalAccesses.put(cdef, ptAccesses);
         }
@@ -428,6 +470,12 @@ public class Scenario implements Callable<Scenario>, Serializable {
         private HashSet<CoverageDefinition> covDefs = null;
 
         /**
+         * flag to dictate whether the coverage accesses of individual
+         * satellites should be saved to the coverage database
+         */
+        private boolean saveToDB = false;
+
+        /**
          * The constructor for the builder
          *
          * @param startDate the start date of the scenario
@@ -440,45 +488,115 @@ public class Scenario implements Callable<Scenario>, Serializable {
             this.timeScale = timeScale;
         }
 
+        /**
+         * Option to record the accesses of the individual satellites in the
+         * constellation and keep them separate from the combined access times
+         * of the constellation as a whole. By default, the accesses of the
+         * individual satellites are not kept in memory to conserve memory space
+         *
+         * @param b true to record the accesses of the individual satellites
+         * @return
+         */
         public Builder saveAllAccesses(boolean b) {
             this.saveAllAccesses = b;
             return this;
         }
 
+        /**
+         * Option to set the number of threads to use to run the scenario. By
+         * default it is set to 1.
+         *
+         * @param i the number of threads to use to run the scenario
+         * @return
+         */
         public Builder numThreads(int i) {
             this.numThreads = i;
             return this;
         }
 
+        /**
+         * Option to set the analysis to conduct during the scenario. Analyses
+         * allow values to be recorded at fixed time steps during scenario. By
+         * default, no analyses are conducted
+         *
+         * @param a
+         * @return
+         */
         public Builder analysis(Analysis a) {
             this.analyses = a;
             return this;
         }
 
+        /**
+         * Option to set the propagator factory that will create propagators for
+         * each satellite. By default a J2 propagator is used.
+         *
+         * @param factory propagator factory that will create propagators for
+         * each satellite
+         * @return
+         */
         public Builder propagatorFactory(PropagatorFactory factory) {
             this.propagatorFactory = factory;
             return this;
         }
 
+        /**
+         * Option to define the inertial frame in which the scenario is run.
+         * EME2000 is used by default
+         *
+         * @param frame the inertial frame in which the scenario is run
+         * @return
+         */
         public Builder frame(Frame frame) {
             this.inertialFrame = frame;
             return this;
         }
 
+        /**
+         * Option to set the coverage definitions to assign to this scenario.
+         *
+         * @param covDefs coverage definitions to assign to this scenario
+         * @return
+         */
         public Builder covDefs(HashSet<CoverageDefinition> covDefs) {
             this.covDefs = covDefs;
             return this;
         }
 
+        /**
+         * The name to give this scenario. By default, the scenario is named as
+         * "scenario1"
+         *
+         * @param name name to give this scenario
+         * @return
+         */
         public Builder name(String name) {
             this.scenarioName = name;
             return this;
         }
 
-        public Scenario build() {
-            return new Scenario(scenarioName, startDate, endDate, timeScale, inertialFrame, propagatorFactory, covDefs, saveAllAccesses, analyses, numThreads);
+        /**
+         * Option to dictate whether the coverage accesses of individual
+         * satellites should be saved to the coverage database. By default the
+         * accesses are not stored to the database.
+         *
+         * @param bool true if user wants to save the coverage accesses of
+         * individual satellites to the coverage database
+         * @return
+         */
+        public Builder saveToDB(boolean bool) {
+            this.saveToDB = bool;
+            return this;
         }
 
+        /**
+         * Builds an instance of a scenario with all the specified parameters.
+         *
+         * @return
+         */
+        public Scenario build() {
+            return new Scenario(scenarioName, startDate, endDate, timeScale, inertialFrame, propagatorFactory, covDefs, saveAllAccesses, saveToDB, analyses, numThreads);
+        }
     }
 
     /**
@@ -495,7 +613,7 @@ public class Scenario implements Callable<Scenario>, Serializable {
         out.analysis(analyses).covDefs(covDefs).frame(inertialFrame)
                 .name(scenarioName).numThreads(numThreads)
                 .propagatorFactory(propagatorFactory)
-                .saveAllAccesses(saveAllAccesses);
+                .saveAllAccesses(saveAllAccesses).saveToDB(saveToDB);
         return out;
     }
 
@@ -524,48 +642,65 @@ public class Scenario implements Callable<Scenario>, Serializable {
 
                 //propogate each satellite individually
                 for (Satellite sat : uniqueSatsAssignedToCovDef.get(cdef)) {
-                    HashMap<CoveragePoint, TimeIntervalArray> satAccesses = new HashMap<>(cdef.getNumberOfPoints());
-
-                    //assign future tasks by dividing coverage definition into the number of threads available
-                    Collection<Collection<CoveragePoint>> pointGroups = CoverageDivider.divide(cdef.getPoints(), numThreads);
-                    boolean addedAnalysis = false; //only add the analyses to one task
-                    System.out.println(String.format("Initiating %d propagation tasks", numThreads));
-                    for(Collection<CoveragePoint> group : pointGroups){
-                        PropagateTask task;
-                        if(!addedAnalysis){
-                            task = new PropagateTask(sat, endDate, group, analyses);
-                        }else{
-                            task = new PropagateTask(sat, endDate, group, null);
+                    //before propagation, check that the satellite's propagation for this coverage definition is not stored in database
+                    Scenario satScen = checkDatabase(sat, cdef);
+                    HashMap<CoveragePoint, TimeIntervalArray> satAccesses;
+                    //if satellite has already been propagated before, loaded it and continue to next satellite
+                    if (satScen != null) {
+                        System.out.println(String.format("Satellite %s found in database. Loading previously computed accesses and continuing.", sat));
+                        satAccesses = satScen.getSatelliteAccesses(cdef, sat);
+                        //copy over anlysis results
+                        for (Analysis a : getAnalyses()) {
+                            analysisResults.get(a).put(sat, satScen.getAnalysisResult(a, sat));
                         }
-                        futureTasks.add(pool.submit(task));
-                    }
-
-                    //call future tasks and combine accesses from each point into one results object 
-                    System.out.println(String.format("Propagating satellite %s to date %s", sat, endDate));
-                    for (Future<PropagateTask> run : futureTasks) {
-                        try {
-                            PropagateTask finishedTask = run.get();
-                            for (CoveragePoint pt : finishedTask.getAccesses().keySet()) {
-                                satAccesses.put(pt, finishedTask.getAccesses().get(pt));
+                    } else {
+                        satAccesses = new HashMap<>(cdef.getNumberOfPoints());
+                        //assign future tasks by dividing coverage definition into the number of threads available
+                        Collection<Collection<CoveragePoint>> pointGroups = CoverageDivider.divide(cdef.getPoints(), numThreads);
+                        boolean addedAnalysis = false; //only add the analyses to one task
+                        System.out.println(String.format("Initiating %d propagation tasks", numThreads));
+                        for (Collection<CoveragePoint> group : pointGroups) {
+                            PropagateTask task;
+                            if (!addedAnalysis) {
+                                task = new PropagateTask(sat, endDate, group, analyses);
+                            } else {
+                                task = new PropagateTask(sat, endDate, group, null);
                             }
+                            futureTasks.add(pool.submit(task));
+                        }
 
-                            //extract analysis information from propagation
-                            Analysis analysis = finishedTask.getAnalysis();
-                            if (analysis != null) {
-                                if (analysis instanceof CompoundAnalysis) {
-                                    for (Analysis a : ((CompoundAnalysis) analysis).getAnalyses()) {
-                                        analysisResults.get(a).put(sat, a.getHistory());
-                                    }
-                                } else {
-                                    analysisResults.get(analysis).put(sat, analysis.getHistory());
+                        //call future tasks and combine accesses from each point into one results object 
+                        System.out.println(String.format("Propagating satellite %s to date %s", sat, endDate));
+                        for (Future<PropagateTask> run : futureTasks) {
+                            try {
+                                PropagateTask finishedTask = run.get();
+                                for (CoveragePoint pt : finishedTask.getAccesses().keySet()) {
+                                    satAccesses.put(pt, finishedTask.getAccesses().get(pt));
                                 }
+
+                                //extract analysis information from propagation
+                                Analysis analysis = finishedTask.getAnalysis();
+                                if (analysis != null) {
+                                    if (analysis instanceof CompoundAnalysis) {
+                                        for (Analysis a : ((CompoundAnalysis) analysis).getAnalyses()) {
+                                            analysisResults.get(a).put(sat, a.getHistory());
+                                        }
+                                    } else {
+                                        analysisResults.get(analysis).put(sat, analysis.getHistory());
+                                    }
+                                }
+                            } catch (InterruptedException | ExecutionException ex) {
+                                System.err.println(ex);
+                                Logger.getLogger(Scenario.class.getName()).log(Level.SEVERE, null, ex);
                             }
-                        } catch (InterruptedException | ExecutionException ex) {
-                            System.err.println(ex);
-                            Logger.getLogger(Scenario.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                        futureTasks.clear();
+
+                        // if desired, save the accesses of satellite that are not stored in the database
+                        if (saveToDB && !(this instanceof SubScenario)) {
+                            saveToDatabase(sat, cdef, satAccesses);
                         }
                     }
-                    futureTasks.clear();
 
                     //save the satellite accesses 
                     if (saveAllAccesses) {
@@ -580,7 +715,11 @@ public class Scenario implements Callable<Scenario>, Serializable {
                     } else {
                         finalAccesses.put(cdef, satAccesses);
                     }
+                }
 
+                //Make all time intervals stored in finalAccesses immutable
+                for (CoveragePoint pt : finalAccesses.get(cdef).keySet()) {
+                    finalAccesses.get(cdef).put(pt, finalAccesses.get(cdef).get(pt).createImmutable());
                 }
             }
 
@@ -590,6 +729,65 @@ public class Scenario implements Callable<Scenario>, Serializable {
 
         pool.shutdown();
         return this;
+    }
+
+    /**
+     * This method looks to see if the satellite in the scenario have already
+     * been run and saved in the database. If so, the previously run scenario is
+     * loaded with the access times. Does not consider subscenarios previously
+     * run.
+     *
+     * @return　null if the scenario does not exist in the database. Otherwise,
+     * the scenario that is stored in the database
+     */
+    private Scenario checkDatabase(Satellite sat, CoverageDefinition coverageDefinition) {
+        if (this instanceof SubScenario) {
+            return null;
+        }
+        CoverageDefinition cdef = new CoverageDefinition(coverageDefinition.getName(), coverageDefinition.getPoints());
+        Constellation constel = new Constellation("", Arrays.asList(new Satellite[]{sat}));
+        cdef.assignConstellation(constel);
+        HashSet<CoverageDefinition> covSet = new HashSet<>(1);
+        covSet.add(cdef);
+        Scenario scen = new Scenario(scenarioName, startDate, endDate, timeScale, inertialFrame, propagatorFactory, covSet, saveAllAccesses, saveToDB, analyses, numThreads);
+        return ScenarioIO.checkDatabase(scen);
+    }
+
+    /**
+     * This method saves the given satellite and its accesses to the database as
+     * a scenario that can be extracted in the future. Only scenarios that have
+     * been simulated will be saved.
+     *
+     * @return　null if the scenario does not exist in the database. Otherwise,
+     * the scenario that is stored in the database
+     */
+    private void saveToDatabase(Satellite sat, CoverageDefinition coverageDefinition, HashMap<CoveragePoint, TimeIntervalArray> accesses) {
+        if (this instanceof SubScenario) {
+            return;
+        }
+        CoverageDefinition cdef = new CoverageDefinition(coverageDefinition.getName(), coverageDefinition.getPoints());
+        Constellation constel = new Constellation("", Arrays.asList(new Satellite[]{sat}));
+        cdef.assignConstellation(constel);
+        HashSet<CoverageDefinition> covSet = new HashSet<>(1);
+        covSet.add(cdef);
+        Scenario scen = new Scenario(scenarioName, startDate, endDate, timeScale, inertialFrame, propagatorFactory, covSet, saveAllAccesses, saveToDB, analyses, numThreads);
+
+        HashMap<CoverageDefinition, HashMap<CoveragePoint, TimeIntervalArray>> finalAccess = new HashMap<>();
+        finalAccess.put(cdef, accesses);
+        HashMap<CoverageDefinition, HashMap<Satellite, HashMap<CoveragePoint, TimeIntervalArray>>> satAccesses = new HashMap<>();
+        satAccesses.put(cdef, new HashMap<>());
+        satAccesses.get(cdef).put(sat, accesses);
+        HashMap<Analysis, HashMap<Satellite, Collection>> satAnalyses = new HashMap<>();
+        for (Analysis a : getAnalyses()) {
+            HashMap<Satellite, Collection> result = new HashMap<>();
+            Collection analysisResult = getAnalysisResult(a, sat);
+            if (analysisResult != null) {
+                result.put(sat, analysisResult);
+            }
+            satAnalyses.put(a, result);
+        }
+        Scenario simulatedScenario = new Scenario(scen, finalAccess, satAccesses, satAnalyses);
+        ScenarioIO.saveToDatabase(simulatedScenario);
     }
 
     /**
@@ -623,7 +821,7 @@ public class Scenario implements Callable<Scenario>, Serializable {
      * @return
      */
     public HashSet<CoverageDefinition> getCoverageDefinitions() {
-        return new HashSet<CoverageDefinition>(covDefs);
+        return new HashSet<>(covDefs);
     }
 
     /**
@@ -632,7 +830,7 @@ public class Scenario implements Callable<Scenario>, Serializable {
      * @return
      */
     public HashSet<Constellation> getUniqueConstellations() {
-        return new HashSet<Constellation>(uniqueConstellations);
+        return new HashSet<>(uniqueConstellations);
     }
 
     /**
@@ -641,7 +839,7 @@ public class Scenario implements Callable<Scenario>, Serializable {
      * @return
      */
     public HashSet<Satellite> getUniqueSatellites() {
-        return new HashSet<Satellite>(uniqueSatellites);
+        return new HashSet<>(uniqueSatellites);
     }
 
     /**
@@ -667,7 +865,7 @@ public class Scenario implements Callable<Scenario>, Serializable {
      * @return
      */
     public Collection<Analysis> getAnalyses() {
-        return new HashSet<Analysis>(analysisResults.keySet());
+        return new HashSet<>(analysisResults.keySet());
     }
 
     /**
@@ -675,10 +873,16 @@ public class Scenario implements Callable<Scenario>, Serializable {
      *
      * @param analysis
      * @param satellite
-     * @return
+     * @return Returns the results for the analysis for the satellite. null if
+     * the analysis for the satellite does not exist.
      */
     public Collection getAnalysisResult(Analysis analysis, Satellite satellite) {
-        return analysisResults.get(analysis).get(satellite);
+        if (analysisResults.containsKey(analysis)) {
+            if (analysisResults.get(analysis).containsKey(satellite)) {
+                return analysisResults.get(analysis).get(satellite);
+            }
+        }
+        return null;
     }
 
     /**
@@ -733,7 +937,7 @@ public class Scenario implements Callable<Scenario>, Serializable {
             out += "\tName: " + constel.getName() + "{\n";
             for (Satellite sat : constel.getSatellites()) {
                 out += "\t\tSatellite{\n";
-                out += "\t\t\tName: " + sat.getName() +"\n";
+                out += "\t\t\tName: " + sat.getName() + "\n";
                 out += "\t\t\tOrbit: {" + sat.ppOrbit() + "}\n";
                 out += "\t\t\tPayload {\n";
                 for (Instrument inst : sat.getPayload()) {
@@ -833,6 +1037,16 @@ public class Scenario implements Callable<Scenario>, Serializable {
     }
 
     /**
+     * Returns the flag that dictates whether the individual satellite coverage
+     * accesses are to be saved in the database
+     *
+     * @return
+     */
+    public boolean isSaveToDB() {
+        return saveToDB;
+    }
+
+    /**
      * Gets the timescale (e.g. UTC)
      *
      * @return
@@ -865,14 +1079,22 @@ public class Scenario implements Callable<Scenario>, Serializable {
         return "Scenario{" + "scenarioName=" + scenarioName + ", startDate=" + startDate + ", endDate= " + endDate + '}';
     }
 
+    /**
+     * Hashcode is key to filename for saved scenarios. This hashcode is a
+     * function of the hashcodes to internal fields including the start date,
+     * end date, time scale, inertial frame, the propagator factory, the
+     * constellations and satellites, the coverage grids, and the assignment of
+     * constellations to coverage grids
+     *
+     * @return
+     */
     @Override
     public int hashCode() {
         int hash = 7;
-        hash = 47 * hash + Objects.hashCode(this.scenarioName);
-        hash = 47 * hash + Objects.hashCode(this.timeScale);
+        hash = 47 * hash + Objects.hashCode(this.timeScale.getName());
         hash = 47 * hash + Objects.hashCode(this.startDate);
         hash = 47 * hash + Objects.hashCode(this.endDate);
-        hash = 47 * hash + Objects.hashCode(this.inertialFrame);
+        hash = 47 * hash + Objects.hashCode(this.inertialFrame.getName());
         hash = 47 * hash + Objects.hashCode(this.propagatorFactory);
         hash = 47 * hash + Objects.hashCode(this.uniqueConstellations);
         hash = 47 * hash + Objects.hashCode(this.uniqueSatsAssignedToCovDef);
@@ -890,9 +1112,6 @@ public class Scenario implements Callable<Scenario>, Serializable {
             return false;
         }
         final Scenario other = (Scenario) obj;
-        if (!Objects.equals(this.scenarioName, other.scenarioName)) {
-            return false;
-        }
         if (!Objects.equals(this.timeScale, other.timeScale)) {
             return false;
         }
@@ -1037,19 +1256,22 @@ public class Scenario implements Callable<Scenario>, Serializable {
         @Override
         public PropagateTask call() throws Exception, OrekitException {
             Propagator propagator = createPropagator();
+            ArrayList<FOVHandler> fovHandlers = new ArrayList();
             //attach a fov detector to each instrument-grid point pair
             for (Instrument inst : satellite.getPayload()) {
                 for (CoveragePoint pt : points) {
-                    FOVDetector eventDec = new FOVDetector(pt, inst).withMaxCheck(1).withHandler(new FOVHandler());
+                    FOVHandler handler = new FOVHandler(pt, startDate, endDate);
+                    FOVDetector eventDec = new FOVDetector(pt, inst).
+                            withMaxCheck(1).withHandler(handler);
                     propagator.addEventDetector(eventDec);
+                    fovHandlers.add(handler);
                 }
             }
             propagator.propagate(targetDate);
 
             //reset the accesses at each point after transferring information to this hashmap
-            for (CoveragePoint pt : points) {
-                results.put(pt, pt.getAccesses());
-                pt.reset();
+            for (FOVHandler handler : fovHandlers) {
+                results.put(handler.getCovPt(), handler.getTimeArray().createImmutable());
             }
 
             return this;

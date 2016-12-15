@@ -27,7 +27,7 @@ public class RiseSetTime implements Serializable {
      * @param isRise true if the event is starting (rise time) or false if the
      * event is ending (set time)
      */
-    public RiseSetTime(double time, boolean isRise) {
+    public RiseSetTime(final double time, final boolean isRise) {
         this.time = time;
         this.isRise = isRise;
     }

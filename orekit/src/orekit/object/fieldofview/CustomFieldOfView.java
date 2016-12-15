@@ -6,6 +6,10 @@
 package orekit.object.fieldofview;
 
 import org.hipparchus.geometry.euclidean.threed.Vector3D;
+import org.hipparchus.linear.ArrayRealVector;
+import org.hipparchus.linear.MatrixUtils;
+import org.hipparchus.linear.RealMatrix;
+import org.hipparchus.linear.RealVector;
 import org.orekit.errors.OrekitException;
 import org.orekit.frames.TopocentricFrame;
 import org.orekit.propagation.SpacecraftState;
@@ -61,4 +65,17 @@ public class CustomFieldOfView extends AbstractFieldOfViewDefinition{
 
     }
 
+    @Override
+    public double offsetFromBoundary(Vector3D lineOfSight) {
+        return fov.offsetFromBoundary(lineOfSight);
+    }
+
+    @Override
+    public RealVector g_FOV(RealMatrix lineOfSight) {
+        double[] out = new double[lineOfSight.getColumnDimension()];
+        for(int i=0; i <lineOfSight.getColumnDimension(); i++){
+            out[i] = -offsetFromBoundary(new Vector3D(lineOfSight.getColumn(i)));
+        }
+        return new ArrayRealVector(out);
+    }
     }

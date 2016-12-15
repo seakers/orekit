@@ -11,7 +11,6 @@ import org.orekit.bodies.BodyShape;
 import org.orekit.errors.OrekitException;
 import org.orekit.frames.TopocentricFrame;
 import org.orekit.propagation.SpacecraftState;
-import org.orekit.propagation.events.FieldOfView;
 
 /**
  * This class models a rectangular field of view. The field of view is defined
@@ -20,24 +19,13 @@ import org.orekit.propagation.events.FieldOfView;
  *
  * @author nozomihitomi
  */
-public class NadirRectangularFOV extends CustomFieldOfView {
+public class NadirRectangularFOV extends RectangularFieldOfView {
     private static final long serialVersionUID = 1559069965493414756L;
-    
-    private final Vector3D center;
-
-    private final Vector3D axis1;
-
-    private final Vector3D axis2;
-
-    private final double halfAperture1;
-
-    private final double halfAperture2;
     
     private final BodyShape shape;
     
     /**
      * Build a Field Of View with dihedral shape (i.e. rectangular shape).
-     * @param center Direction of the FOV center, in spacecraft frame
      * @param acrossTrackHalfAperture FOV half aperture angle in the across-track direction,
      * must be less than π/2, i.e. full dihedra must be smaller then
      * an hemisphere
@@ -50,15 +38,14 @@ public class NadirRectangularFOV extends CustomFieldOfView {
      * @param shape the shape of the body to define the nadir direction
      * @throws OrekitException 
      */
-    public NadirRectangularFOV(Vector3D center,
+    public NadirRectangularFOV(
             double acrossTrackHalfAperture, double alongTrackHalfAperture,
             double margin, BodyShape shape) throws OrekitException {
-        this(Vector3D.PLUS_K, Vector3D.PLUS_I, acrossTrackHalfAperture, Vector3D.PLUS_J, alongTrackHalfAperture, margin, shape);
+        this(Vector3D.PLUS_I, acrossTrackHalfAperture, Vector3D.PLUS_J, alongTrackHalfAperture, margin, shape);
     }
 
     /**
      * Build a Field Of View with dihedral shape (i.e. rectangular shape).
-     * @param center Direction of the FOV center, in spacecraft frame
      * @param axis1 FOV dihedral axis 1, in spacecraft frame
      * @param halfAperture1 FOV dihedral half aperture angle 1,
      * must be less than π/2, i.e. full dihedra must be smaller then
@@ -73,58 +60,14 @@ public class NadirRectangularFOV extends CustomFieldOfView {
      * @param shape the shape of the body to define the nadir direction
      * @throws OrekitException 
      */
-    public NadirRectangularFOV(Vector3D center,
+    public NadirRectangularFOV(
             Vector3D axis1, double halfAperture1,
             Vector3D axis2, double halfAperture2,
             double margin, BodyShape shape) throws OrekitException {
-        super(new FieldOfView(center, axis1, halfAperture1, axis2, halfAperture2, margin));
-        this.center = center;
-        this.axis1 = axis1;
-        this.axis2 = axis2;
-        this.halfAperture1 = halfAperture1;
-        this.halfAperture2 = halfAperture2;
+        super(Vector3D.PLUS_K,axis1, halfAperture1, axis2, halfAperture2, margin);
         this.shape = shape;
     }
 
-    /**
-     * Gets the vector defining the center of the field of view
-     * @return 
-     */
-    public Vector3D getCenter() {
-        return center;
-    }
-
-    /**
-     * Gets the first direction defining the rectangular shape
-     * @return 
-     */
-    public Vector3D getAxis1() {
-        return axis1;
-    }
-
-    /**
-     * Gets the second direction defining the rectangular shape
-     * @return 
-     */
-    public Vector3D getAxis2() {
-        return axis2;
-    }
-
-    /**
-     * Gets the first half angle corresponding to the first direction or axis1
-     * @return 
-     */
-    public double getHalfAperture1() {
-        return halfAperture1;
-    }
-
-    /**
-     * Gets the first half angle corresponding to the first direction or axis1
-     * @return 
-     */
-    public double getHalfAperture2() {
-        return halfAperture2;
-    }
     
         @Override
     protected double g(SpacecraftState s, TopocentricFrame target) throws OrekitException {
@@ -133,7 +76,7 @@ public class NadirRectangularFOV extends CustomFieldOfView {
                 = target.getPVCoordinates(s.getDate(), s.getFrame()).getPosition();
         Vector3D spacecraftPosInert = s.getPVCoordinates(s.getFrame()).getPosition();
         Vector3D losInert = spacecraftPosInert.subtract(targetPosInert);
-        Rotation rot = alignWithNadirAndNormal(center, axis2, s, s.getOrbit(), shape, s.getFrame());
+        Rotation rot = alignWithNadirAndNormal(getCenter(), getAxis2(), s, s.getOrbit(), shape, s.getFrame());
         Vector3D lineOfSightSC = rot.applyTo(losInert);
         //TODO find out why need to take the negative
         return -getFov().offsetFromBoundary(lineOfSightSC.negate());
@@ -141,6 +84,9 @@ public class NadirRectangularFOV extends CustomFieldOfView {
 
     @Override
     public String toString() {
-        return "RectangularFieldOfView{ HalfAngle1=" + halfAperture1 + ", HalfAngle2=" + halfAperture2 + "}"; 
+        return "NadirRectangularFieldOfView{ HalfAngle1=" + getHalfAperture1() + ", HalfAngle2=" + getHalfAperture2() + "}"; 
     }
+
+    
+    
 }

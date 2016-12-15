@@ -40,7 +40,7 @@ public class ParallelCoverage {
         Iterator<SubScenario> iter = subscenarios.iterator();
         while (iter.hasNext()) {
             SubScenario subscen = iter.next();
-            ScenarioIO.save(file.toPath(), "par", subscen);
+            ScenarioIO.save(file.toPath(), String.format("%s_par", subscen), subscen);
         }
     }
 
@@ -64,7 +64,7 @@ public class ParallelCoverage {
             for (Future<Scenario> fut : futures) {
                 SubScenario s = (SubScenario) fut.get();
                 results.add(s);
-                ScenarioIO.save(path, "par_fin", s);
+                ScenarioIO.save(path, String.format("%s_par_fin", s), s);
                 
             }
         } catch (ExecutionException ex) {
