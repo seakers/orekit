@@ -8,7 +8,7 @@ package orekit.analysis.events;
 import java.util.Collection;
 import orekit.analysis.AbstractAnalysis;
 import orekit.analysis.Record;
-import orekit.object.fieldofview.FOVDetector;
+import orekit.events.FOVDetector;
 import org.orekit.errors.OrekitException;
 import org.orekit.propagation.SpacecraftState;
 import org.orekit.propagation.events.EventDetector;
@@ -18,6 +18,7 @@ import org.orekit.propagation.events.EventDetector;
  * @author SEAK1
  */
 public class EventAnalysis extends AbstractAnalysis<GValues>{
+    private static final long serialVersionUID = -6588467353574801952L;
 
     private final Collection<FOVDetector> detectors;
 

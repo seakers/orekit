@@ -3,12 +3,12 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package orekit.coverage.access;
+package orekit.events;
 
-import orekit.object.CoveragePoint;
-import orekit.object.fieldofview.FOVDetector;
+import orekit.coverage.access.TimeIntervalArray;
 import org.orekit.errors.OrekitException;
 import org.orekit.propagation.SpacecraftState;
+import org.orekit.propagation.events.AbstractDetector;
 import org.orekit.propagation.events.handlers.EventHandler;
 import org.orekit.time.AbsoluteDate;
 
@@ -23,26 +23,37 @@ import org.orekit.time.AbsoluteDate;
  *
  * @author nozomihitomi
  */
-public class FOVHandler implements EventHandler<FOVDetector> {
-
-    private final CoveragePoint covPt;
+public class HandlerTimeInterval implements EventHandler<AbstractDetector> {
 
     private final TimeIntervalArray timeArray;
+
+    private EventHandler.Action action;
+
+    /**
+     * Creates a field of view handler for a specific coverage point. Default
+     * handler will continue after event is detects
+     *
+     * @param startDate the start date of the simulation
+     * @param endDate the end date of the simulation
+     */
+    public HandlerTimeInterval(AbsoluteDate startDate, AbsoluteDate endDate) {
+        this(startDate, endDate, EventHandler.Action.CONTINUE);
+    }
 
     /**
      * Creates a field of view handler for a specific coverage point.
      *
-     * @param covPt The coverage point that the fov handler is assigned to
      * @param startDate the start date of the simulation
      * @param endDate the end date of the simulation
+     * @param action set the action to execute after event is detected {CONTINUE, STOP, RESET_DERIVATIVES, RESET_STATE}
      */
-    public FOVHandler(CoveragePoint covPt, AbsoluteDate startDate, AbsoluteDate endDate) {
-        this.covPt = covPt;
+    public HandlerTimeInterval(AbsoluteDate startDate, AbsoluteDate endDate, EventHandler.Action action) {
         this.timeArray = new TimeIntervalArray(startDate, endDate);
+        this.action = action;
     }
 
     @Override
-    public EventHandler.Action eventOccurred(final SpacecraftState s, final FOVDetector detector,
+    public EventHandler.Action eventOccurred(final SpacecraftState s, final AbstractDetector detector,
             final boolean increasing) throws OrekitException {
 
         if (increasing) {
@@ -53,11 +64,7 @@ public class FOVHandler implements EventHandler<FOVDetector> {
             timeArray.addSetTime(s.getDate());
         }
 
-        return EventHandler.Action.CONTINUE;
-    }
-
-    public CoveragePoint getCovPt() {
-        return covPt;
+        return action;
     }
 
     public TimeIntervalArray getTimeArray() {

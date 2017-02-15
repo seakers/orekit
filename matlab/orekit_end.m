@@ -5,7 +5,7 @@ function orekit_end()
 %remove the java class path for the orekit jar file
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 jarFile1 = ['.',filesep,'orekit',filesep,'dist',filesep,'orekit.jar'];
-jarFile2 = ['.',filesep,'orekit',filesep,'dist',filesep,'lib',filesep,'OrekitSource.jar'];
+jarFile2 = ['.',filesep,'orekit',filesep,'dist',filesep,'lib',filesep,'orekit-8.0.jar'];
 jarFile3 = ['.',filesep,'orekit',filesep,'dist',filesep,'lib',filesep,'hipparchus-geometry-1.0.jar'];
 tmp = javaclasspath;
 javaclasspathadded1 = false;
@@ -32,7 +32,7 @@ if javaclasspathadded1
     javaarmpath(['.',filesep,'orekit',filesep,'dist',filesep,'orekit.jar']);
 end
 if javaclasspathadded2
-    javaarmpath(['.',filesep,'orekit',filesep,'dist',filesep,'lib',filesep,'OrekitSource.jar']);
+    javaarmpath(['.',filesep,'orekit',filesep,'dist',filesep,'lib',filesep,'orekit-8.0.jar']);
 end
 if javaclasspathadded3
     javaarmpath(['.',filesep,'orekit',filesep,'dist',filesep,'lib',filesep,'hipparchus-geometry-1.0.jar']);

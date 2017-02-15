@@ -9,23 +9,18 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Objects;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import orekit.analysis.Analysis;
 import orekit.analysis.CompoundAnalysis;
 import orekit.analysis.ephemeris.OrbitalElementsAnalysis;
-import orekit.analysis.events.EventAnalysis;
-import orekit.analysis.events.EventAnalysis2;
 import orekit.analysis.vectors.VectorAnalysis;
 import orekit.constellations.Walker;
 import orekit.coverage.access.TimeIntervalArray;
 import orekit.coverage.parallel.ParallelCoverage;
 import orekit.object.CoverageDefinition;
+import static orekit.object.CoverageDefinition.GridStyle.*;
 import orekit.object.CoveragePoint;
 import orekit.object.Instrument;
 import orekit.object.Satellite;
-import orekit.object.fieldofview.FOVDetector;
 import orekit.object.fieldofview.NadirRectangularFOV;
 import orekit.object.fieldofview.NadirSimpleConicalFOV;
 import orekit.propagation.PropagatorFactory;
@@ -46,7 +41,6 @@ import org.orekit.frames.Frame;
 import org.orekit.frames.FramesFactory;
 import org.orekit.orbits.OrbitType;
 import org.orekit.propagation.SpacecraftState;
-import org.orekit.propagation.events.FieldOfView;
 import org.orekit.time.AbsoluteDate;
 import org.orekit.time.TimeScale;
 import org.orekit.time.TimeScalesFactory;
@@ -93,25 +87,25 @@ public class Orekit {
 
         //Enter satellite orbital parameters
         double a = 6978137.0;
-        double i = FastMath.toRadians(30);
+        double i = FastMath.toRadians(80);
 
         Walker walker = new Walker("walker1", i, 1, 1, 0, a, inertialFrame, startDate, mu);
 
         //define instruments
-//        NadirSimpleConicalFOV fov = new NadirSimpleConicalFOV( FastMath.toRadians(45), earthShape);
-        NadirRectangularFOV fov = new NadirRectangularFOV(FastMath.toRadians(57), FastMath.toRadians(2.5), 0, earthShape);
+        NadirSimpleConicalFOV fov = new NadirSimpleConicalFOV( FastMath.toRadians(45), earthShape);
+//        NadirRectangularFOV fov = new NadirRectangularFOV(FastMath.toRadians(57), FastMath.toRadians(2.5), 0, earthShape);
         Instrument view1 = new Instrument("view1", fov, 100, 100);
         //assign instruments
         for (Satellite sat : walker.getSatellites()) {
             sat.addInstrument(view1);
         }
 
-        ArrayList<GeodeticPoint> pts = new ArrayList<>();
+//        ArrayList<GeodeticPoint> pts = new ArrayList<>();
 //        pts.add(new GeodeticPoint(-0.1745329251994330, 6.0737457969402699, 0.0));
-//        pts.add(new GeodeticPoint(-0.8726646259971650, 3.1415926535897900, 0.0));
-        pts.add(new GeodeticPoint(1.5707963267949001, 0.0000000000000000, 0.0));
-        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", pts, earthShape);
-//        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", 6, 0, 20, 0, 20, earthShape);
+//        pts.add(new GeodeticPoint(-0.8726646259971650,  0.209439510239320, 0.0));
+//        pts.add(new GeodeticPoint(1.5707963267949001, 0.0000000000000000, 0.0));
+//        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", pts, earthShape);
+        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", 6, earthShape, UNIFORM);
 //        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", STKGRID.getPoints6(), earthShape);
 
         covDef1.assignConstellation(walker);
@@ -143,7 +137,7 @@ public class Orekit {
 
         CompoundAnalysis analyses = new CompoundAnalysis(analysesList);
 
-        Scenario scen = new Scenario.Builder(startDate, endDate, utc).
+        Scenario3 scen = new Scenario3.Builder(startDate, endDate, utc).
                 analysis(analyses).covDefs(covDefs).name("test1").numThreads(1).
                 propagatorFactory(pf).saveAllAccesses(true).saveToDB(true).build();
         scen.call();
@@ -155,7 +149,7 @@ public class Orekit {
 //        }
 
 //        Scenario scenComp = new Scenario(pc.loadRunAndSave(new File(path).toPath(), 4));
-        Scenario scenComp = scen;
+        Scenario3 scenComp = scen;
 
         System.out.println(String.format("Done Running Scenario %s", scenComp));
 
@@ -194,9 +188,9 @@ public class Orekit {
 
         System.out.println("Saving scenario...");
 
-//        ScenarioIO.save(Paths.get(path, ""), filename, scenComp);
+        ScenarioIO.save(Paths.get(path, ""), filename, scenComp);
 //        ScenarioIO.saveReadMe(Paths.get(path, ""), filename, scenComp);
-        ScenarioIO.saveAnalyses(Paths.get(path, ""), scenComp);
+//        ScenarioIO.saveAnalyses(Paths.get(path, ""), scenComp);
         long end = System.nanoTime();
         System.out.println("Took " + (end - start) / Math.pow(10, 9) + " sec");
     }

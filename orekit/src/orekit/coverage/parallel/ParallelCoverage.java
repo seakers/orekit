@@ -40,7 +40,7 @@ public class ParallelCoverage {
         Iterator<SubScenario> iter = subscenarios.iterator();
         while (iter.hasNext()) {
             SubScenario subscen = iter.next();
-            ScenarioIO.save(file.toPath(), String.format("%s_par", subscen), subscen);
+//            ScenarioIO.save(file.toPath(), String.format("%s_par", subscen), subscen);
         }
     }
 
@@ -64,7 +64,7 @@ public class ParallelCoverage {
             for (Future<Scenario> fut : futures) {
                 SubScenario s = (SubScenario) fut.get();
                 results.add(s);
-                ScenarioIO.save(path, String.format("%s_par_fin", s), s);
+//                ScenarioIO.save(path, String.format("%s_par_fin", s), s);
                 
             }
         } catch (ExecutionException ex) {
@@ -88,16 +88,16 @@ public class ParallelCoverage {
         /*
          Loads, runs and saves the subscenario stored in filename
          */
-        try {
-            SubScenario s = ScenarioIO.loadSubScenario(savepath, filename);
-            s.call();
-            String[] str = filename.split("[.]");
-            ScenarioIO.save(savepath, str[0], s);
-
-        } catch (OrekitException ex) {
-            Logger.getLogger(ParallelCoverage.class
-                    .getName()).log(Level.SEVERE, null, ex);
-        }
+//        try {
+//            SubScenario s = ScenarioIO.loadSubScenario(savepath, filename);
+//            s.call();
+//            String[] str = filename.split("[.]");
+//            ScenarioIO.save(savepath, str[0], s);
+//
+//        } catch (OrekitException ex) {
+//            Logger.getLogger(ParallelCoverage.class
+//                    .getName()).log(Level.SEVERE, null, ex);
+//        }
     }
 
     /**
@@ -117,7 +117,7 @@ public class ParallelCoverage {
             }
         });
         for (File f : matchingFiles) {
-            subscenarios.add(ScenarioIO.loadSubScenario(path, f.getName()));
+//            subscenarios.add(ScenarioIO.loadSubScenario(path, f.getName()));
         }
         return runAndSave(subscenarios, path, numThreads);
     }

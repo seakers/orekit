@@ -70,7 +70,7 @@ public abstract class AbstractFieldOfViewDefinition implements FieldOfViewDefini
      * if the satellite and the target do not have line of sight
      * @throws org.orekit.errors.OrekitException
      */
-    private double g_lineOfSight(SpacecraftState s, TopocentricFrame target) throws OrekitException {
+    public double g_lineOfSight(SpacecraftState s, TopocentricFrame target) throws OrekitException {
 
         final double trueElevation = target.getElevation(s.getPVCoordinates().getPosition(),
                 s.getFrame(), s.getDate());
@@ -98,12 +98,7 @@ public abstract class AbstractFieldOfViewDefinition implements FieldOfViewDefini
      */
     @Override
     public double g_FOV(SpacecraftState s, TopocentricFrame target) throws OrekitException {
-        double los = g_lineOfSight(s, target);
-        if (los > 0) {
-            return g(s, target);
-        } else {
-            return los;
-        }
+        return g(s, target);
     }
 
     /**

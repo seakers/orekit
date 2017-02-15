@@ -80,6 +80,8 @@ public class CoverageAnalyzer {
                 gapsPerLatitude.put(pt.getPoint().getLatitude(), new DescriptiveStatistics());
                 pointsAtLatitude.put(pt.getPoint().getLatitude(), new ArrayList());
             }
+            
+            pointsAtLatitude.get(pt.getPoint().getLatitude()).add(pt);
 
             for (Double duration : coverageDefinitionAccesses.get(pt).getDurations()) {
                 accessStats.addValue(duration);

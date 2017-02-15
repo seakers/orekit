@@ -26,7 +26,6 @@ import org.orekit.propagation.SpacecraftState;
 import org.orekit.propagation.events.FieldOfView;
 import org.orekit.time.AbsoluteDate;
 import org.orekit.utils.Constants;
-import org.orekit.utils.PVCoordinatesProvider;
 import org.orekit.utils.TimeStampedPVCoordinates;
 
 /**
@@ -35,6 +34,7 @@ import org.orekit.utils.TimeStampedPVCoordinates;
  * @author SEAK1
  */
 public class EventAnalysis2 extends AbstractAnalysis<GValues> {
+    private static final long serialVersionUID = -1376536191754797609L;
 
     private final Collection<TopocentricFrame> points;
 

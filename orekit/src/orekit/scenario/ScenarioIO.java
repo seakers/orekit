@@ -46,13 +46,13 @@ public class ScenarioIO {
      * @param scenario Scenario object to save
      * @return
      */
-    public static boolean save(Path path, String filename, Scenario scenario) {
+    public static boolean save(Path path, String filename, Scenario3 scenario) {
         File file;
-        if (scenario instanceof SubScenario) {
-            file = new File(path.toFile(), String.format("%s.subscen", filename));
-        } else {
+//        if (scenario instanceof SubScenario) {
+//            file = new File(path.toFile(), String.format("%s.subscen", filename));
+//        } else {
             file = new File(path.toFile(), String.format("%s.scen", filename));
-        }
+//        }
         try (ObjectOutputStream os = new ObjectOutputStream(new FileOutputStream(file));) {
             os.writeObject(scenario);
             os.close();
@@ -74,7 +74,7 @@ public class ScenarioIO {
      * @param covdef the coverage definition of interest
      * @return
      */
-    public static boolean saveAccess(Path path, String filename, Scenario scenario, CoverageDefinition covdef) {
+    public static boolean saveAccess(Path path, String filename, Scenario3 scenario, CoverageDefinition covdef) {
         File file = new File(path.toFile(), String.format("%s_%s_%s.cva", filename, scenario.getName(), covdef.getName()));
         HashMap<CoveragePoint, TimeIntervalArray> cvaa = scenario.getMergedAccesses(covdef);
         try (FileWriter fw = new FileWriter(file)) {
@@ -153,11 +153,11 @@ public class ScenarioIO {
      * @param filename the file name (extension included)
      * @return the Scenario instance saved by using save()
      */
-    public static Scenario load(Path path, String filename) {
-        Scenario scenario = null;
+    public static Scenario3 load(Path path, String filename) {
+        Scenario3 scenario = null;
         File file = new File(path.toFile(), filename);
         try (ObjectInputStream is = new ObjectInputStream(new FileInputStream(file))) {
-            scenario = (Scenario) is.readObject();
+            scenario = (Scenario3) is.readObject();
         } catch (IOException | ClassNotFoundException ex) {
             System.err.println(ex);
             Logger.getLogger(ScenarioIO.class.getName()).log(Level.SEVERE, null, ex);
@@ -166,9 +166,9 @@ public class ScenarioIO {
         return scenario;
     }
 
-    public static SubScenario loadSubScenario(Path path, String filename) {
-        return (SubScenario) load(path, filename);
-    }
+//    public static SubScenario loadSubScenario(Path path, String filename) {
+//        return (SubScenario) load(path, filename);
+//    }
 
     /**
      * Saves a human read-able text file that contains input parameters that
@@ -208,7 +208,7 @@ public class ScenarioIO {
      * @return　null if the scenario does not exist in the database. Otherwise,
      * the scenario that is stored in the database
      */
-    public static Scenario checkDatabase(Scenario scenarioToRun) {
+    public static Scenario3 checkDatabase(Scenario scenarioToRun) {
         String fileName = String.format("%d.scen", scenarioToRun.hashCode());
         File covDB = new File(System.getProperty("CoverageDatabase"));
         File file = new File(covDB, fileName);
@@ -227,7 +227,7 @@ public class ScenarioIO {
      * @param scenario the scenario that has already been simulated
      * @return　true if the scenario was successfully saved. else false
      */
-    public static boolean saveToDatabase(Scenario scenario) {
+    public static boolean saveToDatabase(Scenario3 scenario) {
         if (!scenario.isDone()) {
             return false;
         }
