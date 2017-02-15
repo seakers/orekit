@@ -40,17 +40,43 @@ import org.hipparchus.geometry.euclidean.threed.Vector3D;
 import org.hipparchus.linear.Array2DRowRealMatrix;
 import org.hipparchus.linear.MatrixUtils;
 import org.hipparchus.linear.RealMatrix;
+import org.hipparchus.ode.nonstiff.AdaptiveStepsizeIntegrator;
+import org.hipparchus.ode.nonstiff.DormandPrince853Integrator;
 import org.hipparchus.util.FastMath;
+import org.orekit.bodies.BodyShape;
+import org.orekit.bodies.CelestialBody;
+import org.orekit.bodies.CelestialBodyFactory;
 import org.orekit.bodies.GeodeticPoint;
+import org.orekit.bodies.OneAxisEllipsoid;
 import org.orekit.errors.OrekitException;
+import org.orekit.forces.drag.DragForce;
+import org.orekit.forces.drag.DragSensitive;
+import org.orekit.forces.drag.IsotropicDrag;
+import org.orekit.forces.drag.Atmosphere;
+import org.orekit.forces.drag.DTM2000;
+import org.orekit.forces.drag.DTM2000InputParameters;
+import org.orekit.forces.drag.HarrisPriester;
+import org.orekit.forces.drag.MarshallSolarActivityFutureEstimation;
+import org.orekit.forces.drag.MarshallSolarActivityFutureEstimation.StrengthLevel;
+import org.orekit.forces.drag.SimpleExponentialAtmosphere;
+import org.orekit.forces.gravity.ThirdBodyAttraction;
+import org.orekit.forces.radiation.IsotropicRadiationSingleCoefficient;
+import org.orekit.forces.radiation.RadiationSensitive;
+import org.orekit.forces.radiation.SolarRadiationPressure;
 import org.orekit.frames.Frame;
 import org.orekit.frames.FramesFactory;
 import org.orekit.frames.Transform;
 import org.orekit.orbits.Orbit;
 import org.orekit.orbits.OrbitType;
+import org.orekit.orbits.PositionAngle;
 import org.orekit.propagation.Propagator;
+import org.orekit.propagation.SpacecraftState;
+import org.orekit.propagation.numerical.NumericalPropagator;
+import org.orekit.propagation.numerical.PartialDerivativesEquations;
 import org.orekit.time.AbsoluteDate;
 import org.orekit.time.TimeScale;
+import org.orekit.utils.Constants;
+import org.orekit.utils.PVCoordinatesProvider;
 
 /**
  * Stores information about the scenario or simulation including information of
@@ -1221,27 +1247,114 @@ public class Scenario implements Callable<Scenario>, Serializable {
         private Propagator createPropagator() throws OrekitException {
 
             //create the propagator
-            Orbit orbit = satellite.getOrbit();
-            if (!orbit.getType().equals(propagatorFactory.getOrbitType())) {
-                throw new IllegalArgumentException(String.format("Orbit type of "
-                        + "satelite %s does not match propagator. "
-                        + "Expected %s, found %s", satellite.toString(),
-                        orbit.getType(), propagatorFactory.getOrbitType()));
-            }
+            if (propagatorFactory.getPropType().equals(PropagatorType.KEPLERIAN) || propagatorFactory.getPropType().equals(PropagatorType.J2)){
+                Orbit orbit = satellite.getOrbit();
+                if (!orbit.getType().equals(propagatorFactory.getOrbitType())) {
+                    throw new IllegalArgumentException(String.format("Orbit type of "
+                            + "satelite %s does not match propagator. "
+                            + "Expected %s, found %s", satellite.toString(),
+                            orbit.getType(), propagatorFactory.getOrbitType()));
+                }
 
-            Propagator prop = propagatorFactory.createPropagator(orbit, satellite.getGrossMass());
-            if (analysis != null) {
-                prop.setMasterMode(analysis.getTimeStep(), analysis);
-            } else {
-                prop.setSlaveMode();
-            }
+                Propagator prop = propagatorFactory.createPropagator(orbit, satellite.getGrossMass());
+                if (analysis != null) {
+                    prop.setMasterMode(analysis.getTimeStep(), analysis);
+                } else {
+                    prop.setSlaveMode();
+                }
 
-            //add an attitude provider (e.g. nadir pointing)
-            if (satellite.getAttProv() != null) {
-                prop.setAttitudeProvider(satellite.getAttProv());
-            }
+                //add an attitude provider (e.g. nadir pointing)
+                if (satellite.getAttProv() != null) {
+                    prop.setAttitudeProvider(satellite.getAttProv());
+                }
+                return prop;
+                
+            }else if (propagatorFactory.getPropType().equals(PropagatorType.NUMERICAL)){
+                Orbit orbit = satellite.getOrbit();
+                if (!orbit.getType().equals(propagatorFactory.getOrbitType())) {
+                    throw new IllegalArgumentException(String.format("Orbit type of "
+                            + "satelite %s does not match propagator. "
+                            + "Expected %s, found %s", satellite.toString(),
+                            orbit.getType(), propagatorFactory.getOrbitType()));
+                }
+                
+                //set integrator steps and tolerances
+                final double dP       = 0.001;
+                final double minStep  = 0.001;
+                final double maxStep  = 1000;
+                final double initStep = 60;
+//                final double[][] tolerance = NumericalPropagator.tolerances(dP, orbit, orbit.getType());
+                final double[][] tolerance = NumericalPropagator.tolerances(dP, orbit, OrbitType.EQUINOCTIAL);
+                double[] absTolerance = tolerance[0];
+                double[] relTolerance = tolerance[1];
+//                double[] absTolerance = {0.001, 1.0e-9, 1.0e-9, 1.0e-6, 1.0e-6, 1.0e-6, 0.001};
+//                double[] relTolerance = {1.0e-7, 1.0e-4, 1.0e-4, 1.0e-7, 1.0e-7, 1.0e-7, 1.0e-7};
+                
+                //create integrator object and set some propoerties
+                AdaptiveStepsizeIntegrator integrator = new DormandPrince853Integrator(minStep, maxStep, absTolerance,relTolerance);
+                integrator.setInitialStepSize(initStep);
+                NumericalPropagator prop = (NumericalPropagator) propagatorFactory.createPropagator(integrator);
+                SpacecraftState initialState=new SpacecraftState(orbit);
+                prop.setInitialState(initialState);
+                prop.setMu(Constants.WGS84_EARTH_MU);
+                prop.setOrbitType(propagatorFactory.getOrbitType());
+                prop.setPositionAngleType(PositionAngle.TRUE);
+                
+                //We now add the drag model (DTM2000 model)
+                CelestialBody sun  = CelestialBodyFactory.getSun();
+                BodyShape earth = points.iterator().next().getParentShape();
+                String supportedNames = "(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\\p{Digit}\\p{Digit}\\p{Digit}\\p{Digit}F10\\.(?:txt|TXT)";
+                StrengthLevel strengthlevel = StrengthLevel.AVERAGE;
+                DTM2000InputParameters parameters = new MarshallSolarActivityFutureEstimation(supportedNames,strengthlevel);
+                Atmosphere atmosphere=new DTM2000(parameters, sun, earth);
+                double crossSection=100;
+                double dragCoeff=2;
+                DragSensitive spacecraft = new IsotropicDrag(crossSection,dragCoeff);
+                DragForce model = new DragForce(atmosphere, spacecraft);
+                prop.addForceModel(model);
+             
+                //We now add the drag model (Harris Priester model)
+//                CelestialBody sun  = CelestialBodyFactory.getSun();
+//                OneAxisEllipsoid earth = (OneAxisEllipsoid) points.iterator().next().getParentShape();
+//                Atmosphere atmosphere=new HarrisPriester(sun, earth);
+//                double crossSection=100;
+//                double dragCoeff=2;
+//                DragSensitive spacecraft = new IsotropicDrag(crossSection,dragCoeff);
+//                DragForce model = new DragForce(atmosphere, spacecraft);
+//                prop.addForceModel(model);
 
-            return prop;
+                //We now add the third body attraction model
+                CelestialBody moon = CelestialBodyFactory.getMoon();
+                ThirdBodyAttraction model2 = new ThirdBodyAttraction(moon);
+                prop.addForceModel(model2);
+                
+                //We now add the solar radiation pressure model
+                double equatorialRadius=Constants.WGS84_EARTH_EQUATORIAL_RADIUS;
+                double cr=0.5;
+                RadiationSensitive spacecraft2 = new IsotropicRadiationSingleCoefficient(crossSection, cr);
+                SolarRadiationPressure model3 = new SolarRadiationPressure(sun,  equatorialRadius,  spacecraft2);
+
+                //set propagator mode
+                if (analysis != null) {
+                    prop.setMasterMode(analysis.getTimeStep(), analysis);
+                } else {
+                    prop.setSlaveMode();
+                }
+
+                //add an attitude provider (e.g. nadir pointing)
+                if (satellite.getAttProv() != null) {
+                    prop.setAttitudeProvider(satellite.getAttProv());
+                }
+                
+                //return the propagator
+                return prop;
+                
+            }else{
+                throw new IllegalArgumentException(String.format("Propagator type of "
+                            + "satelite %s is not supported. "
+                            + "Propagator found: %s", satellite.toString(),
+                            propagatorFactory.getPropType()));
+            }
         }
 
         /**

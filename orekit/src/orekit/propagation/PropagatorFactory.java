@@ -7,6 +7,7 @@ package orekit.propagation;
 
 import java.io.Serializable;
 import java.util.Objects;
+import org.hipparchus.ode.ODEIntegrator;
 import org.orekit.errors.OrekitException;
 import org.orekit.orbits.Orbit;
 import org.orekit.orbits.OrbitType;
@@ -15,6 +16,7 @@ import org.orekit.propagation.analytical.EcksteinHechlerPropagator;
 import org.orekit.propagation.analytical.KeplerianPropagator;
 import org.orekit.propagation.analytical.tle.SGP4;
 import org.orekit.propagation.analytical.tle.TLE;
+import org.orekit.propagation.numerical.NumericalPropagator;
 import org.orekit.utils.Constants;
 
 /**
@@ -44,10 +46,18 @@ public class PropagatorFactory implements Serializable {
             case J2:
                return createJ2Propagator(orbit, mass);
             default:
-                throw new UnsupportedOperationException(String.format("Propagator of type %s is not supported by factory.", propType));
+                throw new UnsupportedOperationException(String.format("Propagator of type %s is not supported by factory or by this constructor.", propType));
         }
     }
 
+    public Propagator createPropagator(ODEIntegrator integrator) throws OrekitException {
+        switch (propType) {
+            case NUMERICAL:
+                return createNumericalPropagator(integrator);
+            default:
+                throw new UnsupportedOperationException(String.format("Propagator of type %s is not supported by factory or by this constructor.", propType));
+        }
+    }
     /**
      * Creates a Keplerian propagator
      *
@@ -81,6 +91,17 @@ public class PropagatorFactory implements Serializable {
      */
     private Propagator createTLEPropagator(TLE tle, double mass) throws OrekitException {
         return new SGP4(tle, Propagator.DEFAULT_LAW, mass);
+    }
+    
+        /**
+     * Creates a numerical propagator
+     * @param orbit
+     * @return
+     * @throws OrekitException 
+     */
+    private Propagator createNumericalPropagator(ODEIntegrator integrator) throws OrekitException{
+        
+        return new NumericalPropagator(integrator);
     }
 
     public OrbitType getOrbitType() {

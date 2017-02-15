@@ -9,6 +9,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -64,6 +65,7 @@ public class Orekit {
      * @throws org.orekit.errors.OrekitException
      */
     public static void main(String[] args) throws OrekitException {
+        Locale.setDefault(new Locale("en", "US"));
         long start = System.nanoTime();
 
         String filename;
@@ -72,7 +74,8 @@ public class Orekit {
             path = args[0];
             filename = args[1];
         } else {
-            path = "/Users/nozomihitomi/Desktop";
+            path="/Users/paugarciabuzzi/Desktop/Outputs_Orekit";
+//            path = "/Users/nozomihitomi/Desktop";
 //            path = "C:\\Users\\SEAK1\\Nozomi\\OREKIT\\";
             filename = "tropics_test";
         }
@@ -106,12 +109,13 @@ public class Orekit {
             sat.addInstrument(view1);
         }
 
-        ArrayList<GeodeticPoint> pts = new ArrayList<>();
+        //Coverage definition (collection points, normal, stk collection of points) 
+//        ArrayList<GeodeticPoint> pts = new ArrayList<>();
 //        pts.add(new GeodeticPoint(-0.1745329251994330, 6.0737457969402699, 0.0));
 //        pts.add(new GeodeticPoint(-0.8726646259971650, 3.1415926535897900, 0.0));
-        pts.add(new GeodeticPoint(1.5707963267949001, 0.0000000000000000, 0.0));
-        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", pts, earthShape);
-//        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", 6, 0, 20, 0, 20, earthShape);
+//        pts.add(new GeodeticPoint(1.5707963267949001, 0.0000000000000000, 0.0));
+//        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", pts, earthShape);
+        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", 6, 0, 20, 0, 20, earthShape);
 //        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", STKGRID.getPoints6(), earthShape);
 
         covDef1.assignConstellation(walker);
@@ -120,7 +124,7 @@ public class Orekit {
         covDefs.add(covDef1);
 
         PropagatorFactory pf = new PropagatorFactory(PropagatorType.KEPLERIAN, OrbitType.KEPLERIAN);
-
+//        PropagatorFactory pf = new PropagatorFactory(PropagatorType.NUMERICAL, OrbitType.KEPLERIAN);
         double analysisTimeStep = 60;
         ArrayList<Analysis> analysesList = new ArrayList<>();
         analysesList.add(new OrbitalElementsAnalysis(analysisTimeStep));
@@ -143,11 +147,11 @@ public class Orekit {
 
         CompoundAnalysis analyses = new CompoundAnalysis(analysesList);
 
-        Scenario scen = new Scenario.Builder(startDate, endDate, utc).
+        Scenario2 scen = new Scenario2.Builder(startDate, endDate, utc).
                 analysis(analyses).covDefs(covDefs).name("test1").numThreads(1).
-                propagatorFactory(pf).saveAllAccesses(true).saveToDB(true).build();
+                propagatorFactory(pf).saveAllAccesses(true).saveToDB(false).build();
         scen.call();
-        ParallelCoverage pc = new ParallelCoverage();
+//        ParallelCoverage pc = new ParallelCoverage();
 //        try {
 //            pc.createSubScenarios(scen, 4, new File(path));
 //        } catch (InterruptedException ex) {
@@ -155,7 +159,7 @@ public class Orekit {
 //        }
 
 //        Scenario scenComp = new Scenario(pc.loadRunAndSave(new File(path).toPath(), 4));
-        Scenario scenComp = scen;
+       Scenario2 scenComp = scen;
 
         System.out.println(String.format("Done Running Scenario %s", scenComp));
 

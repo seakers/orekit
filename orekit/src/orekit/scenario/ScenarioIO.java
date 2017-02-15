@@ -74,7 +74,7 @@ public class ScenarioIO {
      * @param covdef the coverage definition of interest
      * @return
      */
-    public static boolean saveAccess(Path path, String filename, Scenario scenario, CoverageDefinition covdef) {
+    public static boolean saveAccess(Path path, String filename, Scenario2 scenario, CoverageDefinition covdef) {
         File file = new File(path.toFile(), String.format("%s_%s_%s.cva", filename, scenario.getName(), covdef.getName()));
         HashMap<CoveragePoint, TimeIntervalArray> cvaa = scenario.getMergedAccesses(covdef);
         try (FileWriter fw = new FileWriter(file)) {
@@ -120,7 +120,7 @@ public class ScenarioIO {
      * @param scenario
      * @return true if the analyses are successfuly saved
      */
-    public static boolean saveAnalyses(Path path, Scenario scenario) {
+    public static boolean saveAnalyses(Path path, Scenario2 scenario) {
         for (Analysis analysis : scenario.getAnalyses()) {
             HashSet<Satellite> sats = scenario.getUniqueSatellites();
             for (Satellite s : sats) {

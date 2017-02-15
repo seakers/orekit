@@ -39,18 +39,31 @@ import org.hipparchus.linear.ArrayRealVector;
 import org.hipparchus.linear.MatrixUtils;
 import org.hipparchus.linear.RealMatrix;
 import org.hipparchus.linear.RealVector;
+import org.hipparchus.ode.nonstiff.AdaptiveStepsizeIntegrator;
+import org.hipparchus.ode.nonstiff.DormandPrince853Integrator;
 import org.hipparchus.util.FastMath;
 import org.orekit.bodies.BodyShape;
+import org.orekit.bodies.CelestialBody;
+import org.orekit.bodies.CelestialBodyFactory;
 import org.orekit.bodies.GeodeticPoint;
 import org.orekit.errors.OrekitException;
+import org.orekit.forces.drag.Atmosphere;
+import org.orekit.forces.drag.DTM2000;
+import org.orekit.forces.drag.DTM2000InputParameters;
+import org.orekit.forces.drag.DragForce;
+import org.orekit.forces.drag.DragSensitive;
+import org.orekit.forces.drag.IsotropicDrag;
+import org.orekit.forces.drag.MarshallSolarActivityFutureEstimation;
 import org.orekit.frames.Frame;
 import org.orekit.frames.FramesFactory;
 import org.orekit.frames.TopocentricFrame;
 import org.orekit.frames.Transform;
 import org.orekit.orbits.Orbit;
 import org.orekit.orbits.OrbitType;
+import org.orekit.orbits.PositionAngle;
 import org.orekit.propagation.Propagator;
 import org.orekit.propagation.SpacecraftState;
+import org.orekit.propagation.numerical.NumericalPropagator;
 import org.orekit.time.AbsoluteDate;
 import org.orekit.time.TimeScale;
 import org.orekit.utils.Constants;
@@ -678,8 +691,66 @@ public class Scenario2 implements Callable<Scenario2>, Serializable {
                     //before propagation, check that the satellite's propagation for this coverage definition is not stored in database
                     HashMap<CoveragePoint, TimeIntervalArray> satAccesses = new HashMap<>(cdef.getNumberOfPoints());
                     System.out.println(String.format("Initiating %d propagation tasks", numThreads));
+                    
+                    Propagator prop;
+                    
+                    if (propagatorFactory.getPropType().equals(PropagatorType.KEPLERIAN) || propagatorFactory.getPropType().equals(PropagatorType.J2)){
+                        
+                        prop = propagatorFactory.createPropagator(sat.getOrbit(), sat.getGrossMass());
+                    
+                    }else if (propagatorFactory.getPropType().equals(PropagatorType.NUMERICAL)){
+                        
+                        //set integrator steps and tolerances
+                        final double dP       = 0.001;
+                        final double minStep  = 0.001;
+                        final double maxStep  = 1000;
+                        final double initStep = 60;
+        //                final double[][] tolerance = NumericalPropagator.tolerances(dP, orbit, orbit.getType());
+                        final double[][] tolerance = NumericalPropagator.tolerances(dP, sat.getOrbit(), OrbitType.EQUINOCTIAL);
+                        double[] absTolerance = tolerance[0];
+                        double[] relTolerance = tolerance[1];
+        //                double[] absTolerance = {0.001, 1.0e-9, 1.0e-9, 1.0e-6, 1.0e-6, 1.0e-6, 0.001};
+        //                double[] relTolerance = {1.0e-7, 1.0e-4, 1.0e-4, 1.0e-7, 1.0e-7, 1.0e-7, 1.0e-7};
 
-                    Propagator prop = propagatorFactory.createPropagator(sat.getOrbit(), sat.getGrossMass());
+                        //create integrator object and set some propoerties
+                        AdaptiveStepsizeIntegrator integrator = new DormandPrince853Integrator(minStep, maxStep, absTolerance,relTolerance);
+                        integrator.setInitialStepSize(initStep);
+                        prop = propagatorFactory.createPropagator(integrator);
+                        SpacecraftState initialState=new SpacecraftState(sat.getOrbit());
+                        ((NumericalPropagator)prop).setInitialState(initialState);
+                        ((NumericalPropagator)prop).setMu(Constants.WGS84_EARTH_MU);
+                        ((NumericalPropagator)prop).setOrbitType(propagatorFactory.getOrbitType());
+                        ((NumericalPropagator)prop).setPositionAngleType(PositionAngle.TRUE);
+
+                        //We now add the drag model (DTM2000 model)
+                        CelestialBody sun  = CelestialBodyFactory.getSun();
+                        BodyShape earth = points.iterator().next().getParentShape();
+                        String supportedNames = "(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\\p{Digit}\\p{Digit}\\p{Digit}\\p{Digit}F10\\.(?:txt|TXT)";
+                        MarshallSolarActivityFutureEstimation.StrengthLevel strengthlevel = MarshallSolarActivityFutureEstimation.StrengthLevel.AVERAGE;
+                        DTM2000InputParameters parameters = new MarshallSolarActivityFutureEstimation(supportedNames,strengthlevel);
+                        Atmosphere atmosphere=new DTM2000(parameters, sun, earth);
+                        double crossSection=100;
+                        double dragCoeff=2;
+                        DragSensitive spacecraft = new IsotropicDrag(crossSection,dragCoeff);
+                        DragForce model = new DragForce(atmosphere, spacecraft);
+                        ((NumericalPropagator)prop).addForceModel(model);
+
+                        //We now add the drag model (Harris Priester model)
+        //                CelestialBody sun  = CelestialBodyFactory.getSun();
+        //                OneAxisEllipsoid earth = (OneAxisEllipsoid) points.iterator().next().getParentShape();
+        //                Atmosphere atmosphere=new HarrisPriester(sun, earth);
+        //                double crossSection=100;
+        //                double dragCoeff=2;
+        //                DragSensitive spacecraft = new IsotropicDrag(crossSection,dragCoeff);
+        //                DragForce model = new DragForce(atmosphere, spacecraft);
+        //                prop.addForceModel(model);
+                    }else{
+                            throw new IllegalArgumentException(String.format("Propagator type of "
+                            + "satelite %s is not supported. "
+                            + "Propagator found: %s", sat.toString(),
+                            propagatorFactory.getPropType()));
+                    }
+                    
 
                     double simulationDuration = endDate.durationFrom(startDate);
                     Frame bodyFrame = cdef.getPlanetShape().getBodyFrame();

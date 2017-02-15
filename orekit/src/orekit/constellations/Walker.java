@@ -116,7 +116,7 @@ public class Walker extends Constellation {
         for (int planeNum = 0; planeNum < p; planeNum++) {
             for (int satNum = 0; satNum < s; satNum++) {
                 //since eccentricity = 0, doesn't matter if using true or mean anomaly
-                Orbit orb = new KeplerianOrbit(semimajoraxis, 0.0, i, 0.0, refRaan + planeNum * delRaan, refAnom + satNum * delAnom + phasing * planeNum, PositionAngle.TRUE, inertialFrame, startDate, mu);
+                Orbit orb = new KeplerianOrbit(semimajoraxis, 0.0001, i, 0.0, refRaan + planeNum * delRaan, refAnom + satNum * delAnom + phasing * planeNum, PositionAngle.TRUE, inertialFrame, startDate, mu);
                 Satellite sat = new Satellite(String.format("sat_walker_%d", s * planeNum + satNum), orb);
                 walker.add(sat);
             }
