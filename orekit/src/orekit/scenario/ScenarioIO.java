@@ -112,6 +112,56 @@ public class ScenarioIO {
         System.out.println("Saved accesses in " + file.toString());
         return true;
     }
+    
+    /**
+     * Saves the link budget intervals of the coverage definition from the scenario in a
+     * desired directory
+     *
+     * @param path to the directory to save the file
+     * @param filename name of the file without the extension
+     * @param scenario Scenario that was simulated
+     * @param covdef the coverage definition of interest
+     * @return
+     */
+    public static boolean saveLinkBudget(Path path, String filename, Scenario3 scenario, CoverageDefinition covdef) {
+        File file = new File(path.toFile(), String.format("%s_%s_%s.link", filename, scenario.getName(), covdef.getName()));
+        HashMap<CoveragePoint, TimeIntervalArray> cvaa = scenario.getMergedLinkBudgetIntervals(covdef);
+        try (FileWriter fw = new FileWriter(file)) {
+            fw.append(String.format("EpochTime: %s\n\n", scenario.getStartDate()));
+            fw.append("Assigned Constellations:\n");
+            for (Constellation constel : covdef.getConstellations()) {
+                fw.append(String.format("\tConstelation %s: %d satellites\n", constel.getName(), constel.getSatellites().size()));
+                for (Satellite sat : constel.getSatellites()) {
+                    fw.append(String.format("\t\tSatellite %s\n", sat.toString()));
+                }
+            }
+            fw.flush();
+
+            int i = 0;
+            ArrayList<CoveragePoint> girdPoints = new ArrayList(cvaa.keySet());
+            Collections.sort(girdPoints);
+            for (CoveragePoint pt : girdPoints) {
+                fw.append(String.format("PointNumber:        %d\n", i));
+                fw.append(String.format("Lat:                %.14e\n", pt.getPoint().getLatitude()));
+                fw.append(String.format("Lon:                %.14e\n", pt.getPoint().getLongitude()));
+                fw.append(String.format("Alt:                %.14e\n", pt.getPoint().getAltitude()));
+                fw.append(String.format("NumberOfIntervals:   %d\n", cvaa.get(pt).numIntervals()));
+                Iterator<RiseSetTime> iter = cvaa.get(pt).getRiseSetTimes().iterator();
+                while (iter.hasNext()) {
+                    fw.append(String.format("%.14e   %.14e\n", iter.next().getTime(), iter.next().getTime()));
+                }
+                fw.append("\n");
+                fw.flush();
+                i++;
+            }
+        } catch (IOException ex) {
+            Logger.getLogger(ScenarioIO.class.getName()).log(Level.SEVERE, null, ex);
+            return false;
+        }
+        System.out.println("Saved link Budget intervals in " + file.toString());
+        return true;
+    }
+
 
     /**
      * Saves all the computed analyses run during the scenario

@@ -125,10 +125,6 @@ public class FOVDetector extends AbstractEventDetector<FOVDetector> {
      * readable manner without using a huge amount of parameters.
      * </p>
      *
-     * @param initialState initial state of the spacecraft given at the start
-     * date
-     * @param startDate the start date of the simulation or propagation
-     * @param endDate the end date of the simulation or propagation
      * @param maxCheck maximum checking interval (s)
      * @param threshold convergence threshold (s)
      * @param maxIter maximum number of iterations in the event time search

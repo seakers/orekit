@@ -9,6 +9,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Locale;
 import orekit.analysis.Analysis;
 import orekit.analysis.CompoundAnalysis;
 import orekit.analysis.ephemeris.OrbitalElementsAnalysis;
@@ -20,7 +21,9 @@ import static orekit.object.CoverageDefinition.GridStyle.*;
 import orekit.object.CoveragePoint;
 import orekit.object.Instrument;
 import orekit.object.Satellite;
+import orekit.object.fieldofview.NadirRectangularFOV;
 import orekit.object.fieldofview.NadirSimpleConicalFOV;
+import orekit.object.linkbudget.LinkBudget;
 import orekit.propagation.PropagatorFactory;
 import orekit.propagation.PropagatorType;
 import orekit.scenario.Scenario3;
@@ -54,6 +57,8 @@ public class Orekit {
      * @throws org.orekit.errors.OrekitException
      */
     public static void main(String[] args) throws OrekitException {
+        //if running on a non-US machine, need the line below
+        Locale.setDefault(new Locale("en", "US"));
         long start = System.nanoTime();
 
         String filename;
@@ -62,6 +67,7 @@ public class Orekit {
             path = args[0];
             filename = args[1];
         } else {
+//            path="/Users/paugarciabuzzi/Desktop/Outputs_Orekit";
             path = "/Users/nozomihitomi/Desktop";
 //            path = "C:\\Users\\SEAK1\\Nozomi\\OREKIT\\";
             filename = "tropics_test";
@@ -71,7 +77,7 @@ public class Orekit {
 
         TimeScale utc = TimeScalesFactory.getUTC();
         AbsoluteDate startDate = new AbsoluteDate(2016, 1, 1, 00, 00, 00.000, utc);
-        AbsoluteDate endDate = new AbsoluteDate(2016, 3, 1, 00, 00, 00.000, utc);
+        AbsoluteDate endDate = new AbsoluteDate(2016, 2, 1, 00, 00, 00.000, utc);
         double mu = Constants.WGS84_EARTH_MU; // gravitation coefficient
 
         //must use IERS_2003 and EME2000 frames to be consistent with STK
@@ -96,21 +102,21 @@ public class Orekit {
             sat.addInstrument(view1);
         }
 
-//        ArrayList<GeodeticPoint> pts = new ArrayList<>();
-//        pts.add(new GeodeticPoint(-0.1745329251994330, 6.0737457969402699, 0.0));
+        ArrayList<GeodeticPoint> pts = new ArrayList<>();
+        pts.add(new GeodeticPoint(-0.1745329251994330, 6.0737457969402699, 0.0));
 //        pts.add(new GeodeticPoint(-0.8726646259971650,  0.209439510239320, 0.0));
 //        pts.add(new GeodeticPoint(1.5707963267949001, 0.0000000000000000, 0.0));
-//        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", pts, earthShape);
+        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", pts, earthShape);
 //        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", 6, earthShape, UNIFORM);
-        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", STKGRID.getPoints6(), earthShape);
+//        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", STKGRID.getPoints20(), earthShape);
 
         covDef1.assignConstellation(walker);
 
         HashSet<CoverageDefinition> covDefs = new HashSet<>();
         covDefs.add(covDef1);
 
+//        PropagatorFactory pf = new PropagatorFactory(PropagatorType.KEPLERIAN, OrbitType.KEPLERIAN);
         PropagatorFactory pf = new PropagatorFactory(PropagatorType.KEPLERIAN, OrbitType.KEPLERIAN);
-
         double analysisTimeStep = 60;
         ArrayList<Analysis> analysesList = new ArrayList<>();
         analysesList.add(new OrbitalElementsAnalysis(analysisTimeStep));
@@ -132,10 +138,19 @@ public class Orekit {
         });
 
         CompoundAnalysis analyses = new CompoundAnalysis(analysesList);
+        
+        //LINK BUDGET
+        double txPower=0.05;
+        double txGain=1;
+        double rxGain=31622.8;
+        double lambda=0.15;
+        double noiseTemperature=165;
+        double dataRate=50e6;
+        LinkBudget lb=new LinkBudget(txPower, txGain, rxGain, lambda, noiseTemperature, dataRate);
 
         Scenario3 scen = new Scenario3.Builder(startDate, endDate, utc).
                 analysis(analyses).covDefs(covDefs).name("test1").numThreads(1).
-                propagatorFactory(pf).saveAllAccesses(true).saveToDB(true).build();
+                propagatorFactory(pf).saveAllAccesses(true).saveToDB(false).linkBudget(lb).build();
         scen.call();
 
         Scenario3 scenComp = scen;
@@ -172,6 +187,7 @@ public class Orekit {
             System.out.println(String.format("90th gap time %s", gapStats.getPercentile(90)));
 
             ScenarioIO.saveAccess(Paths.get(path, ""), filename, scenComp, cdefToSave);
+            ScenarioIO.saveLinkBudget(Paths.get(path, ""), filename, scenComp, cdefToSave);
         }
 
         System.out.println("Saving scenario...");

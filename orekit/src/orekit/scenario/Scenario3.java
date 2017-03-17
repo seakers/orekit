@@ -24,23 +24,45 @@ import orekit.coverage.access.TimeIntervalArray;
 import orekit.coverage.access.TimeIntervalMerger;
 import orekit.events.FOVDetector;
 import orekit.events.HandlerTimeInterval;
+import orekit.events.LBDetector2;
 import orekit.events.LOSDetector;
 import orekit.object.Constellation;
 import orekit.object.CoverageDefinition;
 import orekit.object.CoveragePoint;
 import orekit.object.Instrument;
 import orekit.object.Satellite;
+import orekit.object.linkbudget.LinkBudget;
 import orekit.propagation.PropagatorFactory;
 import orekit.propagation.PropagatorType;
+import org.hipparchus.linear.Array2DRowRealMatrix;
+import org.hipparchus.linear.RealMatrix;
+import org.hipparchus.ode.nonstiff.AdaptiveStepsizeIntegrator;
+import org.hipparchus.ode.nonstiff.DormandPrince853Integrator;
 import org.hipparchus.util.FastMath;
+import org.orekit.bodies.BodyShape;
+import org.orekit.bodies.CelestialBody;
+import org.orekit.bodies.CelestialBodyFactory;
 import org.orekit.bodies.GeodeticPoint;
 import org.orekit.errors.OrekitException;
+import org.orekit.forces.drag.Atmosphere;
+import org.orekit.forces.drag.DTM2000;
+import org.orekit.forces.drag.DTM2000InputParameters;
+import org.orekit.forces.drag.DragForce;
+import org.orekit.forces.drag.DragSensitive;
+import org.orekit.forces.drag.IsotropicDrag;
+import org.orekit.forces.drag.MarshallSolarActivityFutureEstimation;
+import org.orekit.forces.gravity.ThirdBodyAttraction;
+import org.orekit.forces.radiation.IsotropicRadiationSingleCoefficient;
+import org.orekit.forces.radiation.RadiationSensitive;
+import org.orekit.forces.radiation.SolarRadiationPressure;
 import org.orekit.frames.Frame;
 import org.orekit.frames.FramesFactory;
 import org.orekit.orbits.OrbitType;
+import org.orekit.orbits.PositionAngle;
 import org.orekit.propagation.Propagator;
 import org.orekit.propagation.SpacecraftState;
 import org.orekit.propagation.events.handlers.EventHandler;
+import org.orekit.propagation.numerical.NumericalPropagator;
 import org.orekit.time.AbsoluteDate;
 import org.orekit.time.TimeScale;
 import org.orekit.utils.Constants;
@@ -114,6 +136,11 @@ public class Scenario3 implements Callable<Scenario3>, Serializable {
     private final HashMap<CoverageDefinition, HashMap<CoveragePoint, TimeIntervalArray>> finalAccesses;
 
     /**
+     * This object stores all the merged link budget intervals for each point
+     * for each coverage definition
+     */
+    private final HashMap<CoverageDefinition, HashMap<CoveragePoint, TimeIntervalArray>> linkBudgetIntervals;
+    /**
      * flag to keep track of whether the simulation is done
      */
     private boolean isDone;
@@ -152,6 +179,13 @@ public class Scenario3 implements Callable<Scenario3>, Serializable {
     private final HashMap<Analysis, HashMap<Satellite, Collection>> analysisResults;
 
     /**
+     * The minimum radius of the earth (north-south direction)
+     */
+    private final double minRadius = Constants.WGS84_EARTH_EQUATORIAL_RADIUS * (1 - Constants.WGS84_EARTH_FLATTENING);
+
+    private final LinkBudget linkBudget;
+
+    /**
      * Creates a new scenario.
      *
      * @param name of scenario
@@ -170,11 +204,12 @@ public class Scenario3 implements Callable<Scenario3>, Serializable {
      * scenario
      * @param numThreads number of threads to uses in parallelization of the
      * scenario by dividing up the coverage grid points across multiple threads
+     * @param linkBudget link budget params provider
      */
     public Scenario3(String name, AbsoluteDate startDate, AbsoluteDate endDate,
             TimeScale timeScale, Frame inertialFrame, PropagatorFactory propagatorFactory,
             HashSet<CoverageDefinition> covDefs, boolean saveAllAccesses,
-            boolean saveToDB, Analysis analyses, int numThreads) {
+            boolean saveToDB, Analysis analyses, int numThreads, LinkBudget linkBudget) {
         this.scenarioName = name;
         this.startDate = startDate;
         this.endDate = endDate;
@@ -193,6 +228,7 @@ public class Scenario3 implements Callable<Scenario3>, Serializable {
         this.uniqueConstellations = new HashSet<>();
         this.uniqueSatellites = new HashSet<>();
         this.finalAccesses = new HashMap<>();
+        this.linkBudgetIntervals = new HashMap<>();
         includeCovDef(covDefs);
 
         this.analyses = analyses;
@@ -203,6 +239,7 @@ public class Scenario3 implements Callable<Scenario3>, Serializable {
 
         this.isDone = false;
         this.numThreads = numThreads;
+        this.linkBudget = linkBudget;
     }
 
     /**
@@ -223,7 +260,7 @@ public class Scenario3 implements Callable<Scenario3>, Serializable {
         this(s.getName(), s.getStartDate(), s.getEndDate(), s.getTimeScale(),
                 s.getFrame(), s.getPropagatorFactory(),
                 s.getCoverageDefinitions(), s.isSaveAllAccesses(),
-                s.isSaveToDB(), new CompoundAnalysis(s.getAnalyses()), 1);
+                s.isSaveToDB(), new CompoundAnalysis(s.getAnalyses()), 1, s.getLinkBudget());
         this.finalAccesses.putAll(finalAccesses);
         this.allAccesses = allAccesses;
         this.analysisResults.putAll(analysisResults);
@@ -352,6 +389,8 @@ public class Scenario3 implements Callable<Scenario3>, Serializable {
          */
         private boolean saveToDB = false;
 
+        private LinkBudget linkBudget;
+
         /**
          * The constructor for the builder
          *
@@ -466,13 +505,18 @@ public class Scenario3 implements Callable<Scenario3>, Serializable {
             return this;
         }
 
+        public Builder linkBudget(LinkBudget linkBudget) {
+            this.linkBudget = linkBudget;
+            return this;
+        }
+
         /**
          * Builds an instance of a scenario with all the specified parameters.
          *
          * @return
          */
         public Scenario3 build() {
-            return new Scenario3(scenarioName, startDate, endDate, timeScale, inertialFrame, propagatorFactory, covDefs, saveAllAccesses, saveToDB, analyses, numThreads);
+            return new Scenario3(scenarioName, startDate, endDate, timeScale, inertialFrame, propagatorFactory, covDefs, saveAllAccesses, saveToDB, analyses, numThreads, linkBudget);
         }
     }
 
@@ -490,7 +534,7 @@ public class Scenario3 implements Callable<Scenario3>, Serializable {
         out.analysis(analyses).covDefs(covDefs).frame(inertialFrame)
                 .name(scenarioName).numThreads(numThreads)
                 .propagatorFactory(propagatorFactory)
-                .saveAllAccesses(saveAllAccesses).saveToDB(saveToDB);
+                .saveAllAccesses(saveAllAccesses).saveToDB(saveToDB).linkBudget(linkBudget);
         return out;
     }
 
@@ -523,46 +567,118 @@ public class Scenario3 implements Callable<Scenario3>, Serializable {
                 for (Satellite sat : uniqueSatsAssignedToCovDef.get(cdef)) {
                     //before propagation, check that the satellite's propagation for this coverage definition is not stored in database
                     HashMap<CoveragePoint, TimeIntervalArray> satAccesses = new HashMap<>(cdef.getNumberOfPoints());
+                    HashMap<CoveragePoint, TimeIntervalArray> satlinkBudgetIntervals = new HashMap<>(cdef.getNumberOfPoints());
                     for (CoveragePoint pt : points) {
                         satAccesses.put(pt, new TimeIntervalArray(startDate, endDate));
+                        satlinkBudgetIntervals.put(pt, new TimeIntervalArray(startDate, endDate));
                     }
                     System.out.println(String.format("Initiating %d propagation tasks", numThreads));
 
-                    Propagator prop = propagatorFactory.createPropagator(sat.getOrbit(), sat.getGrossMass());
-                    SpacecraftState initialState = prop.getInitialState();
+                    Propagator prop;
+                    SpacecraftState initialState;
 
-                    //take large steps to find when there is line of sight
+                    if (propagatorFactory.getPropType().equals(PropagatorType.KEPLERIAN) || propagatorFactory.getPropType().equals(PropagatorType.J2)) {
+
+                        prop = propagatorFactory.createPropagator(sat.getOrbit(), sat.getGrossMass());
+                        initialState = prop.getInitialState();
+
+                    } else if (propagatorFactory.getPropType().equals(PropagatorType.NUMERICAL)) {
+
+                        //set integrator steps and tolerances
+                        final double dP = 0.001;
+                        final double minStep = 0.001;
+                        final double maxStep = 1000;
+                        final double initStep = 60;
+                        //                final double[][] tolerance = NumericalPropagator.tolerances(dP, orbit, orbit.getType());
+                        final double[][] tolerance = NumericalPropagator.tolerances(dP, sat.getOrbit(), OrbitType.EQUINOCTIAL);
+                        double[] absTolerance = tolerance[0];
+                        double[] relTolerance = tolerance[1];
+        //                double[] absTolerance = {0.001, 1.0e-9, 1.0e-9, 1.0e-6, 1.0e-6, 1.0e-6, 0.001};
+                        //                double[] relTolerance = {1.0e-7, 1.0e-4, 1.0e-4, 1.0e-7, 1.0e-7, 1.0e-7, 1.0e-7};
+
+                        //create integrator object and set some propoerties
+                        AdaptiveStepsizeIntegrator integrator = new DormandPrince853Integrator(minStep, maxStep, absTolerance, relTolerance);
+                        integrator.setInitialStepSize(initStep);
+                        prop = propagatorFactory.createPropagator(integrator);
+                        initialState = new SpacecraftState(sat.getOrbit());
+                        ((NumericalPropagator) prop).setInitialState(initialState);
+                        ((NumericalPropagator) prop).setMu(Constants.WGS84_EARTH_MU);
+                        ((NumericalPropagator) prop).setOrbitType(propagatorFactory.getOrbitType());
+                        ((NumericalPropagator) prop).setPositionAngleType(PositionAngle.TRUE);
+
+                        //We now add the drag model (DTM2000 model)
+//                        CelestialBody sun  = CelestialBodyFactory.getSun();
+//                        BodyShape earth = points.iterator().next().getParentShape();
+//                        String supportedNames = "(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\\p{Digit}\\p{Digit}\\p{Digit}\\p{Digit}F10\\.(?:txt|TXT)";
+//                        MarshallSolarActivityFutureEstimation.StrengthLevel strengthlevel = MarshallSolarActivityFutureEstimation.StrengthLevel.AVERAGE;
+//                        DTM2000InputParameters parameters = new MarshallSolarActivityFutureEstimation(supportedNames,strengthlevel);
+//                        Atmosphere atmosphere=new DTM2000(parameters, sun, earth);
+//                        double crossSection=100;
+//                        double dragCoeff=2;
+//                        DragSensitive spacecraft = new IsotropicDrag(crossSection,dragCoeff);
+//                        DragForce model = new DragForce(atmosphere, spacecraft);
+//                        ((NumericalPropagator)prop).addForceModel(model);
+                        //We now add the drag model (Harris Priester model)
+                        //                CelestialBody sun  = CelestialBodyFactory.getSun();
+                        //                OneAxisEllipsoid earth = (OneAxisEllipsoid) points.iterator().next().getParentShape();
+                        //                Atmosphere atmosphere=new HarrisPriester(sun, earth);
+                        //                double crossSection=100;
+                        //                double dragCoeff=2;
+                        //                DragSensitive spacecraft = new IsotropicDrag(crossSection,dragCoeff);
+                        //                DragForce model = new DragForce(atmosphere, spacecraft);
+                        //                prop.addForceModel(model);
+                        //We now add the third body attraction model
+//                        CelestialBody moon = CelestialBodyFactory.getMoon();
+//                        ThirdBodyAttraction model2 = new ThirdBodyAttraction(moon);
+//                        ((NumericalPropagator)prop).addForceModel(model2);
+//
+//                        //We now add the solar radiation pressure model
+//                        double equatorialRadius=Constants.WGS84_EARTH_EQUATORIAL_RADIUS;
+//                        double cr=0.5;
+//                        RadiationSensitive spacecraft2 = new IsotropicRadiationSingleCoefficient(crossSection, cr);
+//                        SolarRadiationPressure model3 = new SolarRadiationPressure(sun,  equatorialRadius,  spacecraft2);
+//                        ((NumericalPropagator)prop).addForceModel(model3);
+                    } else {
+                        throw new IllegalArgumentException(String.format("Propagator type of "
+                                + "satelite %s is not supported. "
+                                + "Propagator found: %s", sat.toString(),
+                                propagatorFactory.getPropType()));
+                    }
+
+                    //Set stepsizes and threshold for detectors
                     double losStepSize = sat.getOrbit().getKeplerianPeriod() / 10.;
-                    //take small steps to find when points are in field of view
                     double fovStepSize = sat.getOrbit().getKeplerianPeriod() / 100.;
+                    double lbStepSize = fovStepSize / 10;
                     double threshold = 1e-3;
-                    
+
                     //detectors
                     LOSDetector losDetec;
                     FOVDetector fovDetec;
-                            
+                    LBDetector2 lbDetec;
+
                     for (Instrument inst : sat.getPayload()) {
                         for (CoveragePoint pt : points) {
                             prop.resetInitialState(initialState);
                             prop.clearEventsDetectors();
 
                             //First find all intervals with line of sight.
-                            losDetec = new LOSDetector(prop.getInitialState(), startDate, endDate, 
-                                            pt, cdef.getPlanetShape(), inertialFrame,  
-                                            losStepSize, threshold, EventHandler.Action.CONTINUE);
+                            losDetec = new LOSDetector(prop.getInitialState(), startDate, endDate,
+                                    pt, cdef.getPlanetShape(), inertialFrame,
+                                    losStepSize, threshold, EventHandler.Action.CONTINUE);
                             prop.addEventDetector(losDetec);
                             prop.propagate(startDate, endDate);
                             TimeIntervalArray losTimeArray = losDetec.getTimeIntervalArray();
-                            if(losTimeArray == null || losTimeArray.isEmpty()){
+                            if (losTimeArray == null || losTimeArray.isEmpty()) {
                                 continue;
                             }
 
                             prop.resetInitialState(initialState);
                             prop.clearEventsDetectors();
                             //Next search through intervals with line of sight to compute when point is in field of view 
-                            fovDetec = new FOVDetector(prop.getInitialState(), startDate, endDate, 
+                            fovDetec = new FOVDetector(initialState, startDate, endDate,
                                     pt, inst, fovStepSize, threshold, EventHandler.Action.STOP);
                             prop.addEventDetector(fovDetec);
+
                             double date0 = 0;
                             double date1 = Double.NaN;
                             for (RiseSetTime interval : losTimeArray) {
@@ -575,18 +691,34 @@ public class Scenario3 implements Callable<Scenario3>, Serializable {
                                 if (!Double.isNaN(date1)) {
                                     //first propagation will find the start time when the point is in the field of view
                                     SpacecraftState s = prop.propagate(startDate.shiftedBy(date0), startDate.shiftedBy(date1));
+
+                                    //prop.resetInitialState(s);
                                     //second propagation will find the end time when the point is in the field of view
                                     prop.propagate(s.getDate(), startDate.shiftedBy(date1));
                                     date1 = Double.NaN;
                                 }
                             }
-//                            prop.propagate(startDate, endDate);
                             TimeIntervalArray fovTimeArray = fovDetec.getTimeIntervalArray();
-                            if(fovTimeArray == null || fovTimeArray.isEmpty()){
+                            if (fovTimeArray == null || fovTimeArray.isEmpty()) {
                                 continue;
                             }
-                            TimeIntervalMerger merger = new TimeIntervalMerger(satAccesses.get(pt),fovTimeArray);
+                            TimeIntervalMerger merger = new TimeIntervalMerger(satAccesses.get(pt), fovTimeArray);
                             satAccesses.put(pt, merger.orCombine());
+                            
+                            
+                            //link budget
+                            prop.resetInitialState(initialState);
+                            prop.clearEventsDetectors();
+                            //Next search through intervals with line of sight to compute when point is in field of view 
+                            lbDetec = new LBDetector2(initialState, startDate, endDate, pt, linkBudget, lbStepSize, threshold, EventHandler.Action.CONTINUE);
+                            prop.addEventDetector(lbDetec);
+                            prop.propagate(startDate, endDate);
+                            TimeIntervalArray lbTimeArray = lbDetec.getTimeIntervalArray();
+                            if (lbTimeArray == null || lbTimeArray.isEmpty()) {
+                                continue;
+                            }
+                            TimeIntervalMerger mergerlb = new TimeIntervalMerger(fovTimeArray, lbTimeArray);
+                            satlinkBudgetIntervals.put(pt, mergerlb.andCombine());
                         }
                     }
                     //save the satellite accesses 
@@ -602,11 +734,23 @@ public class Scenario3 implements Callable<Scenario3>, Serializable {
                     } else {
                         finalAccesses.put(cdef, satAccesses);
                     }
+                    //merge the link budget intervals across all satellite for each coverage definition
+                    if (linkBudgetIntervals.containsKey(cdef)) {
+                        HashMap<CoveragePoint, TimeIntervalArray> mergedLinkBudgetIntervals
+                                = CoverageAccessMerger.mergeCoverageDefinitionAccesses(linkBudgetIntervals.get(cdef), satlinkBudgetIntervals, false);
+                        linkBudgetIntervals.put(cdef, mergedLinkBudgetIntervals);
+                    } else {
+                        linkBudgetIntervals.put(cdef, satlinkBudgetIntervals);
+                    }
                 }
 
                 //Make all time intervals stored in finalAccesses immutable
                 for (CoveragePoint pt : finalAccesses.get(cdef).keySet()) {
                     finalAccesses.get(cdef).put(pt, finalAccesses.get(cdef).get(pt).createImmutable());
+                }
+                //Make all link budget intervals stored in finalAccesses immutable
+                for (CoveragePoint pt : linkBudgetIntervals.get(cdef).keySet()) {
+                    linkBudgetIntervals.get(cdef).put(pt, linkBudgetIntervals.get(cdef).get(pt).createImmutable());
                 }
             }
 
@@ -627,6 +771,17 @@ public class Scenario3 implements Callable<Scenario3>, Serializable {
      */
     public HashMap<CoveragePoint, TimeIntervalArray> getMergedAccesses(CoverageDefinition covDef) {
         return finalAccesses.get(covDef);
+    }
+
+    /**
+     * Returns the merged accesses of a given coverage definition after the
+     * scenario is finished running
+     *
+     * @param covDef the coverage definition of interest
+     * @return
+     */
+    public HashMap<CoveragePoint, TimeIntervalArray> getMergedLinkBudgetIntervals(CoverageDefinition covDef) {
+        return linkBudgetIntervals.get(covDef);
     }
 
     /**
@@ -711,6 +866,10 @@ public class Scenario3 implements Callable<Scenario3>, Serializable {
             }
         }
         return null;
+    }
+
+    public LinkBudget getLinkBudget() {
+        return this.linkBudget;
     }
 
     /**

@@ -5,6 +5,7 @@
  */
 package orekit.events;
 
+import java.util.HashMap;
 import orekit.coverage.access.TimeIntervalArray;
 import org.orekit.errors.OrekitException;
 import org.orekit.propagation.SpacecraftState;
@@ -26,7 +27,7 @@ import org.orekit.time.AbsoluteDate;
 public class HandlerTimeInterval implements EventHandler<AbstractDetector> {
 
     private final TimeIntervalArray timeArray;
-
+    
     private EventHandler.Action action;
 
     /**
@@ -95,5 +96,5 @@ public class HandlerTimeInterval implements EventHandler<AbstractDetector> {
     public TimeIntervalArray getTimeArray() {
         return timeArray;
     }
-
-}
+    
+    }
