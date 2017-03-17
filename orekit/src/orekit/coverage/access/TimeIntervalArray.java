@@ -24,7 +24,7 @@ public class TimeIntervalArray implements Iterable<RiseSetTime>, Serializable {
 
     protected final ArrayList<RiseSetTime> timeArray;
 
-    private boolean accessing; //boolean to track if a rise time has a corresponding set time
+    protected boolean accessing; //boolean to track if a rise time has a corresponding set time
 
     /**
      * Head is the beginning date of the timeline
@@ -38,11 +38,12 @@ public class TimeIntervalArray implements Iterable<RiseSetTime>, Serializable {
     /**
      * Time between the head and the tail dates
      */
-    private final double simulationLength;
+    protected final double simulationLength;
 
     /**
      * Creates a time interval array instance with the head and tail date times
-     * to define the entire timeline
+     * to define the entire timeline. If no rise or set times are added, assumes
+     * that entire array is closed (i.e. array starts with set time).
      *
      * @param head
      * @param tail
@@ -52,6 +53,30 @@ public class TimeIntervalArray implements Iterable<RiseSetTime>, Serializable {
         this.tail = tail;
         this.timeArray = new ArrayList<>();
         this.simulationLength = tail.durationFrom(head);
+        this.accessing = false;
+    }
+
+    /**
+     * Creates a time interval array instance with the head and tail date times
+     * to define the entire timeline. Can specify whether head of the array is
+     * open (i.e. true = array starts with rise time) or closed (i.e. false =
+     * array starts with set time).
+     *
+     * @param head
+     * @param tail
+     * @param headOpen Can specify whether head of the array is open (i.e. true
+     * = array starts with rise time) or closed (i.e. false = array starts with
+     * set time).
+     */
+    public TimeIntervalArray(AbsoluteDate head, AbsoluteDate tail, boolean headOpen) {
+        this.head = head;
+        this.tail = tail;
+        this.timeArray = new ArrayList<>();
+        this.simulationLength = tail.durationFrom(head);
+        this.accessing = false;
+        if (headOpen) {
+            this.addRise(0.0);
+        }
     }
 
     /**
@@ -79,6 +104,17 @@ public class TimeIntervalArray implements Iterable<RiseSetTime>, Serializable {
      * @return true if the interval is open, false if it is closed.
      */
     public boolean addRiseTime(double riseTime) {
+        return addRise(riseTime);
+    }
+
+    /**
+     * Constructor needs access to non-over-rideable method for adding a rise
+     * time
+     *
+     * @param riseTime
+     * @return
+     */
+    private boolean addRise(double riseTime) {
         if (accessing) {
             throw new IllegalArgumentException(String.format("Cannot add rise time %s since interval is not closed yet.", riseTime));
         }
@@ -88,7 +124,7 @@ public class TimeIntervalArray implements Iterable<RiseSetTime>, Serializable {
         }
 
         timeArray.add(new RiseSetTime(riseTime, true));
-        accessing = !accessing;
+        accessing = true;
         return accessing;
     }
 
@@ -127,58 +163,33 @@ public class TimeIntervalArray implements Iterable<RiseSetTime>, Serializable {
                 throw new IllegalArgumentException(String.format("Cannot add set time %s after the tail of the timeline.", setTime));
             }
         }
-
         timeArray.add(new RiseSetTime(setTime, false));
-        accessing = !accessing;
+        accessing = false;
         return accessing;
     }
 
     /**
-     * Check to see if the tail of the array is currently an open time interval
-     * (i.e. ends with a rise time).
+     * Check to see if there is currently an open time interval at the end of
+     * the array (i.e. last item in array is a rise time).
      *
-     * @return
+     * @return true if last item in array is a rise time. Else false.
      */
-    public boolean isTailOpen() {
+    public boolean isAccessing() {
         return accessing;
-    }
-
-    /**
-     * Check to see if the head of the array is an open time interval (i.e.
-     * starts with a set time).
-     *
-     * @return
-     */
-    public boolean isHeadOpen() {
-        if (timeArray.isEmpty()) {
-            return false;
-        }
-        return !timeArray.get(0).isRise();
     }
 
     /**
      * Returns the number of closed intervals. Open intervals at the ends of the
      * array are counted as they are automatically closed with the head or tail
-     * times
+     * times.
      *
      * @return
      */
     public int numIntervals() {
-        if (timeArray.isEmpty()) {
-            return 0;
-        }
-
-        boolean headOpen = isHeadOpen();
-        boolean tailOpen = isTailOpen();
-
-        if (headOpen && !tailOpen) {
-            return FastMath.floorDiv(timeArray.size(), 2) + 1;
-        } else if (!headOpen && tailOpen) {
-            return FastMath.floorDiv(timeArray.size(), 2) + 1;
-        } else if (headOpen && tailOpen) {
+        if (!accessing) {
             return FastMath.floorDiv(timeArray.size(), 2);
         } else {
-            return FastMath.floorDiv(timeArray.size(), 2);
+            return FastMath.floorDiv(timeArray.size(), 2) + 1;
         }
     }
 
@@ -204,20 +215,14 @@ public class TimeIntervalArray implements Iterable<RiseSetTime>, Serializable {
         double[] durations = new double[nIntervals];
         int durationIndex = 0;
 
-        int startInd = 0;
         int endInd = timeArray.size();
 
-        if (isHeadOpen()) {
-            startInd++;
-            durationIndex++;
-            durations[0] = timeArray.get(0).getTime();
-        }
-        if (isTailOpen()) {
+        if (isAccessing()) {
             endInd--;
             durations[nIntervals - 1] = timeArray.get(endInd).getTime() - timeArray.get(endInd - 1).getTime();
         }
 
-        for (int i = startInd; i < endInd; i += 2) {
+        for (int i = 0; i < endInd; i += 2) {
             durations[durationIndex] = timeArray.get(i + 1).getTime() - timeArray.get(i).getTime();
             durationIndex++;
         }
@@ -231,34 +236,35 @@ public class TimeIntervalArray implements Iterable<RiseSetTime>, Serializable {
      * storing rise and set times of accesses between a grid point and a
      * satellite, this method would return the gap times.
      *
-     * @return Returns a time interval array that contains the gaps between the
-     * time intervals stored in this array.
+     * @return Returns an immutable time interval array that contains the gaps
+     * between the time intervals stored in this array.
      */
-    public TimeIntervalArray negate() {
-        //if the array is empty, return new instance of a time interval array
-        if (timeArray.isEmpty()) {
-            return new TimeIntervalArray(head, tail);
-        }
-
+    public TimeIntervalArray complement() {
         TimeIntervalArray out = new TimeIntervalArray(head, tail);
-        Iterator<RiseSetTime> iter = timeArray.iterator();
-
-        RiseSetTime current = iter.next();
-        if (current.getTime() > 0) {
+        if (timeArray.isEmpty()) {
             out.addRiseTime(head);
-            out.addSetTime(current.getTime());
-        }
+            out.addSetTime(tail);
 
-        while (iter.hasNext()) {
-            current = iter.next();
-            if (current.isRise()) {
+        } else {
+            Iterator<RiseSetTime> iter = timeArray.iterator();
+
+            RiseSetTime current = iter.next();
+            if (current.getTime() > 0) {
+                out.addRiseTime(head);
                 out.addSetTime(current.getTime());
-            } else {
-                out.addRiseTime(current.getTime());
+            }
+
+            while (iter.hasNext()) {
+                current = iter.next();
+                if (current.isRise()) {
+                    out.addSetTime(current.getTime());
+                } else {
+                    out.addRiseTime(current.getTime());
+                }
             }
         }
 
-        return out;
+        return new ImmutableTimeIntervalArray(out);
     }
 
     /**
@@ -297,10 +303,13 @@ public class TimeIntervalArray implements Iterable<RiseSetTime>, Serializable {
      * This method returns a time interval array instance that is immutable. In
      * other words, the methods to add times will no longer be available to the
      * user. Attempts to add new times will throw an
-     * UnsupportedOperationException. Note that this instance will remain
-     * mutable
+     * UnsupportedOperationException. In addition time arrays that have no
+     * intervals but have an "accessing" or "open" head, will be converted into
+     * an interval that extends from the given start and end times of this
+     * object. Note that this instance will remain mutable.
      *
-     * @return  a time interval array instance that is immutable
+     *
+     * @return a time interval array instance that is immutable
      */
     public TimeIntervalArray createImmutable() {
         return new ImmutableTimeIntervalArray(this);
@@ -319,6 +328,16 @@ public class TimeIntervalArray implements Iterable<RiseSetTime>, Serializable {
         public ImmutableTimeIntervalArray(TimeIntervalArray original) {
             super(original.getHead(), original.getTail());
             this.timeArray.addAll(original.getRiseSetTimes());
+            //if tail is open close the interval with the end of the simulation
+            if (original.isAccessing()) {
+                this.timeArray.add(new RiseSetTime(this.simulationLength, false));
+            }
+        }
+
+        @Override
+        public TimeIntervalArray createImmutable() {
+            //return this since it is already immutable
+            return this;
         }
 
         @Override

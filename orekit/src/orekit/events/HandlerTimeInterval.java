@@ -31,7 +31,8 @@ public class HandlerTimeInterval implements EventHandler<AbstractDetector> {
 
     /**
      * Creates a field of view handler for a specific coverage point. Default
-     * handler will continue after event is detects
+     * handler will continue after event is detects. If there are no events
+     * detected, assumes that gvalues were negative for entire simulation.
      *
      * @param startDate the start date of the simulation
      * @param endDate the end date of the simulation
@@ -41,14 +42,38 @@ public class HandlerTimeInterval implements EventHandler<AbstractDetector> {
     }
 
     /**
-     * Creates a field of view handler for a specific coverage point.
+     * Creates a field of view handler for a specific coverage point. If there
+     * are no events detected, assumes that gvalues were negative for entire
+     * simulation.
      *
      * @param startDate the start date of the simulation
      * @param endDate the end date of the simulation
-     * @param action set the action to execute after event is detected {CONTINUE, STOP, RESET_DERIVATIVES, RESET_STATE}
+     * @param action set the action to execute after event is detected
+     * {CONTINUE, STOP, RESET_DERIVATIVES, RESET_STATE}
      */
     public HandlerTimeInterval(AbsoluteDate startDate, AbsoluteDate endDate, EventHandler.Action action) {
         this.timeArray = new TimeIntervalArray(startDate, endDate);
+        this.action = action;
+    }
+
+    /**
+     * Creates a field of view handler for a specific coverage point. Can
+     * specify if the simulation starts with a positive or negative gvalue. If
+     * there are no events detected, assumes that gvalues were there same sign
+     * as initGVal for entire simulation.
+     *
+     * @param startDate the start date of the simulation
+     * @param endDate the end date of the simulation
+     * @param initGVal the initial g value of the spacecraft state
+     * @param action set the action to execute after event is detected
+     * {CONTINUE, STOP, RESET_DERIVATIVES, RESET_STATE}
+     */
+    public HandlerTimeInterval(AbsoluteDate startDate, AbsoluteDate endDate, double initGVal, EventHandler.Action action) {
+        if(initGVal > 0){
+            this.timeArray = new TimeIntervalArray(startDate, endDate, true);
+        }else{
+            this.timeArray = new TimeIntervalArray(startDate, endDate, false);
+        }
         this.action = action;
     }
 

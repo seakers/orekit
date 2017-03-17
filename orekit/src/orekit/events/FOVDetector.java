@@ -9,9 +9,9 @@ import orekit.object.Instrument;
 import org.orekit.errors.OrekitException;
 import org.orekit.frames.TopocentricFrame;
 import org.orekit.propagation.SpacecraftState;
-import org.orekit.propagation.events.AbstractDetector;
+import org.orekit.propagation.events.EventDetector;
 import org.orekit.propagation.events.handlers.EventHandler;
-import org.orekit.propagation.events.handlers.StopOnIncreasing;
+import org.orekit.time.AbsoluteDate;
 
 /**
  * Detector responsible for tracking when the target enters an instrument's
@@ -19,7 +19,7 @@ import org.orekit.propagation.events.handlers.StopOnIncreasing;
  *
  * @author nozomihitomi
  */
-public class FOVDetector extends AbstractDetector<FOVDetector> {
+public class FOVDetector extends AbstractEventDetector<FOVDetector> {
 
     private static final long serialVersionUID = 3765360560924280705L;
 
@@ -28,29 +28,64 @@ public class FOVDetector extends AbstractDetector<FOVDetector> {
     private final Instrument instrument;
 
     /**
-     * Constructor for the detector. Must use a instrument/target pair.
-     * Threshold for event detection is set to default 1e-6 seconds
+     * Constructor for the detector. Must use a instrument/target pair. Max
+     * check for step size is set to 600.0 seconds by default. Threshold for
+     * event detection is set to default 1e-6 seconds. This detector by default
+     * stops when an event is detected.
      *
+     * @param initialState initial state of the spacecraft given at the start
+     * date
+     * @param startDate the start date of the simulation or propagation
+     * @param endDate the end date of the simulation or propagation
      * @param target the target to attach the detector to
      * @param instrument the instrument that will observe the target\
      */
-    public FOVDetector(TopocentricFrame target, Instrument instrument) {
-        this(DEFAULT_MAXCHECK, DEFAULT_THRESHOLD, DEFAULT_MAX_ITER,
-                new StopOnIncreasing<>(), target, instrument);
+    public FOVDetector(SpacecraftState initialState, AbsoluteDate startDate, AbsoluteDate endDate,
+            TopocentricFrame target, Instrument instrument) {
+        this(initialState, startDate, endDate, target, instrument,
+                DEFAULT_MAXCHECK, DEFAULT_THRESHOLD, DEFAULT_MAX_ITER, EventHandler.Action.STOP);
+    }
+
+    /**
+     * Constructor for the detector. Must use a instrument/target pair. Can set
+     * the resolution at which access time is computed. This detector by default
+     * stops when an event is detected.
+     *
+     * @param initialState initial state of the spacecraft given at the start
+     * date
+     * @param startDate the start date of the simulation or propagation
+     * @param endDate the end date of the simulation or propagation
+     * @param target the target to attach the detector to
+     * @param instrument the instrument that will observe the target resolution
+     * of the access times
+     * @param maxCheck maximal checking interval (s)
+     * @param threshold convergence threshold (s)
+     */
+    public FOVDetector(SpacecraftState initialState, AbsoluteDate startDate, AbsoluteDate endDate,
+            TopocentricFrame target, Instrument instrument, double maxCheck, double threshold) {
+        this(initialState, startDate, endDate, target, instrument,
+                maxCheck, threshold, DEFAULT_MAX_ITER, EventHandler.Action.STOP);
     }
 
     /**
      * Constructor for the detector. Must use a instrument/target pair. Can set
      * the resolution at which access time is computed
      *
-     * @param threshold threshold in seconds that determines the temporal
+     * @param initialState initial state of the spacecraft given at the start
+     * date
+     * @param startDate the start date of the simulation or propagation
+     * @param endDate the end date of the simulation or propagation
      * @param target the target to attach the detector to
-     * @param instrument the instrument that will observe the target
-     * resolution of the access times
+     * @param instrument the instrument that will observe the target resolution
+     * of the access times
+     * @param maxCheck maximal checking interval (s)
+     * @param threshold convergence threshold (s)
+     * @param action specifies action after event is detected.
      */
-    public FOVDetector(double threshold, TopocentricFrame target, Instrument instrument) {
-        this(DEFAULT_MAXCHECK, threshold, DEFAULT_MAX_ITER,
-                new StopOnIncreasing<>(), target, instrument);
+    public FOVDetector(SpacecraftState initialState, AbsoluteDate startDate, AbsoluteDate endDate,
+            TopocentricFrame target, Instrument instrument, double maxCheck, double threshold, EventHandler.Action action) {
+        this(initialState, startDate, endDate, target, instrument,
+                maxCheck, threshold, DEFAULT_MAX_ITER, action);
     }
 
     /**
@@ -61,6 +96,10 @@ public class FOVDetector extends AbstractDetector<FOVDetector> {
      * readable manner without using a huge amount of parameters.
      * </p>
      *
+     * @param initialState initial state of the spacecraft given at the start
+     * date
+     * @param startDate the start date of the simulation or propagation
+     * @param endDate the end date of the simulation or propagation
      * @param maxCheck maximum checking interval (s)
      * @param threshold convergence threshold (s)
      * @param maxIter maximum number of iterations in the event time search
@@ -68,11 +107,38 @@ public class FOVDetector extends AbstractDetector<FOVDetector> {
      * @param pvTarget Position/velocity provider of the considered target
      * @param instrument the instrument that will observe the target
      */
-    private FOVDetector(final double maxCheck, final double threshold, final int maxIter,
-            final EventHandler<? super FOVDetector> handler,
-            final TopocentricFrame target, final Instrument instrument) {
-        super(maxCheck, threshold, maxIter, handler);
+    private FOVDetector(final SpacecraftState initialState,
+            final AbsoluteDate startDate, final AbsoluteDate endDate,
+            final TopocentricFrame target, final Instrument instrument,
+            final double maxCheck, final double threshold, final int maxIter, EventHandler.Action action) {
+        super(initialState, startDate, endDate, action, maxCheck, threshold, maxIter);
 
+        this.instrument = instrument;
+        this.target = target;
+    }
+
+    /**
+     * Private constructor with full parameters.
+     * <p>
+     * This constructor is private as users are expected to use the builder API
+     * with the various {@code withXxx()} methods to set up the instance in a
+     * readable manner without using a huge amount of parameters.
+     * </p>
+     *
+     * @param initialState initial state of the spacecraft given at the start
+     * date
+     * @param startDate the start date of the simulation or propagation
+     * @param endDate the end date of the simulation or propagation
+     * @param maxCheck maximum checking interval (s)
+     * @param threshold convergence threshold (s)
+     * @param maxIter maximum number of iterations in the event time search
+     * @param handler event handler to call at event occurrences
+     * @param pvTarget Position/velocity provider of the considered target
+     * @param instrument the instrument that will observe the target
+     */
+    private FOVDetector(final TopocentricFrame target, final Instrument instrument,
+            final double maxCheck, final double threshold, final int maxIter, EventHandler newHandler) {
+        super(maxCheck, threshold, maxIter, newHandler);
         this.instrument = instrument;
         this.target = target;
     }
@@ -106,7 +172,7 @@ public class FOVDetector extends AbstractDetector<FOVDetector> {
     }
 
     @Override
-    protected FOVDetector create(double newMaxCheck, double newThreshold, int newMaxIter, EventHandler<? super FOVDetector> newHandler) {
-        return new FOVDetector(newMaxCheck, newThreshold, newMaxIter, newHandler, target, instrument);
+    protected EventDetector create(double newMaxCheck, double newThreshold, int newMaxIter, EventHandler newHandler) {
+        return new FOVDetector(target, instrument, newMaxCheck, newThreshold, newMaxIter, newHandler);
     }
 }

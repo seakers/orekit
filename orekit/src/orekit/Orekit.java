@@ -15,18 +15,14 @@ import orekit.analysis.ephemeris.OrbitalElementsAnalysis;
 import orekit.analysis.vectors.VectorAnalysis;
 import orekit.constellations.Walker;
 import orekit.coverage.access.TimeIntervalArray;
-import orekit.coverage.parallel.ParallelCoverage;
 import orekit.object.CoverageDefinition;
 import static orekit.object.CoverageDefinition.GridStyle.*;
 import orekit.object.CoveragePoint;
 import orekit.object.Instrument;
 import orekit.object.Satellite;
-import orekit.object.fieldofview.NadirRectangularFOV;
 import orekit.object.fieldofview.NadirSimpleConicalFOV;
 import orekit.propagation.PropagatorFactory;
 import orekit.propagation.PropagatorType;
-import orekit.scenario.Scenario;
-import orekit.scenario.Scenario2;
 import orekit.scenario.Scenario3;
 import orekit.scenario.ScenarioIO;
 import orekit.util.OrekitConfig;
@@ -87,7 +83,7 @@ public class Orekit {
 
         //Enter satellite orbital parameters
         double a = 6978137.0;
-        double i = FastMath.toRadians(80);
+        double i = FastMath.toRadians(45);
 
         Walker walker = new Walker("walker1", i, 1, 1, 0, a, inertialFrame, startDate, mu);
 
@@ -105,8 +101,8 @@ public class Orekit {
 //        pts.add(new GeodeticPoint(-0.8726646259971650,  0.209439510239320, 0.0));
 //        pts.add(new GeodeticPoint(1.5707963267949001, 0.0000000000000000, 0.0));
 //        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", pts, earthShape);
-        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", 6, earthShape, UNIFORM);
-//        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", STKGRID.getPoints6(), earthShape);
+//        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", 6, earthShape, UNIFORM);
+        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", STKGRID.getPoints6(), earthShape);
 
         covDef1.assignConstellation(walker);
 
@@ -141,14 +137,7 @@ public class Orekit {
                 analysis(analyses).covDefs(covDefs).name("test1").numThreads(1).
                 propagatorFactory(pf).saveAllAccesses(true).saveToDB(true).build();
         scen.call();
-        ParallelCoverage pc = new ParallelCoverage();
-//        try {
-//            pc.createSubScenarios(scen, 4, new File(path));
-//        } catch (InterruptedException ex) {
-//            Logger.getLogger(Orekit.class.getName()).log(Level.SEVERE, null, ex);
-//        }
 
-//        Scenario scenComp = new Scenario(pc.loadRunAndSave(new File(path).toPath(), 4));
         Scenario3 scenComp = scen;
 
         System.out.println(String.format("Done Running Scenario %s", scenComp));
@@ -163,10 +152,9 @@ public class Orekit {
                 for (Double duration : covDefAccess.get(pt).getDurations()) {
                     accessStats.addValue(duration);
                 }
-                for (Double duration : covDefAccess.get(pt).negate().getDurations()) {
+                for (Double duration : covDefAccess.get(pt).complement().getDurations()) {
                     gapStats.addValue(duration);
                 }
-
             }
 
             System.out.println(String.format("Max access time %s", accessStats.getMax()));

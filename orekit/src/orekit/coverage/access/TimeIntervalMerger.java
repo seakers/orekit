@@ -67,12 +67,17 @@ public class TimeIntervalMerger {
      * @return
      */
     private ArrayList<RiseSetTime> sortRiseSetTimes(Collection<TimeIntervalArray> timeArrays) {
+        //set all time arrays into immutable arrays to close off any open intervals
+        ArrayList<TimeIntervalArray> arrays = new ArrayList<>(timeArrays.size());
+        for(TimeIntervalArray array : timeArrays){
+            arrays.add(array.createImmutable());
+        }
 
         //Give each array an index
         HashMap<Integer, ArrayList<RiseSetTime>> timeArrayMap = new HashMap<>(timeArrays.size());
         //map to store the current index for each array <id,index>
         HashMap<Integer, Integer> id_indexMap = new HashMap<>(timeArrays.size());
-        Iterator<TimeIntervalArray> iter = timeArrays.iterator();
+        Iterator<TimeIntervalArray> iter = arrays.iterator();
         int arrayID = 0;
         int totalSize = 0;
         while (iter.hasNext()) {
@@ -123,6 +128,7 @@ public class TimeIntervalMerger {
                 break;
             }
         }
+        //maybe no longer need numOpenIntevals since makeImmutable takes cares of open intervals
         for (int i = 0; i < numOpenIntervals; i++) {
             resultant.add(new RiseSetTime(tail.durationFrom(head), false));
         }
@@ -145,23 +151,37 @@ public class TimeIntervalMerger {
             return overlap;
         }
 
-        RiseSetTime currentTime = riseSetTimes.get(0);
-        int currentOverlap = 1;
-        for (int i = 1; i < riseSetTimes.size(); i++) {
-            RiseSetTime event = riseSetTimes.get(i);
-
-            if (!event.equals(currentTime)) {
-                currentTime = event;
-                overlap.add(currentOverlap);
-            } else {
-                riseSetTimes.remove(i); //remove duplicate rise set times
-                i--;
+        double currentTime = 0.0;
+        int currentOverlap = 0;
+        //check beginning condition
+        int ind = 0;
+        if(riseSetTimes.get(0).getTime() > currentTime){
+            overlap.add(currentOverlap);
+        }else if(riseSetTimes.get(0).getTime() == currentTime){
+            currentOverlap++;
+            while(riseSetTimes.get(1).getTime() == currentTime){
+                //remove duplicate rise times that occur at the beginning
+                riseSetTimes.remove(1);
             }
+            overlap.add(currentOverlap);
+            ind = 1;
+        }
+        
+        for (int i = ind; i < riseSetTimes.size(); i++) {
+            RiseSetTime event = riseSetTimes.get(i);
 
             if (event.isRise()) {
                 currentOverlap++;
             } else {
                 currentOverlap--;
+            }
+
+            if (event.getTime() != currentTime) {
+                currentTime = event.getTime();
+                overlap.add(currentOverlap);
+            } else {
+                riseSetTimes.remove(i); //remove duplicate rise set times
+                i--;
             }
         }
 
@@ -171,9 +191,9 @@ public class TimeIntervalMerger {
     /**
      * This method uses a logical AND to combine the time intervals. Resulting
      * time interval array uses the earliest head date and the latest tail date
-     * in the collection of TimeIntervalSets
+     * in the collection of TimeIntervalSets. The returned array is immutable.
      *
-     * @return the intersection of all the time intervals
+     * @return the intersection of all the time intervals. The returned array is immutable.
      */
     public TimeIntervalArray andCombine() {
         return nOverlapping(this.nTotalArrays);
@@ -182,9 +202,9 @@ public class TimeIntervalMerger {
     /**
      * This method uses a logical OR to combine the time intervals. Resulting
      * time interval array uses the earliest head date and the latest tail date
-     * in the collection of TimeIntervalSets
+     * in the collection of TimeIntervalSets. The returned array is immutable.
      *
-     * @return the union of all the time intervals
+     * @return the union of all the time intervals. The returned array is immutable.
      */
     public TimeIntervalArray orCombine() {
         return nOverlapping(1);
@@ -193,32 +213,38 @@ public class TimeIntervalMerger {
     /**
      * This method finds the intervals where at least n intervals overlap at a
      * given time. Resulting time interval array uses the earliest head date and
-     * the latest tail date in the collection of TimeIntervalSets
+     * the latest tail date in the collection of TimeIntervalSets. The returned array is immutable.
      *
      * @param n the minimum number of intervals that need to overlap to be
      * included in the set.
-     * @return
+     * @return An array when there are at least n overlapping intervals. The returned array is immutable.
      */
     public TimeIntervalArray nOverlapping(int n) {
         TimeIntervalArray out = new TimeIntervalArray(head, tail);
+        //return the array if there are no accesses
+        if(sortedRiseSetTimes.isEmpty()){
+            return out;
+        }
+        
+         //check beginning condition
+        int ind = 0;
+        if(sortedRiseSetTimes.get(0).getTime() != 0.0){
+            ind = 1;
+        }
+        
         for (int i = 0; i < this.overlaps.size(); i++) {
             if (overlaps.get(i) >= n) {
-                if (!out.isTailOpen()) {
-                    out.addRiseTime(sortedRiseSetTimes.get(i).getTime());
+                if (!out.isAccessing()) {
+                    out.addRiseTime(sortedRiseSetTimes.get(i - ind).getTime());
                 }
             } else {
-                if (out.isTailOpen()) {
-                    out.addSetTime(sortedRiseSetTimes.get(i).getTime());
+                if (out.isAccessing()) {
+                    out.addSetTime(sortedRiseSetTimes.get(i - ind).getTime());
                 }
             }
         }
-        //Need to check if last time stamp should be added.
-        if (overlaps.get(overlaps.size() - 1) >= n
-                && out.isTailOpen()) {
-            out.addSetTime(sortedRiseSetTimes.get(sortedRiseSetTimes.size() - 1).getTime());
-        }
-
-        return out;
+        
+        return out.createImmutable();
     }
 
     private class RiseSetTimeID {

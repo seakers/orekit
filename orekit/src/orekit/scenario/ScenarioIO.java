@@ -120,7 +120,7 @@ public class ScenarioIO {
      * @param scenario
      * @return true if the analyses are successfuly saved
      */
-    public static boolean saveAnalyses(Path path, Scenario scenario) {
+    public static boolean saveAnalyses(Path path, Scenario3 scenario) {
         for (Analysis analysis : scenario.getAnalyses()) {
             HashSet<Satellite> sats = scenario.getUniqueSatellites();
             for (Satellite s : sats) {
@@ -166,10 +166,6 @@ public class ScenarioIO {
         return scenario;
     }
 
-//    public static SubScenario loadSubScenario(Path path, String filename) {
-//        return (SubScenario) load(path, filename);
-//    }
-
     /**
      * Saves a human read-able text file that contains input parameters that
      * define the scenario such as the satellites, their payload, the coverage
@@ -180,7 +176,7 @@ public class ScenarioIO {
      * @param scenario
      * @return
      */
-    public static boolean saveReadMe(Path path, String filename, Scenario scenario) {
+    public static boolean saveReadMe(Path path, String filename, Scenario3 scenario) {
         File file = new File(path.toFile(), filename + ".txtore");
 
         try (FileWriter fw = new FileWriter(file)) {
@@ -208,7 +204,7 @@ public class ScenarioIO {
      * @return　null if the scenario does not exist in the database. Otherwise,
      * the scenario that is stored in the database
      */
-    public static Scenario3 checkDatabase(Scenario scenarioToRun) {
+    public static Scenario3 checkDatabase(Scenario3 scenarioToRun) {
         String fileName = String.format("%d.scen", scenarioToRun.hashCode());
         File covDB = new File(System.getProperty("CoverageDatabase"));
         File file = new File(covDB, fileName);

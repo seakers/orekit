@@ -88,7 +88,7 @@ public class CoverageAnalyzer {
                 accessesPerPoint.get(pt).addValue(duration);
                 accessesPerLatitude.get(latitude).addValue(duration);
             }
-            for (Double duration : coverageDefinitionAccesses.get(pt).negate().getDurations()) {
+            for (Double duration : coverageDefinitionAccesses.get(pt).complement().getDurations()) {
                 gapStats.addValue(duration);
                 gapsPerPoint.get(pt).addValue(duration);
                 gapsPerLatitude.get(latitude).addValue(duration);

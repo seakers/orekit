@@ -89,7 +89,8 @@ public abstract class AbstractFieldOfViewDefinition implements FieldOfViewDefini
 
     /**
      * This g() function is positive when the given target enters the field of
-     * view and negative if the target is outside the field of view
+     * view and negative if the target is outside the field of view. Assumes
+     * that line of sight is required
      *
      * @param s the spacecraft's current state
      * @param target the target of interest
@@ -98,7 +99,12 @@ public abstract class AbstractFieldOfViewDefinition implements FieldOfViewDefini
      */
     @Override
     public double g_FOV(SpacecraftState s, TopocentricFrame target) throws OrekitException {
-        return g(s, target);
+        double los =  g_lineOfSight(s, target);
+        if(los > 0){
+            return g(s, target);
+        }else{
+            return los;
+        }
     }
 
     /**

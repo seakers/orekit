@@ -7,7 +7,6 @@ package orekit.scenario;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.BitSet;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -33,8 +32,6 @@ import orekit.object.Instrument;
 import orekit.object.Satellite;
 import orekit.propagation.PropagatorFactory;
 import orekit.propagation.PropagatorType;
-import org.hipparchus.linear.Array2DRowRealMatrix;
-import org.hipparchus.linear.RealMatrix;
 import org.hipparchus.util.FastMath;
 import org.orekit.bodies.GeodeticPoint;
 import org.orekit.errors.OrekitException;
@@ -153,11 +150,6 @@ public class Scenario3 implements Callable<Scenario3>, Serializable {
      * The values recorded
      */
     private final HashMap<Analysis, HashMap<Satellite, Collection>> analysisResults;
-
-    /**
-     * The minimum radius of the earth (north-south direction)
-     */
-    private final double minRadius = Constants.WGS84_EARTH_EQUATORIAL_RADIUS * (1 - Constants.WGS84_EARTH_FLATTENING);
 
     /**
      * Creates a new scenario.
@@ -520,24 +512,6 @@ public class Scenario3 implements Callable<Scenario3>, Serializable {
         System.out.println(String.format("Running scenario: %s...", this));
         if (!isDone) {
             for (CoverageDefinition cdef : covDefs) {
-                //build initial position vector matrix that can be reused by rotation matrix
-
-                //mapping of points to some id number to keep track of which
-                //row the point is represented in the initPointPos matrix that
-                //stores the initial positions of the points in the internal
-                //frame
-                HashMap<CoveragePoint, Integer> pointColMap = new HashMap<>(cdef.getNumberOfPoints());
-                // matrix that stores the initial positions of the points in the
-                // internal frame
-                RealMatrix initPointPos = new Array2DRowRealMatrix(3, cdef.getNumberOfPoints());
-
-                int col = 0;
-                for (CoveragePoint pt : cdef.getPoints()) {
-                    initPointPos.setColumn(col, pt.getPVCoordinates(startDate, cdef.getPlanetShape().getBodyFrame()).getPosition().toArray());
-                    pointColMap.put(pt, col);
-                    col++;
-                }
-
                 System.out.println(String.format("Acquiring access times for %s...", cdef));
                 if (saveAllAccesses) {
                     allAccesses.put(cdef, new HashMap());
@@ -555,31 +529,43 @@ public class Scenario3 implements Callable<Scenario3>, Serializable {
                     System.out.println(String.format("Initiating %d propagation tasks", numThreads));
 
                     Propagator prop = propagatorFactory.createPropagator(sat.getOrbit(), sat.getGrossMass());
+                    SpacecraftState initialState = prop.getInitialState();
 
                     //take large steps to find when there is line of sight
-                    double losStepSize = sat.getOrbit().getKeplerianPeriod() / 10;
+                    double losStepSize = sat.getOrbit().getKeplerianPeriod() / 10.;
                     //take small steps to find when points are in field of view
-                    double fovStepSize = sat.getOrbit().getKeplerianPeriod() / 5000;
+                    double fovStepSize = sat.getOrbit().getKeplerianPeriod() / 100.;
+                    double threshold = 1e-3;
+                    
+                    //detectors
+                    LOSDetector losDetec;
+                    FOVDetector fovDetec;
+                            
                     for (Instrument inst : sat.getPayload()) {
                         for (CoveragePoint pt : points) {
+                            prop.resetInitialState(initialState);
+                            prop.clearEventsDetectors();
 
                             //First find all intervals with line of sight.
-                            HandlerTimeInterval losHandler = new HandlerTimeInterval(startDate, endDate);
-                            LOSDetector losDetec = new LOSDetector(losStepSize, 1.0, pt, cdef.getPlanetShape(), inertialFrame);
-                            prop.addEventDetector(losDetec.withHandler(losHandler));
+                            losDetec = new LOSDetector(prop.getInitialState(), startDate, endDate, 
+                                            pt, cdef.getPlanetShape(), inertialFrame,  
+                                            losStepSize, threshold, EventHandler.Action.CONTINUE);
+                            prop.addEventDetector(losDetec);
                             prop.propagate(startDate, endDate);
-                            prop.clearEventsDetectors();
-                            if(losHandler.getTimeArray().isEmpty()){
+                            TimeIntervalArray losTimeArray = losDetec.getTimeIntervalArray();
+                            if(losTimeArray == null || losTimeArray.isEmpty()){
                                 continue;
                             }
 
+                            prop.resetInitialState(initialState);
+                            prop.clearEventsDetectors();
                             //Next search through intervals with line of sight to compute when point is in field of view 
-                            HandlerTimeInterval fovHandler = new HandlerTimeInterval(startDate, endDate, EventHandler.Action.STOP);
-                            FOVDetector fovDetec = new FOVDetector(fovStepSize, pt, inst).withHandler(fovHandler);
+                            fovDetec = new FOVDetector(prop.getInitialState(), startDate, endDate, 
+                                    pt, inst, fovStepSize, threshold, EventHandler.Action.STOP);
                             prop.addEventDetector(fovDetec);
                             double date0 = 0;
                             double date1 = Double.NaN;
-                            for (RiseSetTime interval : losHandler.getTimeArray()) {
+                            for (RiseSetTime interval : losTimeArray) {
                                 if (interval.isRise()) {
                                     date0 = interval.getTime();
                                 } else {
@@ -594,9 +580,13 @@ public class Scenario3 implements Callable<Scenario3>, Serializable {
                                     date1 = Double.NaN;
                                 }
                             }
-                            prop.clearEventsDetectors();
-                            TimeIntervalMerger merger = new TimeIntervalMerger(satAccesses.get(pt),fovHandler.getTimeArray());
-                            satAccesses.put(pt, merger.orCombine().createImmutable());
+//                            prop.propagate(startDate, endDate);
+                            TimeIntervalArray fovTimeArray = fovDetec.getTimeIntervalArray();
+                            if(fovTimeArray == null || fovTimeArray.isEmpty()){
+                                continue;
+                            }
+                            TimeIntervalMerger merger = new TimeIntervalMerger(satAccesses.get(pt),fovTimeArray);
+                            satAccesses.put(pt, merger.orCombine());
                         }
                     }
                     //save the satellite accesses 

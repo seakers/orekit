@@ -7,29 +7,23 @@ package orekit.events;
 
 import orekit.object.CoveragePoint;
 import org.hipparchus.geometry.euclidean.threed.Vector3D;
-import org.hipparchus.linear.Array2DRowRealMatrix;
-import org.hipparchus.linear.ArrayRealVector;
-import org.hipparchus.linear.MatrixUtils;
-import org.hipparchus.linear.RealMatrix;
-import org.hipparchus.linear.RealVector;
 import org.orekit.bodies.BodyShape;
-import org.orekit.bodies.OneAxisEllipsoid;
 import org.orekit.errors.OrekitException;
 import org.orekit.frames.Frame;
-import org.orekit.frames.FramesFactory;
 import org.orekit.propagation.SpacecraftState;
-import org.orekit.propagation.events.AbstractDetector;
+import org.orekit.propagation.events.EventDetector;
 import org.orekit.propagation.events.handlers.EventHandler;
-import org.orekit.propagation.events.handlers.StopOnDecreasing;
+import org.orekit.time.AbsoluteDate;
 import org.orekit.utils.Constants;
-import org.orekit.utils.IERSConventions;
 
 /**
  * Calculates when a satellite has line of sight to a ground point
  *
  * @author nozomihitomi
  */
-public class LOSDetector extends AbstractDetector<LOSDetector> {
+public class LOSDetector extends AbstractEventDetector<LOSDetector> {
+
+    private static final long serialVersionUID = 2969875053072513593L;
 
     /**
      * The ground point that needs to be viewed
@@ -56,54 +50,65 @@ public class LOSDetector extends AbstractDetector<LOSDetector> {
      * <p>
      * This simple constructor takes default values for maximal checking
      * interval ({@link #DEFAULT_MAXCHECK}) and convergence threshold
-     * ({@link #DEFAULT_THRESHOLD}).</p>
+     * ({@link #DEFAULT_THRESHOLD}). This detector by default stops when an event is detected.</p>
      *
+     * @param initialState initial state of the spacecraft given at the start
+     * date
+     * @param startDate the start date of the simulation or propagation
+     * @param endDate the end date of the simulation or propagation
      * @param pt The ground point that needs to be viewed
      * @param shape The shape of the body on which the point lies
      * @param inertialFrame The inertial frame used in the scenario evaluated
      */
-    public LOSDetector(final CoveragePoint pt, final BodyShape shape, final Frame inertialFrame) {
-        this(DEFAULT_MAXCHECK, DEFAULT_THRESHOLD, pt, shape, inertialFrame);
+    public LOSDetector(SpacecraftState initialState, AbsoluteDate startDate, AbsoluteDate endDate, final CoveragePoint pt, final BodyShape shape, final Frame inertialFrame) {
+        this(initialState, startDate, endDate, pt, shape, inertialFrame, DEFAULT_MAXCHECK, DEFAULT_THRESHOLD, DEFAULT_MAX_ITER, EventHandler.Action.STOP);
     }
 
     /**
      * Build a new line of sight detector.
      * <p>
-     * This simple constructor takes default value for convergence threshold
-     * ({@link #DEFAULT_THRESHOLD}).</p>
+     * This detector by default stops when an event is detected.</p>
      * <p>
      * The maximal interval between line of sight checks should be smaller than
      * the half duration of the minimal pass to handle, otherwise some short
      * passes could be missed.</p>
      *
-     * @param maxCheck maximal checking interval (s)
+     * @param initialState initial state of the spacecraft given at the start
+     * date
+     * @param startDate the start date of the simulation or propagation
+     * @param endDate the end date of the simulation or propagation
      * @param pt The ground point that needs to be viewed
      * @param shape The shape of the body on which the point lies
      * @param inertialFrame The inertial frame used in the scenario evaluated
-     */
-    public LOSDetector(final double maxCheck,
-            final CoveragePoint pt, final BodyShape shape, final Frame inertialFrame) {
-        this(maxCheck, DEFAULT_THRESHOLD, pt, shape, inertialFrame);
-    }
-
-    /**
-     * Build a new line of sight detector.
-     * <p>
-     * The maximal interval between line of sight checks should be smaller than
-     * the half duration of the minimal pass to handle, otherwise some short
-     * passes could be missed.</p>
-     *
      * @param maxCheck maximal checking interval (s)
      * @param threshold convergence threshold (s)
+     */
+    public LOSDetector(SpacecraftState initialState, AbsoluteDate startDate, AbsoluteDate endDate,
+            final CoveragePoint pt, final BodyShape shape, final Frame inertialFrame, final double maxCheck, final double threshold) {
+        this(initialState, startDate, endDate, pt, shape, inertialFrame, maxCheck, threshold, DEFAULT_MAX_ITER, EventHandler.Action.STOP);
+    }
+    
+     /**
+     * Build a new line of sight detector.
+     * <p>The maximal interval between line of sight checks should be smaller than
+     * the half duration of the minimal pass to handle, otherwise some short
+     * passes could be missed.</p>
+     *
+     * @param initialState initial state of the spacecraft given at the start
+     * date
+     * @param startDate the start date of the simulation or propagation
+     * @param endDate the end date of the simulation or propagation
      * @param pt The ground point that needs to be viewed
      * @param shape The shape of the body on which the point lies
      * @param inertialFrame The inertial frame used in the scenario evaluated
+     * @param maxCheck maximal checking interval (s)
+     * @param threshold convergence threshold (s)
+     * @param action specifies action after event is detected.
      */
-    public LOSDetector(final double maxCheck,
-            final double threshold,
-            final CoveragePoint pt, final BodyShape shape, final Frame inertialFrame) {
-        this(maxCheck, threshold, DEFAULT_MAX_ITER, new StopOnDecreasing<LOSDetector>(),
-                pt, shape, inertialFrame);
+    public LOSDetector(SpacecraftState initialState, AbsoluteDate startDate, AbsoluteDate endDate,
+            final CoveragePoint pt, final BodyShape shape, final Frame inertialFrame, 
+            final double maxCheck, final double threshold, EventHandler.Action action) {
+        this(initialState, startDate, endDate, pt, shape, inertialFrame, maxCheck, threshold, DEFAULT_MAX_ITER, action);
     }
 
     /**
@@ -114,6 +119,10 @@ public class LOSDetector extends AbstractDetector<LOSDetector> {
      * readable manner without using a huge amount of parameters.
      * </p>
      *
+     * @param initialState initial state of the spacecraft given at the start
+     * date
+     * @param startDate the start date of the simulation or propagation
+     * @param endDate the end date of the simulation or propagation
      * @param maxCheck maximum checking interval (s)
      * @param threshold convergence threshold (s)
      * @param maxIter maximum number of iterations in the event time search
@@ -122,24 +131,44 @@ public class LOSDetector extends AbstractDetector<LOSDetector> {
      * @param shape The shape of the body on which the point lies
      * @param inertialFrame The inertial frame used in the scenario evaluated
      */
-    private LOSDetector(final double maxCheck, final double threshold,
-            final int maxIter, final EventHandler<? super LOSDetector> handler,
-            final CoveragePoint pt, final BodyShape shape, final Frame inertialFrame) {
-        super(maxCheck, threshold, maxIter, handler);
+    private LOSDetector(SpacecraftState initialState, AbsoluteDate startDate, AbsoluteDate endDate,
+            final CoveragePoint pt, final BodyShape shape, final Frame inertialFrame, final double maxCheck, final double threshold,
+            final int maxIter, EventHandler.Action action) {
+        super(initialState, startDate, endDate, action, maxCheck, threshold, maxIter);
+        this.pt = pt;
+        this.shape = shape;
+        this.inertialFrame = inertialFrame;
+    }
+    
+    /**
+     * Private constructor with full parameters.
+     * <p>
+     * This constructor is private as users are expected to use the builder API
+     * with the various {@code withXxx()} methods to set up the instance in a
+     * readable manner without using a huge amount of parameters.
+     * </p>
+     *
+     * @param initialState initial state of the spacecraft given at the start
+     * date
+     * @param startDate the start date of the simulation or propagation
+     * @param endDate the end date of the simulation or propagation
+     * @param maxCheck maximum checking interval (s)
+     * @param threshold convergence threshold (s)
+     * @param maxIter maximum number of iterations in the event time search
+     * @param handler event handler to call at event occurrences
+     * @param pt The ground point that needs to be viewed
+     * @param shape The shape of the body on which the point lies
+     * @param inertialFrame The inertial frame used in the scenario evaluated
+     */
+    private LOSDetector(
+            final CoveragePoint pt, final BodyShape shape, final Frame inertialFrame, final double maxCheck, final double threshold,
+            final int maxIter, EventHandler newHandler) {
+        super(maxCheck, threshold, maxIter, newHandler);
         this.pt = pt;
         this.shape = shape;
         this.inertialFrame = inertialFrame;
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected LOSDetector create(final double newMaxCheck, final double newThreshold,
-            final int newMaxIter, final EventHandler<? super LOSDetector> newHandler) {
-        return new LOSDetector(newMaxCheck, newThreshold, newMaxIter, newHandler,
-                pt, shape, inertialFrame);
-    }
 
     @Override
     public double g(SpacecraftState s) throws OrekitException {
@@ -155,6 +184,15 @@ public class LOSDetector extends AbstractDetector<LOSDetector> {
 
         //losVal > 0 means that sat has line of sight
         return cosThetas - minCosTheta;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected EventDetector create(double newMaxCheck, double newThreshold, int newMaxIter, EventHandler newHandler) {
+        return new LOSDetector(pt, shape, inertialFrame,
+                newMaxCheck, newThreshold, newMaxIter, newHandler);
     }
 
 }
