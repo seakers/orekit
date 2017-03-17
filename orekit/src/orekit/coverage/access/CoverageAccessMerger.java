@@ -32,7 +32,7 @@ public class CoverageAccessMerger implements Serializable{
      * OR (i.e. union)
      * @return the merged coverage access
      */
-    public HashMap<CoveragePoint, TimeIntervalArray> mergeCoverageDefinitionAccesses(
+    public static HashMap<CoveragePoint, TimeIntervalArray> mergeCoverageDefinitionAccesses(
             HashMap<CoveragePoint, TimeIntervalArray> accesses1,
             HashMap<CoveragePoint, TimeIntervalArray> accesses2,
             boolean andCombine) throws IllegalArgumentException {
@@ -40,7 +40,7 @@ public class CoverageAccessMerger implements Serializable{
         ArrayList<HashMap<CoveragePoint, TimeIntervalArray>> accessesCollection = new ArrayList<>(2);
         accessesCollection.add(accesses1);
         accessesCollection.add(accesses2);
-        return this.mergeCoverageDefinitionAccesses(accessesCollection, andCombine);
+        return CoverageAccessMerger.mergeCoverageDefinitionAccesses(accessesCollection, andCombine);
     }
 
     /**
@@ -56,7 +56,7 @@ public class CoverageAccessMerger implements Serializable{
      * OR (i.e. union)
      * @return the merged coverage access
      */
-    public HashMap<CoveragePoint, TimeIntervalArray> mergeCoverageDefinitionAccesses(
+    public static HashMap<CoveragePoint, TimeIntervalArray> mergeCoverageDefinitionAccesses(
             Collection<HashMap<CoveragePoint, TimeIntervalArray>> accessesCollection,
             boolean andCombine) throws IllegalArgumentException {
 

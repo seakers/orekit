@@ -46,13 +46,13 @@ public class ScenarioIO {
      * @param scenario Scenario object to save
      * @return
      */
-    public static boolean save(Path path, String filename, Scenario scenario) {
+    public static boolean save(Path path, String filename, Scenario3 scenario) {
         File file;
-        if (scenario instanceof SubScenario) {
-            file = new File(path.toFile(), String.format("%s.subscen", filename));
-        } else {
+//        if (scenario instanceof SubScenario) {
+//            file = new File(path.toFile(), String.format("%s.subscen", filename));
+//        } else {
             file = new File(path.toFile(), String.format("%s.scen", filename));
-        }
+//        }
         try (ObjectOutputStream os = new ObjectOutputStream(new FileOutputStream(file));) {
             os.writeObject(scenario);
             os.close();
@@ -74,7 +74,7 @@ public class ScenarioIO {
      * @param covdef the coverage definition of interest
      * @return
      */
-    public static boolean saveAccess(Path path, String filename, Scenario2 scenario, CoverageDefinition covdef) {
+    public static boolean saveAccess(Path path, String filename, Scenario3 scenario, CoverageDefinition covdef) {
         File file = new File(path.toFile(), String.format("%s_%s_%s.cva", filename, scenario.getName(), covdef.getName()));
         HashMap<CoveragePoint, TimeIntervalArray> cvaa = scenario.getMergedAccesses(covdef);
         try (FileWriter fw = new FileWriter(file)) {
@@ -112,6 +112,56 @@ public class ScenarioIO {
         System.out.println("Saved accesses in " + file.toString());
         return true;
     }
+    
+    /**
+     * Saves the link budget intervals of the coverage definition from the scenario in a
+     * desired directory
+     *
+     * @param path to the directory to save the file
+     * @param filename name of the file without the extension
+     * @param scenario Scenario that was simulated
+     * @param covdef the coverage definition of interest
+     * @return
+     */
+    public static boolean saveLinkBudget(Path path, String filename, Scenario3 scenario, CoverageDefinition covdef) {
+        File file = new File(path.toFile(), String.format("%s_%s_%s.link", filename, scenario.getName(), covdef.getName()));
+        HashMap<CoveragePoint, TimeIntervalArray> cvaa = scenario.getMergedLinkBudgetIntervals(covdef);
+        try (FileWriter fw = new FileWriter(file)) {
+            fw.append(String.format("EpochTime: %s\n\n", scenario.getStartDate()));
+            fw.append("Assigned Constellations:\n");
+            for (Constellation constel : covdef.getConstellations()) {
+                fw.append(String.format("\tConstelation %s: %d satellites\n", constel.getName(), constel.getSatellites().size()));
+                for (Satellite sat : constel.getSatellites()) {
+                    fw.append(String.format("\t\tSatellite %s\n", sat.toString()));
+                }
+            }
+            fw.flush();
+
+            int i = 0;
+            ArrayList<CoveragePoint> girdPoints = new ArrayList(cvaa.keySet());
+            Collections.sort(girdPoints);
+            for (CoveragePoint pt : girdPoints) {
+                fw.append(String.format("PointNumber:        %d\n", i));
+                fw.append(String.format("Lat:                %.14e\n", pt.getPoint().getLatitude()));
+                fw.append(String.format("Lon:                %.14e\n", pt.getPoint().getLongitude()));
+                fw.append(String.format("Alt:                %.14e\n", pt.getPoint().getAltitude()));
+                fw.append(String.format("NumberOfIntervals:   %d\n", cvaa.get(pt).numIntervals()));
+                Iterator<RiseSetTime> iter = cvaa.get(pt).getRiseSetTimes().iterator();
+                while (iter.hasNext()) {
+                    fw.append(String.format("%.14e   %.14e\n", iter.next().getTime(), iter.next().getTime()));
+                }
+                fw.append("\n");
+                fw.flush();
+                i++;
+            }
+        } catch (IOException ex) {
+            Logger.getLogger(ScenarioIO.class.getName()).log(Level.SEVERE, null, ex);
+            return false;
+        }
+        System.out.println("Saved link Budget intervals in " + file.toString());
+        return true;
+    }
+
 
     /**
      * Saves all the computed analyses run during the scenario
@@ -153,11 +203,11 @@ public class ScenarioIO {
      * @param filename the file name (extension included)
      * @return the Scenario instance saved by using save()
      */
-    public static Scenario load(Path path, String filename) {
-        Scenario scenario = null;
+    public static Scenario3 load(Path path, String filename) {
+        Scenario3 scenario = null;
         File file = new File(path.toFile(), filename);
         try (ObjectInputStream is = new ObjectInputStream(new FileInputStream(file))) {
-            scenario = (Scenario) is.readObject();
+            scenario = (Scenario3) is.readObject();
         } catch (IOException | ClassNotFoundException ex) {
             System.err.println(ex);
             Logger.getLogger(ScenarioIO.class.getName()).log(Level.SEVERE, null, ex);
@@ -166,9 +216,9 @@ public class ScenarioIO {
         return scenario;
     }
 
-    public static SubScenario loadSubScenario(Path path, String filename) {
-        return (SubScenario) load(path, filename);
-    }
+//    public static SubScenario loadSubScenario(Path path, String filename) {
+//        return (SubScenario) load(path, filename);
+//    }
 
     /**
      * Saves a human read-able text file that contains input parameters that
@@ -208,7 +258,7 @@ public class ScenarioIO {
      * @return　null if the scenario does not exist in the database. Otherwise,
      * the scenario that is stored in the database
      */
-    public static Scenario checkDatabase(Scenario scenarioToRun) {
+    public static Scenario3 checkDatabase(Scenario scenarioToRun) {
         String fileName = String.format("%d.scen", scenarioToRun.hashCode());
         File covDB = new File(System.getProperty("CoverageDatabase"));
         File file = new File(covDB, fileName);
@@ -227,7 +277,7 @@ public class ScenarioIO {
      * @param scenario the scenario that has already been simulated
      * @return　true if the scenario was successfully saved. else false
      */
-    public static boolean saveToDatabase(Scenario scenario) {
+    public static boolean saveToDatabase(Scenario3 scenario) {
         if (!scenario.isDone()) {
             return false;
         }

@@ -10,25 +10,21 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
-import java.util.Objects;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import orekit.analysis.Analysis;
 import orekit.analysis.CompoundAnalysis;
 import orekit.analysis.ephemeris.OrbitalElementsAnalysis;
-import orekit.analysis.events.EventAnalysis;
-import orekit.analysis.events.EventAnalysis2;
 import orekit.analysis.vectors.VectorAnalysis;
 import orekit.constellations.Walker;
 import orekit.coverage.access.TimeIntervalArray;
 import orekit.coverage.parallel.ParallelCoverage;
 import orekit.object.CoverageDefinition;
+import static orekit.object.CoverageDefinition.GridStyle.*;
 import orekit.object.CoveragePoint;
 import orekit.object.Instrument;
 import orekit.object.Satellite;
-import orekit.object.fieldofview.FOVDetector;
 import orekit.object.fieldofview.NadirRectangularFOV;
 import orekit.object.fieldofview.NadirSimpleConicalFOV;
+import orekit.object.linkbudget.LinkBudget;
 import orekit.propagation.PropagatorFactory;
 import orekit.propagation.PropagatorType;
 import orekit.scenario.Scenario;
@@ -47,7 +43,6 @@ import org.orekit.frames.Frame;
 import org.orekit.frames.FramesFactory;
 import org.orekit.orbits.OrbitType;
 import org.orekit.propagation.SpacecraftState;
-import org.orekit.propagation.events.FieldOfView;
 import org.orekit.time.AbsoluteDate;
 import org.orekit.time.TimeScale;
 import org.orekit.time.TimeScalesFactory;
@@ -96,7 +91,7 @@ public class Orekit {
 
         //Enter satellite orbital parameters
         double a = 6978137.0;
-        double i = FastMath.toRadians(30);
+        double i = FastMath.toRadians(80);
 
         Walker walker = new Walker("walker1", i, 1, 1, 0, a, inertialFrame, startDate, mu);
 
@@ -109,13 +104,12 @@ public class Orekit {
             sat.addInstrument(view1);
         }
 
-        //Coverage definition (collection points, normal, stk collection of points) 
 //        ArrayList<GeodeticPoint> pts = new ArrayList<>();
 //        pts.add(new GeodeticPoint(-0.1745329251994330, 6.0737457969402699, 0.0));
-//        pts.add(new GeodeticPoint(-0.8726646259971650, 3.1415926535897900, 0.0));
+//        pts.add(new GeodeticPoint(-0.8726646259971650,  0.209439510239320, 0.0));
 //        pts.add(new GeodeticPoint(1.5707963267949001, 0.0000000000000000, 0.0));
-//        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", pts, earthShape);
-        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", 6, 0, 20, 0, 20, earthShape);
+//      CoverageDefinition covDef1 = new CoverageDefinition("covdef1", pts, earthShape);
+        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", 6, earthShape, UNIFORM);
 //        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", STKGRID.getPoints6(), earthShape);
 
         covDef1.assignConstellation(walker);
@@ -123,8 +117,8 @@ public class Orekit {
         HashSet<CoverageDefinition> covDefs = new HashSet<>();
         covDefs.add(covDef1);
 
-        PropagatorFactory pf = new PropagatorFactory(PropagatorType.KEPLERIAN, OrbitType.KEPLERIAN);
-//        PropagatorFactory pf = new PropagatorFactory(PropagatorType.NUMERICAL, OrbitType.KEPLERIAN);
+//        PropagatorFactory pf = new PropagatorFactory(PropagatorType.KEPLERIAN, OrbitType.KEPLERIAN);
+        PropagatorFactory pf = new PropagatorFactory(PropagatorType.NUMERICAL, OrbitType.KEPLERIAN);
         double analysisTimeStep = 60;
         ArrayList<Analysis> analysesList = new ArrayList<>();
         analysesList.add(new OrbitalElementsAnalysis(analysisTimeStep));
@@ -146,10 +140,19 @@ public class Orekit {
         });
 
         CompoundAnalysis analyses = new CompoundAnalysis(analysesList);
+        
+        //LINK BUDGET
+        double txPower=0.1;
+        double txGain=1;
+        double rxGain=31622.8;
+        double lambda=0.15;
+        double noiseTemperature=165;
+        double dataRate=50e6;
+        LinkBudget lb=new LinkBudget(txPower, txGain, rxGain, lambda, noiseTemperature, dataRate);
 
-        Scenario2 scen = new Scenario2.Builder(startDate, endDate, utc).
+        Scenario3 scen = new Scenario3.Builder(startDate, endDate, utc).
                 analysis(analyses).covDefs(covDefs).name("test1").numThreads(1).
-                propagatorFactory(pf).saveAllAccesses(true).saveToDB(false).build();
+                propagatorFactory(pf).saveAllAccesses(true).saveToDB(false).linkBudget(lb).build();
         scen.call();
 //        ParallelCoverage pc = new ParallelCoverage();
 //        try {
@@ -159,7 +162,7 @@ public class Orekit {
 //        }
 
 //        Scenario scenComp = new Scenario(pc.loadRunAndSave(new File(path).toPath(), 4));
-       Scenario2 scenComp = scen;
+        Scenario3 scenComp = scen;
 
         System.out.println(String.format("Done Running Scenario %s", scenComp));
 
@@ -194,13 +197,14 @@ public class Orekit {
             System.out.println(String.format("90th gap time %s", gapStats.getPercentile(90)));
 
             ScenarioIO.saveAccess(Paths.get(path, ""), filename, scenComp, cdefToSave);
+            ScenarioIO.saveLinkBudget(Paths.get(path, ""), filename, scenComp, cdefToSave);
         }
 
         System.out.println("Saving scenario...");
 
-//        ScenarioIO.save(Paths.get(path, ""), filename, scenComp);
+        ScenarioIO.save(Paths.get(path, ""), filename, scenComp);
 //        ScenarioIO.saveReadMe(Paths.get(path, ""), filename, scenComp);
-        ScenarioIO.saveAnalyses(Paths.get(path, ""), scenComp);
+//        ScenarioIO.saveAnalyses(Paths.get(path, ""), scenComp);
         long end = System.nanoTime();
         System.out.println("Took " + (end - start) / Math.pow(10, 9) + " sec");
     }

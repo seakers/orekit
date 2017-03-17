@@ -23,7 +23,7 @@ import orekit.analysis.CompoundAnalysis;
 import orekit.analysis.events.EventOccurence;
 import orekit.analysis.events.GValues;
 import orekit.coverage.access.CoverageAccessMerger;
-import orekit.coverage.access.FOVHandler;
+import orekit.events.FOVHandler;
 import orekit.coverage.access.TimeIntervalArray;
 import orekit.object.Constellation;
 import orekit.object.CoverageDefinition;

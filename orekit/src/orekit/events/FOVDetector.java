@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package orekit.object.fieldofview;
+package orekit.events;
 
 import orekit.object.Instrument;
 import org.orekit.errors.OrekitException;
@@ -43,12 +43,12 @@ public class FOVDetector extends AbstractDetector<FOVDetector> {
      * Constructor for the detector. Must use a instrument/target pair. Can set
      * the resolution at which access time is computed
      *
-     * @param target the target to attach the detector to
-     * @param instrument the instrument that will observe the target\
      * @param threshold threshold in seconds that determines the temporal
+     * @param target the target to attach the detector to
+     * @param instrument the instrument that will observe the target
      * resolution of the access times
      */
-    public FOVDetector(TopocentricFrame target, Instrument instrument, double threshold) {
+    public FOVDetector(double threshold, TopocentricFrame target, Instrument instrument) {
         this(DEFAULT_MAXCHECK, threshold, DEFAULT_MAX_ITER,
                 new StopOnIncreasing<>(), target, instrument);
     }

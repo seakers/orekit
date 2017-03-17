@@ -38,12 +38,12 @@ public class OrekitConfig {
      *
      * @param currentDirectory string of the current directory
      */
-    public static void init(String currentDirectory) {
+    public static void init(String currentDirectory) throws IllegalArgumentException {
         StringBuffer pathBuffer = new StringBuffer();
         final File currrentDir = new File(currentDirectory);
         appendIfExists(pathBuffer, new File(currrentDir, "resources"));
         System.setProperty(DataProvidersManager.OREKIT_DATA_PATH, pathBuffer.toString());
-        File covDB = new File(currrentDir, "CoverageDatabase");
+        final File covDB = new File(currrentDir, "CoverageDatabase");
         if (!covDB.isDirectory()) {
             throw new IllegalArgumentException(String.format("Expected coverage database to be a directory. Found %s to not be a directory.", covDB.getAbsolutePath()));
         }

@@ -6,13 +6,13 @@
 package orekit.analysis.events;
 
 import java.util.HashMap;
-import org.orekit.propagation.events.EventDetector;
 
 /**
  *
  * @author SEAK1
  */
 public class GValues<T> extends HashMap<T, Double>{
+    private static final long serialVersionUID = -3164011533551924138L;
     
     @Override
     public String toString() {

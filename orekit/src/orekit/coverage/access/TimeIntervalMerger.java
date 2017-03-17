@@ -6,6 +6,7 @@
 package orekit.coverage.access;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -24,6 +25,10 @@ public class TimeIntervalMerger {
     private final AbsoluteDate head;
     private final AbsoluteDate tail;
     private final int nTotalArrays;
+    
+    public TimeIntervalMerger(TimeIntervalArray array0, TimeIntervalArray array1) {
+        this(Arrays.asList(new TimeIntervalArray[]{array0, array1}));
+    }
 
     public TimeIntervalMerger(Collection<TimeIntervalArray> timeArrays) {
         this.nTotalArrays = timeArrays.size();

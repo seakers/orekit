@@ -5,7 +5,7 @@
  */
 package orekit.scenario;
 
-import orekit.object.fieldofview.FOVDetector;
+import orekit.events.FOVDetector;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -26,7 +26,7 @@ import java.util.logging.Logger;
 import orekit.analysis.Analysis;
 import orekit.analysis.CompoundAnalysis;
 import orekit.coverage.access.CoverageAccessMerger;
-import orekit.coverage.access.FOVHandler;
+import orekit.events.FOVHandler;
 import orekit.coverage.access.TimeIntervalArray;
 import orekit.coverage.parallel.CoverageDivider;
 import orekit.object.Constellation;
@@ -1333,6 +1333,7 @@ public class Scenario implements Callable<Scenario>, Serializable {
                 double cr=0.5;
                 RadiationSensitive spacecraft2 = new IsotropicRadiationSingleCoefficient(crossSection, cr);
                 SolarRadiationPressure model3 = new SolarRadiationPressure(sun,  equatorialRadius,  spacecraft2);
+                prop.addForceModel(model3);
 
                 //set propagator mode
                 if (analysis != null) {

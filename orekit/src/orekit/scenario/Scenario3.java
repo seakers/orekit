@@ -14,58 +14,60 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Objects;
-import java.util.PriorityQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import orekit.analysis.Analysis;
 import orekit.analysis.CompoundAnalysis;
-import orekit.analysis.events.EventOccurence;
-import orekit.analysis.events.GValues;
 import orekit.coverage.access.CoverageAccessMerger;
-import orekit.coverage.access.FOVHandler;
+import orekit.coverage.access.RiseSetTime;
 import orekit.coverage.access.TimeIntervalArray;
+import orekit.coverage.access.TimeIntervalMerger;
+import orekit.events.FOVDetector;
+import orekit.events.HandlerTimeInterval;
+import orekit.events.LBDetector;
+import orekit.events.LBDetector2;
+import orekit.events.LOSDetector;
 import orekit.object.Constellation;
 import orekit.object.CoverageDefinition;
 import orekit.object.CoveragePoint;
 import orekit.object.Instrument;
 import orekit.object.Satellite;
+import orekit.object.linkbudget.LinkBudget;
 import orekit.propagation.PropagatorFactory;
 import orekit.propagation.PropagatorType;
-import org.hipparchus.analysis.UnivariateFunction;
-import org.hipparchus.analysis.solvers.BracketedUnivariateSolver;
-import org.hipparchus.analysis.solvers.BracketingNthOrderBrentSolver;
-import org.hipparchus.exception.MathRuntimeException;
-import org.hipparchus.geometry.euclidean.threed.Rotation;
-import org.hipparchus.geometry.euclidean.threed.Vector3D;
 import org.hipparchus.linear.Array2DRowRealMatrix;
-import org.hipparchus.linear.ArrayRealVector;
-import org.hipparchus.linear.MatrixUtils;
 import org.hipparchus.linear.RealMatrix;
-import org.hipparchus.linear.RealVector;
+import org.hipparchus.ode.nonstiff.AdaptiveStepsizeIntegrator;
+import org.hipparchus.ode.nonstiff.DormandPrince853Integrator;
 import org.hipparchus.util.FastMath;
 import org.orekit.bodies.BodyShape;
+import org.orekit.bodies.CelestialBody;
+import org.orekit.bodies.CelestialBodyFactory;
 import org.orekit.bodies.GeodeticPoint;
 import org.orekit.errors.OrekitException;
-import org.orekit.errors.OrekitExceptionWrapper;
-import org.orekit.errors.OrekitInternalError;
+import org.orekit.forces.drag.Atmosphere;
+import org.orekit.forces.drag.DTM2000;
+import org.orekit.forces.drag.DTM2000InputParameters;
+import org.orekit.forces.drag.DragForce;
+import org.orekit.forces.drag.DragSensitive;
+import org.orekit.forces.drag.IsotropicDrag;
+import org.orekit.forces.drag.MarshallSolarActivityFutureEstimation;
+import org.orekit.forces.gravity.ThirdBodyAttraction;
+import org.orekit.forces.radiation.IsotropicRadiationSingleCoefficient;
+import org.orekit.forces.radiation.RadiationSensitive;
+import org.orekit.forces.radiation.SolarRadiationPressure;
 import org.orekit.frames.Frame;
 import org.orekit.frames.FramesFactory;
-import org.orekit.frames.TopocentricFrame;
-import org.orekit.frames.Transform;
-import org.orekit.orbits.Orbit;
 import org.orekit.orbits.OrbitType;
+import org.orekit.orbits.PositionAngle;
 import org.orekit.propagation.Propagator;
 import org.orekit.propagation.SpacecraftState;
-import org.orekit.propagation.sampling.OrekitStepInterpolator;
+import org.orekit.propagation.events.handlers.EventHandler;
+import org.orekit.propagation.numerical.NumericalPropagator;
 import org.orekit.time.AbsoluteDate;
 import org.orekit.time.TimeScale;
 import org.orekit.utils.Constants;
-import org.orekit.utils.PVCoordinatesProvider;
-import org.orekit.utils.TimeStampedPVCoordinates;
 
 /**
  * Stores information about the scenario or simulation including information of
@@ -136,6 +138,11 @@ public class Scenario3 implements Callable<Scenario3>, Serializable {
     private final HashMap<CoverageDefinition, HashMap<CoveragePoint, TimeIntervalArray>> finalAccesses;
 
     /**
+     * This object stores all the merged link budget intervals for each point for each
+     * coverage definition
+     */
+    private final HashMap<CoverageDefinition, HashMap<CoveragePoint, TimeIntervalArray>> linkBudgetIntervals;
+    /**
      * flag to keep track of whether the simulation is done
      */
     private boolean isDone;
@@ -163,16 +170,6 @@ public class Scenario3 implements Callable<Scenario3>, Serializable {
     private final int numThreads;
 
     /**
-     * Collection of future tasks to propagate
-     */
-    private final ArrayList<Future<PropagateTask>> futureTasks;
-
-    /**
-     * Object to merge the access from several satellite propagations
-     */
-    private final CoverageAccessMerger accessMerger;
-
-    /**
      * A set of analyses in which values are recorded during the simulation at
      * fixed time steps
      */
@@ -187,6 +184,8 @@ public class Scenario3 implements Callable<Scenario3>, Serializable {
      * The minimum radius of the earth (north-south direction)
      */
     private final double minRadius = Constants.WGS84_EARTH_EQUATORIAL_RADIUS * (1 - Constants.WGS84_EARTH_FLATTENING);
+    
+    private final LinkBudget linkBudget;
 
     /**
      * Creates a new scenario.
@@ -207,11 +206,12 @@ public class Scenario3 implements Callable<Scenario3>, Serializable {
      * scenario
      * @param numThreads number of threads to uses in parallelization of the
      * scenario by dividing up the coverage grid points across multiple threads
+     * @param linkBudget link budget params provider
      */
     public Scenario3(String name, AbsoluteDate startDate, AbsoluteDate endDate,
             TimeScale timeScale, Frame inertialFrame, PropagatorFactory propagatorFactory,
             HashSet<CoverageDefinition> covDefs, boolean saveAllAccesses,
-            boolean saveToDB, Analysis analyses, int numThreads) {
+            boolean saveToDB, Analysis analyses, int numThreads, LinkBudget linkBudget) {
         this.scenarioName = name;
         this.startDate = startDate;
         this.endDate = endDate;
@@ -230,6 +230,7 @@ public class Scenario3 implements Callable<Scenario3>, Serializable {
         this.uniqueConstellations = new HashSet<>();
         this.uniqueSatellites = new HashSet<>();
         this.finalAccesses = new HashMap<>();
+        this.linkBudgetIntervals = new HashMap<>();
         includeCovDef(covDefs);
 
         this.analyses = analyses;
@@ -240,112 +241,7 @@ public class Scenario3 implements Callable<Scenario3>, Serializable {
 
         this.isDone = false;
         this.numThreads = numThreads;
-        this.accessMerger = new CoverageAccessMerger();
-        this.futureTasks = new ArrayList<>();
-    }
-
-    /**
-     * Constructor that merges a collection of subscenarios previously run in
-     * parallel into their parent Scenario
-     *
-     * @param subscenarios the collection of subscenarios that we want to merge
-     * into the parents scenario
-     * @throws java.lang.IllegalArgumentException
-     */
-    public Scenario3(Collection<SubScenario> subscenarios) throws IllegalArgumentException {
-        this(subscenarios.iterator().next().getParentScenarioName(),
-                subscenarios.iterator().next().getStartDate(),
-                subscenarios.iterator().next().getEndDate(),
-                subscenarios.iterator().next().getTimeScale(),
-                subscenarios.iterator().next().getFrame(),
-                subscenarios.iterator().next().getPropagatorFactory(),
-                new HashSet<>(),
-                subscenarios.iterator().next().isSaveAllAccesses(),
-                false,
-                new CompoundAnalysis(subscenarios.iterator().next().getAnalyses()), 1);
-        /*
-         Check if all the subscenarios are run and all come from the same Parent Scenario. 
-         Otherwise throw an Exception
-         */
-        SubScenario ref = subscenarios.iterator().next();
-
-        int scenHash = ref.getParentScenarioHash();
-        BitSet subscenSet = new BitSet(ref.getTotalSubscenarios());
-        for (SubScenario subscenario : subscenarios) {
-            if (!subscenario.isDone()) {
-                throw new IllegalArgumentException(String.format("Subscenario %s are not run yet", subscenario.getName()));
-            }
-            if (scenHash != subscenario.getParentScenarioHash()) {
-                throw new IllegalArgumentException("The subscenarios are from different Parent Scenarios");
-            }
-            if (subscenSet.get(subscenario.getSubscenarioID())) {
-                throw new IllegalArgumentException(String.format("Found a duplicate subscenario: %s.", subscenario));
-            } else {
-                subscenSet.set(subscenario.getSubscenarioID());
-            }
-        }
-        //check that all subscenarios have been provided to recreate original scenario
-        if (subscenSet.cardinality() != ref.getTotalSubscenarios()) {
-            String str = "{";
-            for (int i = subscenSet.nextSetBit(0); i >= 0; i = subscenSet.nextSetBit(i + 1)) {
-                str += String.format("%d ", i);
-            }
-            throw new IllegalArgumentException(String.format("Missing the following subscenarios %s}", str));
-        }
-
-        /*
-         For every subscenario, we get its stored Accesses and merge them all in 
-         the Parent Scenario Accesses Hashmap (psa)
-         */
-        HashMap<Integer, HashMap<CoveragePoint, TimeIntervalArray>> allCovDefs = new HashMap<>();
-        HashMap<Integer, String> allCovDefNames = new HashMap<>();
-        HashMap<Integer, Collection<Constellation>> allCovDefConstels = new HashMap<>();
-        ArrayList<CoveragePoint> pts2 = new ArrayList<>();
-        for (SubScenario subscenario : subscenarios) {
-            CoverageDefinition partCovDef = subscenario.getPartialCoverageDefinition();
-            pts2.addAll(partCovDef.getPoints());
-            int covHash = subscenario.getOrigCovDefHash();
-            if (!allCovDefs.containsKey(covHash)) {
-                allCovDefs.put(covHash, new HashMap<>());
-                allCovDefNames.put(covHash, subscenario.getOrigCovDefName());
-                allCovDefConstels.put(covHash, partCovDef.getConstellations());
-            }
-            allCovDefs.get(covHash).putAll(subscenario.getMergedAccesses(partCovDef));
-
-            if (saveAllAccesses) {
-                allAccesses.putAll(subscenario.getAllAccesses());
-            }
-        }
-
-        //create new coverage definitions
-        HashSet<CoverageDefinition> coverageDefinitions = new HashSet<>(allCovDefs.keySet().size());
-        HashMap<CoverageDefinition, Integer> covDefToHash = new HashMap<>(allCovDefs.keySet().size());
-        for (Integer i : allCovDefs.keySet()) {
-            String name = allCovDefNames.get(i);
-            Collection<CoveragePoint> pts = new HashSet(allCovDefs.get(i).keySet());
-            CoverageDefinition cov = new CoverageDefinition(name, pts);
-            cov.assignConstellation(allCovDefConstels.get(i));
-            coverageDefinitions.add(cov);
-            covDefToHash.put(cov, i);
-        }
-        includeCovDef(coverageDefinitions);
-        //collect the merged accesses from each coverage point
-        for (CoverageDefinition cdef : finalAccesses.keySet()) {
-            HashMap<CoveragePoint, TimeIntervalArray> accesses = allCovDefs.get(covDefToHash.get(cdef));
-            finalAccesses.get(cdef).putAll(accesses);
-        }
-
-        //collect the computed analyses
-        for (SubScenario subscenario : subscenarios) {
-            for (Analysis analysis : subscenario.getAnalyses()) {
-                includeAnalysis(analysis);
-                for (Satellite sat : subscenario.getUniqueSatellites()) {
-                    analysisResults.get(analysis).put(sat, subscenario.getAnalysisResult(analysis, sat));
-                }
-            }
-        }
-
-        this.isDone = true;
+        this.linkBudget=linkBudget;
     }
 
     /**
@@ -366,7 +262,7 @@ public class Scenario3 implements Callable<Scenario3>, Serializable {
         this(s.getName(), s.getStartDate(), s.getEndDate(), s.getTimeScale(),
                 s.getFrame(), s.getPropagatorFactory(),
                 s.getCoverageDefinitions(), s.isSaveAllAccesses(),
-                s.isSaveToDB(), new CompoundAnalysis(s.getAnalyses()), 1);
+                s.isSaveToDB(), new CompoundAnalysis(s.getAnalyses()),1,s.getLinkBudget());
         this.finalAccesses.putAll(finalAccesses);
         this.allAccesses = allAccesses;
         this.analysisResults.putAll(analysisResults);
@@ -494,6 +390,8 @@ public class Scenario3 implements Callable<Scenario3>, Serializable {
          * satellites should be saved to the coverage database
          */
         private boolean saveToDB = false;
+        
+        private LinkBudget linkBudget;
 
         /**
          * The constructor for the builder
@@ -608,6 +506,11 @@ public class Scenario3 implements Callable<Scenario3>, Serializable {
             this.saveToDB = bool;
             return this;
         }
+        public Builder linkBudget(LinkBudget linkBudget) {
+            this.linkBudget = linkBudget;
+            return this;
+        }
+        
 
         /**
          * Builds an instance of a scenario with all the specified parameters.
@@ -615,7 +518,7 @@ public class Scenario3 implements Callable<Scenario3>, Serializable {
          * @return
          */
         public Scenario3 build() {
-            return new Scenario3(scenarioName, startDate, endDate, timeScale, inertialFrame, propagatorFactory, covDefs, saveAllAccesses, saveToDB, analyses, numThreads);
+            return new Scenario3(scenarioName, startDate, endDate, timeScale, inertialFrame, propagatorFactory, covDefs, saveAllAccesses, saveToDB, analyses, numThreads,linkBudget);
         }
     }
 
@@ -633,7 +536,7 @@ public class Scenario3 implements Callable<Scenario3>, Serializable {
         out.analysis(analyses).covDefs(covDefs).frame(inertialFrame)
                 .name(scenarioName).numThreads(numThreads)
                 .propagatorFactory(propagatorFactory)
-                .saveAllAccesses(saveAllAccesses).saveToDB(saveToDB);
+                .saveAllAccesses(saveAllAccesses).saveToDB(saveToDB).linkBudget(linkBudget);
         return out;
     }
 
@@ -655,8 +558,6 @@ public class Scenario3 implements Callable<Scenario3>, Serializable {
         System.out.println(String.format("Running scenario: %s...", this));
         if (!isDone) {
             for (CoverageDefinition cdef : covDefs) {
-                //first propagate all points at a fixed time step
-                double stepSize = 60;
                 //build initial position vector matrix that can be reused by rotation matrix
 
                 //mapping of points to some id number to keep track of which
@@ -686,48 +587,177 @@ public class Scenario3 implements Callable<Scenario3>, Serializable {
                 for (Satellite sat : uniqueSatsAssignedToCovDef.get(cdef)) {
                     //before propagation, check that the satellite's propagation for this coverage definition is not stored in database
                     HashMap<CoveragePoint, TimeIntervalArray> satAccesses = new HashMap<>(cdef.getNumberOfPoints());
+                    HashMap<CoveragePoint, TimeIntervalArray> satlinkBudgetIntervals = new HashMap<>(cdef.getNumberOfPoints());
                     for (CoveragePoint pt : points) {
                         satAccesses.put(pt, new TimeIntervalArray(startDate, endDate));
+                        satlinkBudgetIntervals.put(pt, new TimeIntervalArray(startDate, endDate));
                     }
                     System.out.println(String.format("Initiating %d propagation tasks", numThreads));
 
-                    Propagator prop = propagatorFactory.createPropagator(sat.getOrbit(), sat.getGrossMass());
+                    Propagator prop;
+                    
+                    if (propagatorFactory.getPropType().equals(PropagatorType.KEPLERIAN) || propagatorFactory.getPropType().equals(PropagatorType.J2)){
+                        
+                        prop = propagatorFactory.createPropagator(sat.getOrbit(), sat.getGrossMass());
+                    
+                    }else if (propagatorFactory.getPropType().equals(PropagatorType.NUMERICAL)){
+                        
+                        //set integrator steps and tolerances
+                        final double dP       = 0.001;
+                        final double minStep  = 0.001;
+                        final double maxStep  = 1000;
+                        final double initStep = 60;
+        //                final double[][] tolerance = NumericalPropagator.tolerances(dP, orbit, orbit.getType());
+                        final double[][] tolerance = NumericalPropagator.tolerances(dP, sat.getOrbit(), OrbitType.EQUINOCTIAL);
+                        double[] absTolerance = tolerance[0];
+                        double[] relTolerance = tolerance[1];
+        //                double[] absTolerance = {0.001, 1.0e-9, 1.0e-9, 1.0e-6, 1.0e-6, 1.0e-6, 0.001};
+        //                double[] relTolerance = {1.0e-7, 1.0e-4, 1.0e-4, 1.0e-7, 1.0e-7, 1.0e-7, 1.0e-7};
 
-                    double simulationDuration = endDate.durationFrom(startDate);
-                    HashMap<CoveragePoint, Double> prevGVals = new HashMap<>();
+                        //create integrator object and set some propoerties
+                        AdaptiveStepsizeIntegrator integrator = new DormandPrince853Integrator(minStep, maxStep, absTolerance,relTolerance);
+                        integrator.setInitialStepSize(initStep);
+                        prop = propagatorFactory.createPropagator(integrator);
+                        SpacecraftState initialState=new SpacecraftState(sat.getOrbit());
+                        ((NumericalPropagator)prop).setInitialState(initialState);
+                        ((NumericalPropagator)prop).setMu(Constants.WGS84_EARTH_MU);
+                        ((NumericalPropagator)prop).setOrbitType(propagatorFactory.getOrbitType());
+                        ((NumericalPropagator)prop).setPositionAngleType(PositionAngle.TRUE);
+
+                        //We now add the drag model (DTM2000 model)
+//                        CelestialBody sun  = CelestialBodyFactory.getSun();
+//                        BodyShape earth = points.iterator().next().getParentShape();
+//                        String supportedNames = "(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\\p{Digit}\\p{Digit}\\p{Digit}\\p{Digit}F10\\.(?:txt|TXT)";
+//                        MarshallSolarActivityFutureEstimation.StrengthLevel strengthlevel = MarshallSolarActivityFutureEstimation.StrengthLevel.AVERAGE;
+//                        DTM2000InputParameters parameters = new MarshallSolarActivityFutureEstimation(supportedNames,strengthlevel);
+//                        Atmosphere atmosphere=new DTM2000(parameters, sun, earth);
+//                        double crossSection=100;
+//                        double dragCoeff=2;
+//                        DragSensitive spacecraft = new IsotropicDrag(crossSection,dragCoeff);
+//                        DragForce model = new DragForce(atmosphere, spacecraft);
+//                        ((NumericalPropagator)prop).addForceModel(model);
+
+                        //We now add the drag model (Harris Priester model)
+        //                CelestialBody sun  = CelestialBodyFactory.getSun();
+        //                OneAxisEllipsoid earth = (OneAxisEllipsoid) points.iterator().next().getParentShape();
+        //                Atmosphere atmosphere=new HarrisPriester(sun, earth);
+        //                double crossSection=100;
+        //                double dragCoeff=2;
+        //                DragSensitive spacecraft = new IsotropicDrag(crossSection,dragCoeff);
+        //                DragForce model = new DragForce(atmosphere, spacecraft);
+        //                prop.addForceModel(model);
+                        
+                        //We now add the third body attraction model
+//                        CelestialBody moon = CelestialBodyFactory.getMoon();
+//                        ThirdBodyAttraction model2 = new ThirdBodyAttraction(moon);
+//                        ((NumericalPropagator)prop).addForceModel(model2);
+//
+//                        //We now add the solar radiation pressure model
+//                        double equatorialRadius=Constants.WGS84_EARTH_EQUATORIAL_RADIUS;
+//                        double cr=0.5;
+//                        RadiationSensitive spacecraft2 = new IsotropicRadiationSingleCoefficient(crossSection, cr);
+//                        SolarRadiationPressure model3 = new SolarRadiationPressure(sun,  equatorialRadius,  spacecraft2);
+//                        ((NumericalPropagator)prop).addForceModel(model3);
+                        
+                    }else{
+                            throw new IllegalArgumentException(String.format("Propagator type of "
+                            + "satelite %s is not supported. "
+                            + "Propagator found: %s", sat.toString(),
+                            propagatorFactory.getPropType()));
+                    }
+
+                    //take large steps to find when there is line of sight
+                    double losStepSize = sat.getOrbit().getKeplerianPeriod() / 10;
+                    //take small steps to find when points are in field of view
+                    double fovStepSize = sat.getOrbit().getKeplerianPeriod() / 50000;
+                    double lbStepSize=fovStepSize/100;
+                    SpacecraftState initialState=new SpacecraftState(sat.getOrbit());
                     for (Instrument inst : sat.getPayload()) {
-                        for (double time = 0; time < simulationDuration; time += stepSize) {
-                            AbsoluteDate currentDate = startDate.shiftedBy(time);
-                            SpacecraftState s = prop.propagate(currentDate);
-                            HashMap<CoveragePoint, Double> gVals = getGVals(s, inst, cdef.getPlanetShape(), initPointPos, pointColMap);
-                            PriorityQueue<Event> eventRoots = findEvents(prevGVals, time - stepSize, gVals, time, prop, inst, cdef.getPlanetShape(), initPointPos, pointColMap);
-                            //find all roots in this time step
-                            eventLoop:
-                            while (!eventRoots.isEmpty()) {
-                                // handle the chronologically first event
-                                Event currentEvent = eventRoots.poll();
-                                // try to advance all points to current time
-                                for (Event event : eventRoots) {
-                                    PriorityQueue<Event> newRoots = findEvents(prevGVals, time - stepSize, event.val, time, prop, inst, cdef.getPlanetShape(), initPointPos, pointColMap);
-                                    if (event != currentEvent && !newRoots.isEmpty()) {
-                                        // we need to handle another event first
-                                        // add event back to update its position in the heap
-                                        eventRoots.add(currentEvent);
-                                        // re-queue the event we were processing
-                                        eventRoots.addAll(newRoots);
-                                        continue eventLoop;
-                                    }
+                        for (CoveragePoint pt : points) {
+
+                            //First find all intervals with line of sight.
+                            //SpacecraftState initialState=new SpacecraftState(sat.getOrbit());
+                            prop.resetInitialState(initialState);
+                            HandlerTimeInterval losHandler = new HandlerTimeInterval(startDate, endDate);
+                            LOSDetector losDetec = new LOSDetector(losStepSize, 1.0, pt, cdef.getPlanetShape(), inertialFrame);
+                            prop.addEventDetector(losDetec.withHandler(losHandler));
+                            prop.propagate(startDate, endDate);
+                            prop.clearEventsDetectors();
+
+                            if(losHandler.getTimeArray().isEmpty()){
+                                continue;
+                            }
+
+                            //Next search through intervals with line of sight to compute when point is in field of view
+                            prop.resetInitialState(initialState);
+                            HandlerTimeInterval fovHandler = new HandlerTimeInterval(startDate, endDate, EventHandler.Action.STOP);
+                            FOVDetector fovDetec = new FOVDetector(fovStepSize,pt, inst);
+                            prop.addEventDetector(fovDetec.withHandler(fovHandler));
+                            
+                            double date0 = 0;
+                            double date1 = Double.NaN;
+                            for (RiseSetTime interval : losHandler.getTimeArray()) {
+                                if (interval.isRise()) {
+                                    date0 = interval.getTime();
+                                } else {
+                                    date1 = interval.getTime();
                                 }
 
-                                // all points agree we can advance to the current event time
-                                //If the current value and the previous value have different signs, then record sign change
-                                if (currentEvent.getRising()) {
-                                    satAccesses.get(currentEvent.getPoint()).addRiseTime(currentEvent.getTime());
-                                } else {
-                                    satAccesses.get(currentEvent.getPoint()).addSetTime(currentEvent.getTime());
+                                if (!Double.isNaN(date1)) {
+                                    //first propagation will find the start time when the point is in the field of view
+                                    //prop.resetInitialState(losHandler.getInitialState(startDate.shiftedBy(date0)));
+                                    SpacecraftState s = prop.propagate(startDate.shiftedBy(date0), startDate.shiftedBy(date1));
+                                    
+                                    //prop.resetInitialState(s);
+                                    //second propagation will find the end time when the point is in the field of view
+                                    prop.propagate(s.getDate(), startDate.shiftedBy(date1));
+                                    date1 = Double.NaN;
                                 }
                             }
-                            prevGVals = gVals;
+//                            prop.clearEventsDetectors();
+//                            if(fovHandler.getTimeArray().isEmpty()){
+//                                continue;
+//                            }
+//                            
+//                            //Next search through intervals with line of sight to compute when point closes the link budget 
+//                            HandlerTimeInterval LBHandler = new HandlerTimeInterval(startDate, endDate, EventHandler.Action.STOP);
+//                            LBDetector2 LBDetec = new LBDetector2(lbStepSize,pt, linkBudget).withHandler(LBHandler);
+//                            prop.addEventDetector(LBDetec);
+//                            double date00 = 0;
+//                            double date11 = Double.NaN;
+//                            for (RiseSetTime interval : losHandler.getTimeArray()) {
+//                                if (interval.isRise()) {
+//                                    date00 = interval.getTime();
+//                                } else {
+//                                    date11 = interval.getTime();
+//                                }
+//
+//                                if (!Double.isNaN(date11)) {
+//                                    //first propagation will find the start time when the point closes the link budget
+//                                    //prop.resetInitialState(losHandler.getInitialState(startDate.shiftedBy(date00)));
+//                                    SpacecraftState s = prop.propagate(startDate.shiftedBy(date00), startDate.shiftedBy(date11));
+//                                    
+//                                    //prop.resetInitialState(s);
+//                                    //second propagation will find the end time when the point closes the link budget
+//                                    prop.propagate(s.getDate(), startDate.shiftedBy(date11));
+//                                    date11 = Double.NaN;
+//                                }
+//                            }
+//                            HandlerTimeInterval LBHandler = new HandlerTimeInterval(startDate, endDate);
+//                            LBDetector2 LBDetec = new LBDetector2(lbStepSize,pt, linkBudget).withHandler(LBHandler);
+//                            prop.addEventDetector(LBDetec);
+//                            prop.propagate(startDate, endDate);
+                            
+                            
+                            prop.clearEventsDetectors();
+                            
+                            TimeIntervalMerger merger = new TimeIntervalMerger(satAccesses.get(pt),fovHandler.getTimeArray());
+                            satAccesses.put(pt, merger.orCombine().createImmutable());
+                            
+                            //merger2 ha de tenir tant els LB intervals com els acceses intervals
+//                            TimeIntervalMerger merger2 = new TimeIntervalMerger(satAccesses.get(pt),LBHandler.getTimeArray());
+//                            satlinkBudgetIntervals.put(pt, merger2.andCombine().createImmutable());
+                            
                         }
                     }
                     //save the satellite accesses 
@@ -738,16 +768,28 @@ public class Scenario3 implements Callable<Scenario3>, Serializable {
                     //merge the time accesses across all satellite for each coverage definition
                     if (finalAccesses.containsKey(cdef)) {
                         HashMap<CoveragePoint, TimeIntervalArray> mergedAccesses
-                                = accessMerger.mergeCoverageDefinitionAccesses(finalAccesses.get(cdef), satAccesses, false);
+                                = CoverageAccessMerger.mergeCoverageDefinitionAccesses(finalAccesses.get(cdef), satAccesses, false);
                         finalAccesses.put(cdef, mergedAccesses);
                     } else {
                         finalAccesses.put(cdef, satAccesses);
+                    }
+                    //merge the link budget intervals across all satellite for each coverage definition
+                    if (linkBudgetIntervals.containsKey(cdef)) {
+                        HashMap<CoveragePoint, TimeIntervalArray> mergedLinkBudgetIntervals
+                                = CoverageAccessMerger.mergeCoverageDefinitionAccesses(linkBudgetIntervals.get(cdef), satlinkBudgetIntervals, false);
+                        linkBudgetIntervals.put(cdef, mergedLinkBudgetIntervals);
+                    } else {
+                        linkBudgetIntervals.put(cdef, satlinkBudgetIntervals);
                     }
                 }
 
                 //Make all time intervals stored in finalAccesses immutable
                 for (CoveragePoint pt : finalAccesses.get(cdef).keySet()) {
                     finalAccesses.get(cdef).put(pt, finalAccesses.get(cdef).get(pt).createImmutable());
+                }
+                //Make all link budget intervals stored in finalAccesses immutable
+                for (CoveragePoint pt : linkBudgetIntervals.get(cdef).keySet()) {
+                    linkBudgetIntervals.get(cdef).put(pt, linkBudgetIntervals.get(cdef).get(pt).createImmutable());
                 }
             }
 
@@ -760,248 +802,6 @@ public class Scenario3 implements Callable<Scenario3>, Serializable {
     }
 
     /**
-     * This method returns a rotation matrix that will transform vectors v1 and
-     * v2 to point toward nadir and the vector that is normal to the orbital
-     * plane, respectively. Normal vector is used instead of the velocity vector
-     * because the velocity vector and nadir vector may not be orthogonal
-     *
-     * @param v1 Vector to line up with nadir
-     * @param v2 Vector to line up with the velocity vector
-     * @param s the current spacecraft state
-     * @param shape the shape of the body to define nadir direction
-     * @return
-     * @throws OrekitException
-     */
-    private Rotation alignWithNadirAndNormal(Vector3D v1, Vector3D v2,
-            final SpacecraftState s, final BodyShape shape) throws OrekitException {
-
-        Frame frame = s.getFrame();
-
-        //transform from specified reference frame to body frame
-        final Transform refToBody = frame.getTransformTo(shape.getBodyFrame(), s.getDate());
-
-        //Gets the nadir pointing vector at the current spacecraft state in reference frame. 
-        //This method is based on the nadir pointing law NadirPointing
-        final Vector3D satInBodyFrame = refToBody.transformPosition(s.getPVCoordinates().getPosition());
-        // satellite position in geodetic coordinates
-        final GeodeticPoint gpSat = shape.transform(satInBodyFrame, shape.getBodyFrame(), s.getDate());
-        // nadir position in geodetic coordinates
-        final GeodeticPoint gpNadir = new GeodeticPoint(gpSat.getLatitude(), gpSat.getLongitude(), 0.0);
-        // nadir point position in body frame
-        final Vector3D pNadirBody = shape.transform(gpNadir);
-        // nadir point position in reference frame
-        final Vector3D pNadirRef = refToBody.getInverse().transformPosition(pNadirBody);
-        TimeStampedPVCoordinates nadirPosRefPV = new TimeStampedPVCoordinates(s.getDate(), pNadirRef, Vector3D.ZERO, Vector3D.ZERO);
-        Vector3D nadirPosRef = nadirPosRefPV.getPosition();
-        final Vector3D nadirRef = nadirPosRef.subtract(s.getPVCoordinates(frame).getPosition()).normalize();
-        Vector3D velRef = s.getPVCoordinates(frame).getVelocity().normalize();
-        Vector3D orbitNormal = nadirRef.crossProduct(velRef).normalize();
-        return new Rotation(nadirRef, orbitNormal, v1, v2);
-    }
-
-    /**
-     * Computes the gvalues for each coverage point given the spacecraft state,
-     * the initial position of the coverage points, the body shape, and the
-     * instrument. The points are propagated in time to the same date as the
-     * given spacecraft state.
-     *
-     * @param s the spacecraft state
-     * @param inst the instrument to analyze
-     * @param body The shape of the body which the spacecraft orbits
-     * @param initPointPos the initial position of the points in the inertial
-     * frame
-     * @param pointColMap the mapping between the points and the columns in
-     * initPointPos
-     * @return The gvalues at each point. Positive values means that the point
-     * is in the field of view.
-     * @throws OrekitException
-     */
-    private HashMap<CoveragePoint, Double> getGVals(SpacecraftState s, Instrument inst, BodyShape body, RealMatrix initPointPos, HashMap<CoveragePoint, Integer> pointColMap) throws OrekitException {
-        // The spacecraft position in the inertial frame
-        RealVector satPosInert = new ArrayRealVector(s.getPVCoordinates().getPosition().toArray());
-        RealVector satPosInertNorm = satPosInert.copy().mapDivideToSelf(satPosInert.getNorm());
-        //The normalized position vectors of the points in the inertial frame
-        RealMatrix ptPosInertNorm = MatrixUtils.createRealMatrix(3, pointColMap.size());
-        //The vector between the satellite and point position in the inertial frame
-        RealMatrix sat2ptLineInert = MatrixUtils.createRealMatrix(3, pointColMap.size());
-
-        //rotate points from rotating body shape frame to inertial frame
-        RealMatrix pointRotation1 = new Array2DRowRealMatrix(body.getBodyFrame().
-                getTransformTo(inertialFrame, s.getDate()).
-                getRotation().getMatrix());
-        RealMatrix ptPosInert = pointRotation1.multiply(initPointPos);
-
-        for (int coli = 0; coli < ptPosInert.getColumnDimension(); coli++) {
-            ptPosInertNorm.setColumnVector(coli, ptPosInert.getColumnVector(coli).mapDivideToSelf(ptPosInert.getColumnVector(coli).getNorm()));
-            sat2ptLineInert.setColumnVector(coli, ptPosInert.getColumnVector(coli).subtract(satPosInert));
-        }
-        RealVector cosThetas = ptPosInertNorm.preMultiply(satPosInertNorm);
-
-        //the mininum cos(theta) value required for line of sight
-        double minCosTheta = minRadius / s.getA();
-
-        //rot is rotation matrix from inertial frame to spacecraft body-nadir-pointing frame
-        Rotation rot = alignWithNadirAndNormal(Vector3D.PLUS_K, Vector3D.PLUS_J, s, body);
-        RealMatrix rotMatrix = new Array2DRowRealMatrix(rot.getMatrix());
-        //line of sight vectors in spacecraft frame
-        RealMatrix losSC = rotMatrix.multiply(sat2ptLineInert);
-
-        HashMap<CoveragePoint, Double> gValMap = new HashMap<>(pointColMap.size());
-        for (CoveragePoint pt : pointColMap.keySet()) {
-            //check if satellite has line of sight. losVal > 0 means that sat has line of sight
-            int col = pointColMap.get(pt);
-            double losVal = cosThetas.getEntry(col) - minCosTheta;
-            if (losVal < 0) {
-                gValMap.put(pt, losVal);
-            } else {
-                gValMap.put(pt, -inst.getFOV().offsetFromBoundary((new Vector3D(losSC.getColumn(col)))));
-            }
-        }
-        return gValMap;
-    }
-
-    /**
-     * Finds when the event occurs by using a root finding interpolator. Find a
-     * root in a bracketing interval. When calling this method one of the
-     * following must be true. Either ga == 0, gb == 0, (ga < 0  and gb > 0), or
-     * (ga > 0 and gb < 0).
-     *
-     * @param previousVal previous gvalues at ta
-     * @param ta beginning of time interval (in epoch seconds)
-     * @param currentVal current gvalues at tb
-     * @param tb end of time interval (in epoch seconds)
-     * @return A collection of gvalues and whether the gvalue is increasing or
-     * decreasing after an event (if the event did not occur for a point then it
-     * is neither).
-     */
-    private PriorityQueue<Event> findEvents(HashMap<CoveragePoint, Double> previousVal, double ta,
-            HashMap<CoveragePoint, Double> currentVal, double tb,
-            final Propagator prop, final Instrument inst, final BodyShape body, final RealMatrix initPointPos, final HashMap<CoveragePoint, Integer> pointColMap) throws OrekitException {
-        //stores the root found when the event occured
-        PriorityQueue<Event> eventRoots = new PriorityQueue<>();
-        for (CoveragePoint pt : currentVal.keySet()) {
-            Double ga = previousVal.get(pt);
-            double gb = currentVal.get(pt);
-
-            //If the current value and the previous value have different signs, then record sign change and event occured between ta and tb
-            if (ga != null && FastMath.signum(ga) != FastMath.signum(gb)) {
-
-                // check there appears to be a root in [ta, tb]
-                check(ga == 0.0 || gb == 0.0 || (ga > 0.0 && gb < 0.0) || (ga < 0.0 && gb > 0.0));
-
-                final double convergence = 0.01;
-                final int maxIterationCount = 100;
-                final BracketedUnivariateSolver<UnivariateFunction> solver
-                        = new BracketingNthOrderBrentSolver(0, convergence, 0, 5);
-
-                // event time, just at or before the actual root.
-                double beforeRootT = Double.NaN;
-                double beforeRootG = Double.NaN;
-                // time on the other side of the root.
-                // Initialized the the loop below executes once.
-                double afterRootT = ta;
-                double afterRootG = 0.0;
-                HashMap<CoveragePoint, Double> afterRootGVals = null;
-
-                // check for some conditions that the root finders don't like
-                // these conditions cannot not happen in the loop below
-                // the ga == 0.0 case is handled by the loop below
-                if (ga != 0.0 && gb == 0.0) {
-                    // hard: ga != 0.0 and gb == 0.0
-                    // look past gb by up to convergence to find next sign
-                    // throw an exception if g(t) = 0.0 in [tb, tb + convergence]
-                    beforeRootT = tb;
-                    beforeRootG = gb;
-                    afterRootT = beforeRootT + convergence;
-                    afterRootGVals = getGVals(prop.propagate(startDate.shiftedBy(afterRootT)), inst, body, initPointPos, pointColMap);
-                    afterRootG = afterRootGVals.get(pt);
-                }
-
-                // loop to skip through "fake" roots, i.e. where g(t) = g'(t) = 0.0
-                // executed once if we didn't hit a special case above
-                double loopT = ta;
-                double loopG = ga;
-                boolean g0Positive = ga > 0.0;
-                while ((afterRootG == 0.0 || afterRootG > 0.0 == g0Positive)
-                        && afterRootT < tb) {
-
-                    final RealMatrix pointPos = initPointPos.getColumnMatrix(pointColMap.get(pt));
-                    final HashMap<CoveragePoint, Integer> map = new HashMap<>();
-                    map.put(pt, 0);
-
-                    if (loopG == 0.0) {
-                        // ga == 0.0 and gb may or may not be 0.0
-                        // handle the root at ta first
-                        beforeRootT = loopT;
-                        beforeRootG = loopG;
-                        afterRootT = FastMath.min(beforeRootT + convergence, tb);
-                        afterRootGVals = getGVals(prop.propagate(startDate.shiftedBy(afterRootT)), inst, body, initPointPos, pointColMap);
-                        afterRootG = afterRootGVals.get(pt);
-                    } else {
-                        // both non-zero, the usual case, use a root finder.
-                        try {
-                            // time zero for evaluating the function f. Needs to be final
-                            final double fT0 = loopT;
-
-                            final UnivariateFunction f = dt -> {
-                                try {
-                                    final HashMap<CoveragePoint, Double> gvals = getGVals(prop.propagate(startDate.shiftedBy(fT0 + dt)), inst, body, pointPos, map);
-                                    return (double) gvals.get(pt);
-                                } catch (OrekitException oe) {
-                                    throw new OrekitExceptionWrapper(oe);
-                                }
-                            };
-                            // tb as a double for use in f
-                            final double tbDouble = tb - fT0;
-                            final BracketedUnivariateSolver.Interval interval
-                                    = solver.solveInterval(maxIterationCount, f, 0, tbDouble);
-                            beforeRootT = fT0 + interval.getLeftAbscissa();
-                            beforeRootG = interval.getLeftValue();
-                            afterRootT = fT0 + interval.getRightAbscissa();
-                            afterRootG = interval.getRightValue();
-                        } catch (OrekitExceptionWrapper oew) {
-                            throw oew.getException();
-                        }
-                    }
-                    // tolerance is set to less than 1 ulp
-                    // assume tolerance is 1 ulp
-                    if (beforeRootT == afterRootT) {
-                        afterRootT = afterRootT + convergence;
-                        afterRootG = getGVals(prop.propagate(startDate.shiftedBy(afterRootT)), inst, body, pointPos, map).get(pt);
-                    }
-                    // check loop is making some progress
-                    check(afterRootT > beforeRootT);
-                    // setup next iteration
-                    loopT = afterRootT;
-                    loopG = afterRootG;
-                }
-
-                // figure out the result of root finding, and return accordingly.
-                // check that loop didn't gave up and found a root within this step
-                if (afterRootG != 0.0 && afterRootG > 0.0 != g0Positive) {
-                    // check real crossing
-                    check(!Double.isNaN(beforeRootG));
-                    HashMap<CoveragePoint, Double> rootvals = getGVals(prop.propagate(startDate.shiftedBy(beforeRootT)), inst, body, initPointPos, pointColMap);
-                    eventRoots.add(new Event(rootvals, pt, !g0Positive, beforeRootT));
-                }
-            }
-        }
-        return eventRoots;
-    }
-
-    /**
-     * Same as keyword assert, but throw a {@link MathRuntimeException}.
-     *
-     * @param condition to check
-     * @throws MathRuntimeException if {@code condition} is false.
-     */
-    private void check(final boolean condition) throws MathRuntimeException {
-        if (!condition) {
-            throw new OrekitInternalError(null);
-        }
-    }
-
-    /**
      * Returns the merged accesses of a given coverage definition after the
      * scenario is finished running
      *
@@ -1010,6 +810,17 @@ public class Scenario3 implements Callable<Scenario3>, Serializable {
      */
     public HashMap<CoveragePoint, TimeIntervalArray> getMergedAccesses(CoverageDefinition covDef) {
         return finalAccesses.get(covDef);
+    }
+    
+        /**
+     * Returns the merged accesses of a given coverage definition after the
+     * scenario is finished running
+     *
+     * @param covDef the coverage definition of interest
+     * @return
+     */
+    public HashMap<CoveragePoint, TimeIntervalArray> getMergedLinkBudgetIntervals(CoverageDefinition covDef) {
+        return linkBudgetIntervals.get(covDef);
     }
 
     /**
@@ -1094,6 +905,10 @@ public class Scenario3 implements Callable<Scenario3>, Serializable {
             }
         }
         return null;
+    }
+    
+    public LinkBudget getLinkBudget(){
+        return this.linkBudget;
     }
 
     /**
@@ -1352,197 +1167,5 @@ public class Scenario3 implements Callable<Scenario3>, Serializable {
         }
         return true;
 
-    }
-
-    /**
-     * This class is the task to parallelize within the scenario. It propagates
-     * a satellite in its own thread using a subset of the coverage grid to
-     * compute accesses times
-     */
-    private class PropagateTask implements Callable<PropagateTask>, Serializable {
-
-        private static final long serialVersionUID = 1078218608012519597L;
-
-        /**
-         * The satellite to propagate forward.
-         */
-        private final Satellite satellite;
-
-        /**
-         * The date to propagate forward to.
-         */
-        private final AbsoluteDate targetDate;
-
-        /**
-         * The points assigned to the satellite for coverage metrics
-         */
-        private final Collection<CoveragePoint> points;
-
-        /**
-         * The results will be stored here
-         */
-        private final HashMap<CoveragePoint, TimeIntervalArray> results;
-
-        /**
-         * The analysis to record any values obtained during the propagation at
-         * fixed time steps
-         */
-        private final Analysis analysis;
-
-        /**
-         * The constructor to create a new subtask to propagate forward a
-         * satellite. This propagator records the ephemeris at fixed time steps.
-         *
-         * @param satellte the satellite to propagate forward
-         * @param targetDate the target date to propagate the simulation forward
-         * to
-         * @param points the points the satellite is assigned to in this
-         * @param tStep the fixed time step at which ephemeris is recorded
-         * propagation
-         */
-        public PropagateTask(Satellite satellte, AbsoluteDate targetDate, Collection<CoveragePoint> points, Analysis analysis) {
-            this.satellite = satellte;
-            this.targetDate = targetDate;
-            this.points = points;
-            this.results = new HashMap<>(points.size());
-            this.analysis = analysis;
-        }
-
-        /**
-         * The constructor to create a new subtask to propagate forward a
-         * satellite. This propagator will not record the ephemeris.
-         *
-         * @param satellte the satellite to propagate forward
-         * @param targetDate the target date to propagate the simulation forward
-         * to
-         * @param points the points the satellite is assigned to in this
-         * propagation
-         */
-        public PropagateTask(Satellite satellte, AbsoluteDate targetDate, Collection<CoveragePoint> points) {
-            this(satellte, targetDate, points, null);
-        }
-
-        /**
-         * Creates a propagator. Can set an option to record ephemeris
-         *
-         * @param recordEphmeris true if ephemeris should be recorded
-         * @param tstep the fixed interval in which to record ephemeris
-         * @return
-         * @throws OrekitException
-         */
-        private Propagator createPropagator() throws OrekitException {
-
-            //create the propagator
-            Orbit orbit = satellite.getOrbit();
-            if (!orbit.getType().equals(propagatorFactory.getOrbitType())) {
-                throw new IllegalArgumentException(String.format("Orbit type of "
-                        + "satelite %s does not match propagator. "
-                        + "Expected %s, found %s", satellite.toString(),
-                        orbit.getType(), propagatorFactory.getOrbitType()));
-            }
-
-            Propagator prop = propagatorFactory.createPropagator(orbit, satellite.getGrossMass());
-            if (analysis != null) {
-                prop.setMasterMode(analysis.getTimeStep(), analysis);
-            } else {
-                prop.setSlaveMode();
-            }
-
-            //add an attitude provider (e.g. nadir pointing)
-            if (satellite.getAttProv() != null) {
-                prop.setAttitudeProvider(satellite.getAttProv());
-            }
-
-            return prop;
-        }
-
-        /**
-         * Runs the propagation and returns the access times for all the
-         * instruments aboard the satellite to those points assigned to the
-         * satellite
-         *
-         * @return
-         * @throws Exception
-         * @throws OrekitException
-         */
-        @Override
-        public PropagateTask call() throws Exception, OrekitException {
-            Propagator propagator = createPropagator();
-            ArrayList<FOVHandler> fovHandlers = new ArrayList();
-            //attach a fov detector to each instrument-grid point pair
-//            for (Instrument inst : satellite.getPayload()) {
-//                for (CoveragePoint pt : points) {
-//                    FOVHandler handler = new FOVHandler(pt, startDate, endDate);
-//                    FOVDetector eventDec = new FOVDetector(pt, inst).
-//                            withMaxCheck(1).withHandler(handler);
-//                    propagator.addEventDetector(eventDec);
-//                    fovHandlers.add(handler);
-//                }
-//            }
-            propagator.propagate(targetDate);
-
-            //reset the accesses at each point after transferring information to this hashmap
-            for (FOVHandler handler : fovHandlers) {
-                results.put(handler.getCovPt(), handler.getTimeArray().createImmutable());
-            }
-
-            return this;
-        }
-
-        public HashMap<CoveragePoint, TimeIntervalArray> getAccesses() {
-            return results;
-        }
-
-        /**
-         * Returns the analyses
-         *
-         * @return
-         */
-        public Analysis getAnalysis() {
-            return analysis;
-        }
-
-    }
-
-    private class Event implements Comparable<Event> {
-
-        private final HashMap<CoveragePoint, Double> val;
-
-        private final CoveragePoint point;
-
-        /**
-         * true if increasing, false if decreasing
-         */
-        private final boolean rising;
-
-        private final double eventTime;
-
-        public Event(HashMap<CoveragePoint, Double> val, CoveragePoint point, boolean rising, double eventTime) {
-            this.val = val;
-            this.point = point;
-            this.rising = rising;
-            this.eventTime = eventTime;
-        }
-
-        public HashMap<CoveragePoint, Double> getVal() {
-            return val;
-        }
-
-        public boolean getRising() {
-            return rising;
-        }
-
-        public CoveragePoint getPoint() {
-            return point;
-        }
-
-        public double getTime() {
-            return eventTime;
-        }
-
-        @Override
-        public int compareTo(Event o) {
-            return Double.compare(this.getTime(), o.getTime());
-        }
     }
 }

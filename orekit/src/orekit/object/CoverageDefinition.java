@@ -20,6 +20,12 @@ import org.orekit.bodies.GeodeticPoint;
  */
 public class CoverageDefinition implements OrekitObject, Serializable {
 
+    public enum GridStyle {
+
+        EQUAL_AREA, //Fewer points are placed in high latitudes
+        UNIFORM //the same number of points are placed in each latitude
+    }
+
     private static final long serialVersionUID = 2467782856759734909L;
 
     /**
@@ -51,9 +57,10 @@ public class CoverageDefinition implements OrekitObject, Serializable {
      * @param granularity defines the resolution of the grid points. Input in
      * degrees
      * @param planet Body shape on which to project the CoveragePoints
+     * @param style the style of the grid
      */
-    public CoverageDefinition(String name, double granularity, BodyShape planet) {
-        this(name, granularity, -90, 90, 0, 360, planet);
+    public CoverageDefinition(String name, double granularity, BodyShape planet, GridStyle style) {
+        this(name, granularity, -90, 90, 0, 360, planet, style);
     }
 
     /**
@@ -68,10 +75,11 @@ public class CoverageDefinition implements OrekitObject, Serializable {
      * @param minLongitdue Maximum latitude where coverage is defined [deg]
      * @param maxLongitude Maximum latitude where coverage is defined [deg]
      * @param planet Body shape on which to project the CoveragePoints
+     * @param style the style of the grid
      */
     public CoverageDefinition(String name, double granularity, double minLatitude,
             double maxLatitude, double minLongitdue, double maxLongitude,
-            BodyShape planet) {
+            BodyShape planet, GridStyle style) {
 
         this.name = name;
         this.planet = planet;
@@ -92,23 +100,37 @@ public class CoverageDefinition implements OrekitObject, Serializable {
         this.grid = new HashSet();
         int numPoints = 0;
         for (double lat = minLatitude; lat <= maxLatitude; lat += granularity) {
-            //weigh the number of points by their latitude to get even 
-            //distribution of points within spherical grid
-            int satsAtLat = (int) (360 / granularity * FastMath.cos(FastMath.toRadians(lat)));
-            for (double lon = minLongitdue; lon < maxLongitude; lon += 360.0 / satsAtLat) {
-                double longitude = FastMath.toRadians(lon);
-                double latitude = FastMath.toRadians(lat);
-                double altitude = 0.;
-                GeodeticPoint point = new GeodeticPoint(latitude, longitude, altitude);
-                this.grid.add(new CoveragePoint(planet, point, String.valueOf(numPoints)));
-                numPoints++;
+
+            switch (style) {
+                case UNIFORM:
+                    for (double lon = minLongitdue; lon <= maxLongitude; lon += granularity) {
+                        double longitude = FastMath.toRadians(lon);
+                        double latitude = FastMath.toRadians(lat);
+                        double altitude = 0.;
+                        GeodeticPoint point = new GeodeticPoint(latitude, longitude, altitude);
+                        this.grid.add(new CoveragePoint(planet, point, String.valueOf(numPoints)));
+                        numPoints++;
+                    }
+                    break;
+                case EQUAL_AREA:
+                    //weigh the number of points by their latitude to get even 
+                    //distribution of points within spherical grid
+                    int ptsAtLat = (int) (360 / granularity * FastMath.cos(FastMath.toRadians(lat)));
+                    for (double lon = minLongitdue; lon < maxLongitude; lon += 360.0 / ptsAtLat) {
+                        double longitude = FastMath.toRadians(lon);
+                        double latitude = FastMath.toRadians(lat);
+                        double altitude = 0.;
+                        GeodeticPoint point = new GeodeticPoint(latitude, longitude, altitude);
+                        this.grid.add(new CoveragePoint(planet, point, String.valueOf(numPoints)));
+                        numPoints++;
+                    }
+                    break;
+                default:
+                    throw new UnsupportedOperationException(String.format("Grid style %s not supported", style));
             }
         }
-
-        System.out.println(String.format("Coverage Grid '%s' has %d points", this.name, this.getNumberOfPoints()));
     }
-
-    /**
+     /**
      * Defines a coverage shape using the given points projected onto the
      * surface of a given BodyShape
      *
@@ -139,12 +161,6 @@ public class CoverageDefinition implements OrekitObject, Serializable {
         this.name = name;
         CoveragePoint refPt = points.iterator().next();
         this.planet = refPt.getParentShape();
-        //check to see if points have all the same body shape
-        for (CoveragePoint pt : points) {
-//            if(!pt.getParentShape().equals(this.planet)){
-//                throw new IllegalArgumentException(String.format("Expected all coverage points to have same planet shape %s",this.planet));
-//            }
-        }
 
         this.grid = new HashSet();
         for (CoveragePoint pt : points) {
@@ -250,7 +266,7 @@ public class CoverageDefinition implements OrekitObject, Serializable {
         hash = 59 * hash + Objects.hashCode(this.grid);
         hash = 59 * hash + Objects.hashCode(this.constellations);
         return hash;
-}
+    }
 
     @Override
     public boolean equals(Object obj) {
