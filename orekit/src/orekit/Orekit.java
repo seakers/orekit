@@ -67,8 +67,8 @@ public class Orekit {
             path = args[0];
             filename = args[1];
         } else {
-//            path="/Users/paugarciabuzzi/Desktop/Outputs_Orekit";
-            path = "/Users/nozomihitomi/Desktop";
+            path="/Users/paugarciabuzzi/Desktop/Outputs_Orekit";
+//            path = "/Users/nozomihitomi/Desktop";
 //            path = "C:\\Users\\SEAK1\\Nozomi\\OREKIT\\";
             filename = "tropics_test";
         }
@@ -116,7 +116,7 @@ public class Orekit {
         covDefs.add(covDef1);
 
 //        PropagatorFactory pf = new PropagatorFactory(PropagatorType.KEPLERIAN, OrbitType.KEPLERIAN);
-        PropagatorFactory pf = new PropagatorFactory(PropagatorType.KEPLERIAN, OrbitType.KEPLERIAN);
+        PropagatorFactory pf = new PropagatorFactory(PropagatorType.NUMERICAL, OrbitType.KEPLERIAN);
         double analysisTimeStep = 60;
         ArrayList<Analysis> analysesList = new ArrayList<>();
         analysesList.add(new OrbitalElementsAnalysis(analysisTimeStep));

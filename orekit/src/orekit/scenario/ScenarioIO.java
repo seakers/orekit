@@ -194,7 +194,36 @@ public class ScenarioIO {
         }
         return true;
     }
-
+    
+    /**
+     * Saves all the computed analyses run during the scenario
+     *
+     * @param path
+     * @param scenario
+     * @return true if the analyses are successfuly saved
+     */
+    public static boolean saveAnalyses(Path path, Scenario4 scenario) {
+        for (Analysis analysis : scenario.getAnalyses()) {
+            Satellite s=scenario.getSatellite();
+            File file = new File(path.toFile(), String.format("%s_%s.%s", scenario.getName(), s.getName(), analysis.getExtension()));
+            Iterator<Record> histIter = scenario.getAnalysisResult(analysis, s).iterator();
+            try (FileWriter fw = new FileWriter(file)) {
+                fw.append("#Epoch time," + analysis.getHeader() + "\n");
+                while (histIter.hasNext()) {
+                    Record r = histIter.next();
+                    fw.append(String.format("%f,%s\n",
+                            r.getDate().durationFrom(scenario.getStartDate()),
+                            r.getValue()));
+                }
+                fw.flush();
+            } catch (IOException ex) {
+                Logger.getLogger(ScenarioIO.class.getName()).log(Level.SEVERE, null, ex);
+                return false;
+            }
+            System.out.println(String.format("Saved %s for satellite %s in %s", analysis.getClass().getSimpleName(), s.getName(), file.toString()));
+        }
+        return true;
+    }
     /**
      * Loads the Scenario instance saved by using save() from the given
      * filename.

@@ -56,7 +56,7 @@ public abstract class VectorAnalysis extends AbstractAnalysis<String> {
     @Override
     public void handleStep(SpacecraftState currentState, boolean isLast) throws OrekitException {
         Vector3D pos = getVector(currentState, frame);
-        String str = String.format("%f,%f%f", pos.getX(),pos.getY(),pos.getZ());
+        String str = String.format("%f,%f,%f", pos.getX(),pos.getY(),pos.getZ());
         addRecord(new Record(currentState.getDate(),str));
     }
 

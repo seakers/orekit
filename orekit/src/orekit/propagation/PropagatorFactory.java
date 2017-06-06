@@ -12,6 +12,7 @@ import org.orekit.errors.OrekitException;
 import org.orekit.orbits.Orbit;
 import org.orekit.orbits.OrbitType;
 import org.orekit.propagation.Propagator;
+import org.orekit.propagation.SpacecraftState;
 import org.orekit.propagation.analytical.EcksteinHechlerPropagator;
 import org.orekit.propagation.analytical.KeplerianPropagator;
 import org.orekit.propagation.analytical.tle.SGP4;
@@ -50,10 +51,10 @@ public class PropagatorFactory implements Serializable {
         }
     }
 
-    public Propagator createPropagator(ODEIntegrator integrator) throws OrekitException {
+    public Propagator createPropagator(ODEIntegrator integrator,Orbit orbit, double mass) throws OrekitException {
         switch (propType) {
             case NUMERICAL:
-                return createNumericalPropagator(integrator);
+                return createNumericalPropagator(integrator,orbit,mass);
             default:
                 throw new UnsupportedOperationException(String.format("Propagator of type %s is not supported by factory or by this constructor.", propType));
         }
@@ -102,6 +103,12 @@ public class PropagatorFactory implements Serializable {
     private Propagator createNumericalPropagator(ODEIntegrator integrator) throws OrekitException{
         
         return new NumericalPropagator(integrator);
+    }
+    private Propagator createNumericalPropagator(ODEIntegrator integrator,Orbit orbit,double mass) throws OrekitException{
+        SpacecraftState s=new SpacecraftState(orbit, mass);
+        Propagator p=new NumericalPropagator(integrator);
+        p.resetInitialState(s);
+        return p;
     }
 
     public OrbitType getOrbitType() {

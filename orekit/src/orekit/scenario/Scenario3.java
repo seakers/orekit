@@ -43,15 +43,22 @@ import org.orekit.bodies.BodyShape;
 import org.orekit.bodies.CelestialBody;
 import org.orekit.bodies.CelestialBodyFactory;
 import org.orekit.bodies.GeodeticPoint;
+import org.orekit.bodies.OneAxisEllipsoid;
 import org.orekit.errors.OrekitException;
 import org.orekit.forces.drag.Atmosphere;
 import org.orekit.forces.drag.DTM2000;
 import org.orekit.forces.drag.DTM2000InputParameters;
 import org.orekit.forces.drag.DragForce;
 import org.orekit.forces.drag.DragSensitive;
+import org.orekit.forces.drag.HarrisPriester;
 import org.orekit.forces.drag.IsotropicDrag;
 import org.orekit.forces.drag.MarshallSolarActivityFutureEstimation;
+import org.orekit.forces.gravity.HolmesFeatherstoneAttractionModel;
 import org.orekit.forces.gravity.ThirdBodyAttraction;
+import org.orekit.forces.gravity.potential.GravityFieldFactory;
+import static org.orekit.forces.gravity.potential.GravityFieldFactory.ICGEM_FILENAME;
+import org.orekit.forces.gravity.potential.ICGEMFormatReader;
+import org.orekit.forces.gravity.potential.NormalizedSphericalHarmonicsProvider;
 import org.orekit.forces.radiation.IsotropicRadiationSingleCoefficient;
 import org.orekit.forces.radiation.RadiationSensitive;
 import org.orekit.forces.radiation.SolarRadiationPressure;
@@ -66,6 +73,7 @@ import org.orekit.propagation.numerical.NumericalPropagator;
 import org.orekit.time.AbsoluteDate;
 import org.orekit.time.TimeScale;
 import org.orekit.utils.Constants;
+import org.orekit.utils.IERSConventions;
 
 /**
  * Stores information about the scenario or simulation including information of
@@ -553,10 +561,10 @@ public class Scenario3 implements Callable<Scenario3>, Serializable {
         //set up resource pool
         ExecutorService pool = Executors.newFixedThreadPool(numThreads);
 
-        System.out.println(String.format("Running scenario: %s...", this));
+        //System.out.println(String.format("Running scenario: %s...", this));
         if (!isDone) {
             for (CoverageDefinition cdef : covDefs) {
-                System.out.println(String.format("Acquiring access times for %s...", cdef));
+                //System.out.println(String.format("Acquiring access times for %s...", cdef));
                 if (saveAllAccesses) {
                     allAccesses.put(cdef, new HashMap());
                 }
@@ -572,7 +580,7 @@ public class Scenario3 implements Callable<Scenario3>, Serializable {
                         satAccesses.put(pt, new TimeIntervalArray(startDate, endDate));
                         satlinkBudgetIntervals.put(pt, new TimeIntervalArray(startDate, endDate));
                     }
-                    System.out.println(String.format("Initiating %d propagation tasks", numThreads));
+                    //System.out.println(String.format("Initiating %d propagation tasks", numThreads));
 
                     Propagator prop;
                     SpacecraftState initialState;
@@ -583,10 +591,17 @@ public class Scenario3 implements Callable<Scenario3>, Serializable {
                         initialState = prop.getInitialState();
 
                     } else if (propagatorFactory.getPropType().equals(PropagatorType.NUMERICAL)) {
+                        //MASS PROPAGATION
+                        double mass=6.08;
+
+                        //Frames and Bodies creation (must use IERS_2003 and EME2000 frames to be consistent with STK)
+                        final Frame earthFrame = FramesFactory.getITRF(IERSConventions.IERS_2003, true);
+                        final CelestialBody sun  = CelestialBodyFactory.getSun();
+                        final OneAxisEllipsoid earth = new OneAxisEllipsoid(Constants.WGS84_EARTH_EQUATORIAL_RADIUS, Constants.WGS84_EARTH_FLATTENING, earthFrame);
 
                         //set integrator steps and tolerances
                         final double dP = 0.001;
-                        final double minStep = 0.001;
+                        final double minStep = 0.00001;
                         final double maxStep = 1000;
                         final double initStep = 60;
                         //                final double[][] tolerance = NumericalPropagator.tolerances(dP, orbit, orbit.getType());
@@ -599,45 +614,62 @@ public class Scenario3 implements Callable<Scenario3>, Serializable {
                         //create integrator object and set some propoerties
                         AdaptiveStepsizeIntegrator integrator = new DormandPrince853Integrator(minStep, maxStep, absTolerance, relTolerance);
                         integrator.setInitialStepSize(initStep);
-                        prop = propagatorFactory.createPropagator(integrator);
-                        initialState = new SpacecraftState(sat.getOrbit());
-                        ((NumericalPropagator) prop).setInitialState(initialState);
-                        ((NumericalPropagator) prop).setMu(Constants.WGS84_EARTH_MU);
+                        prop = propagatorFactory.createPropagator(integrator,sat.getOrbit(),mass);
+                        initialState=new SpacecraftState(sat.getOrbit(), mass);
+                        ((NumericalPropagator) prop).resetInitialState(initialState);
                         ((NumericalPropagator) prop).setOrbitType(propagatorFactory.getOrbitType());
                         ((NumericalPropagator) prop).setPositionAngleType(PositionAngle.TRUE);
 
+                        //We now add the gravity model (without Harmonics(J2))
+        //                      ((NumericalPropagator) prop).setMu(Constants.WGS84_EARTH_MU);
+
+
+                        //We now add the gravity model (with Harmonics)
+                                GravityFieldFactory.clearPotentialCoefficientsReaders();
+                                ICGEMFormatReader reader=new ICGEMFormatReader(ICGEM_FILENAME, false);
+                                //SHMFormatReader reader=new SHMFormatReader(SHM_FILENAME, false);
+                                //GRGSFormatReader reader=new GRGSFormatReader(GRGS_FILENAME, false);
+                                //EGMFormatReader reader=new EGMFormatReader(EGM_FILENAME, false);
+                                GravityFieldFactory.addPotentialCoefficientsReader(reader);
+
+                                final NormalizedSphericalHarmonicsProvider harmonicsProvider=GravityFieldFactory.getNormalizedProvider(21, 21);
+                                HolmesFeatherstoneAttractionModel model1 =new HolmesFeatherstoneAttractionModel(earthFrame,harmonicsProvider);
+                                ((NumericalPropagator)prop).addForceModel(model1);
+
                         //We now add the drag model (DTM2000 model)
-//                        CelestialBody sun  = CelestialBodyFactory.getSun();
-//                        BodyShape earth = points.iterator().next().getParentShape();
-//                        String supportedNames = "(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\\p{Digit}\\p{Digit}\\p{Digit}\\p{Digit}F10\\.(?:txt|TXT)";
-//                        MarshallSolarActivityFutureEstimation.StrengthLevel strengthlevel = MarshallSolarActivityFutureEstimation.StrengthLevel.AVERAGE;
-//                        DTM2000InputParameters parameters = new MarshallSolarActivityFutureEstimation(supportedNames,strengthlevel);
-//                        Atmosphere atmosphere=new DTM2000(parameters, sun, earth);
-//                        double crossSection=100;
-//                        double dragCoeff=2;
-//                        DragSensitive spacecraft = new IsotropicDrag(crossSection,dragCoeff);
-//                        DragForce model = new DragForce(atmosphere, spacecraft);
-//                        ((NumericalPropagator)prop).addForceModel(model);
+                                //must use IERS_2003 and EME2000 frames to be consistent with STK
+                                String supportedNames = "(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\\p{Digit}\\p{Digit}\\p{Digit}\\p{Digit}F10\\.(?:txt|TXT)";
+                                MarshallSolarActivityFutureEstimation.StrengthLevel strengthlevel = MarshallSolarActivityFutureEstimation.StrengthLevel.AVERAGE;
+                                DTM2000InputParameters parameters = new MarshallSolarActivityFutureEstimation(supportedNames,strengthlevel);
+                                Atmosphere atmosphere=new DTM2000(parameters, sun, earth);
+                                double dragArea=0.06;
+                                double dragCoeff=2.2;
+                                DragSensitive spacecraft = new IsotropicDrag(dragArea,dragCoeff);
+                                DragForce model2 = new DragForce(atmosphere, spacecraft);
+                                ((NumericalPropagator)prop).addForceModel(model2);
+
                         //We now add the drag model (Harris Priester model)
-                        //                CelestialBody sun  = CelestialBodyFactory.getSun();
-                        //                OneAxisEllipsoid earth = (OneAxisEllipsoid) points.iterator().next().getParentShape();
-                        //                Atmosphere atmosphere=new HarrisPriester(sun, earth);
-                        //                double crossSection=100;
-                        //                double dragCoeff=2;
-                        //                DragSensitive spacecraft = new IsotropicDrag(crossSection,dragCoeff);
-                        //                DragForce model = new DragForce(atmosphere, spacecraft);
-                        //                prop.addForceModel(model);
-                        //We now add the third body attraction model
-//                        CelestialBody moon = CelestialBodyFactory.getMoon();
-//                        ThirdBodyAttraction model2 = new ThirdBodyAttraction(moon);
-//                        ((NumericalPropagator)prop).addForceModel(model2);
-//
-//                        //We now add the solar radiation pressure model
-//                        double equatorialRadius=Constants.WGS84_EARTH_EQUATORIAL_RADIUS;
-//                        double cr=0.5;
-//                        RadiationSensitive spacecraft2 = new IsotropicRadiationSingleCoefficient(crossSection, cr);
-//                        SolarRadiationPressure model3 = new SolarRadiationPressure(sun,  equatorialRadius,  spacecraft2);
-//                        ((NumericalPropagator)prop).addForceModel(model3);
+        //                        Atmosphere atmosphere=new HarrisPriester(sun, earth);
+        //                        double dragArea=0.06;
+        //                        double dragCoeff=2.2;
+        //                        DragSensitive spacecraft = new IsotropicDrag(dragArea,dragCoeff);
+        //                        DragForce model2 = new DragForce(atmosphere, spacecraft);
+        //                        ((NumericalPropagator)prop).addForceModel(model2);
+
+                        //We now add the third body attraction  (sun and moon)
+                                final CelestialBody moon = CelestialBodyFactory.getMoon();
+                                ThirdBodyAttraction model3 = new ThirdBodyAttraction(moon);
+                                ((NumericalPropagator)prop).addForceModel(model3);
+                                ThirdBodyAttraction model4 = new ThirdBodyAttraction(sun);
+                                ((NumericalPropagator)prop).addForceModel(model4);
+
+                        //We now add the solar radiation pressure model
+                                double equatorialRadius=Constants.WGS84_EARTH_EQUATORIAL_RADIUS;
+                                double cr=1;
+                                double solarArea=0.058;
+                                RadiationSensitive spacecraft2 = new IsotropicRadiationSingleCoefficient(solarArea, cr);
+                                SolarRadiationPressure model5 = new SolarRadiationPressure(sun,  equatorialRadius,  spacecraft2);
+                                ((NumericalPropagator)prop).addForceModel(model5);
                     } else {
                         throw new IllegalArgumentException(String.format("Propagator type of "
                                 + "satelite %s is not supported. "
@@ -704,21 +736,22 @@ public class Scenario3 implements Callable<Scenario3>, Serializable {
                             }
                             TimeIntervalMerger merger = new TimeIntervalMerger(satAccesses.get(pt), fovTimeArray);
                             satAccesses.put(pt, merger.orCombine());
-                            
+                            prop.clearEventsDetectors();
                             
                             //link budget
-                            prop.resetInitialState(initialState);
-                            prop.clearEventsDetectors();
-                            //Next search through intervals with line of sight to compute when point is in field of view 
-                            lbDetec = new LBDetector2(initialState, startDate, endDate, pt, linkBudget, lbStepSize, threshold, EventHandler.Action.CONTINUE);
-                            prop.addEventDetector(lbDetec);
-                            prop.propagate(startDate, endDate);
-                            TimeIntervalArray lbTimeArray = lbDetec.getTimeIntervalArray();
-                            if (lbTimeArray == null || lbTimeArray.isEmpty()) {
-                                continue;
-                            }
-                            TimeIntervalMerger mergerlb = new TimeIntervalMerger(fovTimeArray, lbTimeArray);
-                            satlinkBudgetIntervals.put(pt, mergerlb.andCombine());
+//                            prop.resetInitialState(initialState);
+//                            
+//                            //Next search through intervals with line of sight to compute when point is in field of view 
+//                            lbDetec = new LBDetector2(initialState, startDate, endDate, pt, linkBudget, lbStepSize, threshold, EventHandler.Action.CONTINUE);
+//                            prop.addEventDetector(lbDetec);
+//                            prop.propagate(startDate, endDate);
+//                            TimeIntervalArray lbTimeArray = lbDetec.getTimeIntervalArray();
+//                            if (lbTimeArray == null || lbTimeArray.isEmpty()) {
+//                                continue;
+//                            }
+//                            TimeIntervalMerger mergerlb = new TimeIntervalMerger(fovTimeArray, lbTimeArray);
+//                            satlinkBudgetIntervals.put(pt, mergerlb.andCombine());
+//                            prop.clearEventsDetectors();
                         }
                     }
                     //save the satellite accesses 
@@ -755,7 +788,7 @@ public class Scenario3 implements Callable<Scenario3>, Serializable {
             }
 
             isDone = true;
-            System.out.println(String.format("Finished simulating %s...", this));
+            //System.out.println(String.format("Finished simulating %s...", this));
         }
 
         pool.shutdown();
