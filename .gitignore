@@ -1,15 +1,2 @@
-/orekit/build/
-/orekit/nbuild.xml
-/orekit/dist/
-/orekit/nbproject/
-
-<<<<<<< HEAD
-/orekitSource/**
-=======
-/orekitSource/nbproject/private/
-/orekitSource/build/
-/orekitSource/dist/
-/OrekitSourceCode/nbproject/private/
-/Hipparchus/nbproject/private/
-/OrekitSource_8.0/nbproject/private/
->>>>>>> aeed6b71d000fdef0d9013d189779b37415ff73d
+/orekit/target/
+/orekit/pom.xml
