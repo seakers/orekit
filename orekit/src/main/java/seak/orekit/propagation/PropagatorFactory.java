@@ -5,12 +5,12 @@
  */
 package seak.orekit.propagation;
 
-import java.io.Serializable;
-import java.util.Objects;
 import org.hipparchus.ode.ODEIntegrator;
 import org.orekit.errors.OrekitException;
+import org.orekit.forces.ForceModel;
 import org.orekit.orbits.Orbit;
 import org.orekit.orbits.OrbitType;
+import org.orekit.orbits.PositionAngle;
 import org.orekit.propagation.Propagator;
 import org.orekit.propagation.SpacecraftState;
 import org.orekit.propagation.analytical.EcksteinHechlerPropagator;
@@ -28,16 +28,53 @@ import org.orekit.utils.Constants;
  *
  * @author nozomihitomi
  */
-public class PropagatorFactory implements Serializable {
+public class PropagatorFactory {
 
-    private static final long serialVersionUID = -1149749257521567681L;
-
+    /**
+     * Determines the complexity of the propagator
+     */
     private final PropagatorType propType;
+
+    /**
+     * the orbit type is required for numerical propagators.
+     */
     private final OrbitType orbitType;
 
-    public PropagatorFactory(PropagatorType propType, OrbitType orbitType) {
+    /**
+     * used when creating numerical propagators.
+     */
+    private final ODEIntegrator integrator;
+
+    /**
+     * force models to use with numerical propagator
+     */
+    private final ForceModel[] models;
+
+    /**
+     * This constructor is used when creating analytical propagators (e.g. Keplerian, J2)
+     * @param propType 
+     */
+    public PropagatorFactory(PropagatorType propType) {
+        this.propType = propType;
+        this.orbitType = null;
+        this.integrator = null;
+        this.models = null;
+    }
+
+    /**
+     * This constructor should be used if a numerical propagator is desired.
+     * Need to specify the orbit type and the ode integrator.
+     *
+     * @param propType
+     * @param orbitType the orbit type is required for numerical propagators.
+     * @param integrator used when creating numerical propagators.
+     * @param models the force models
+     */
+    public PropagatorFactory(PropagatorType propType, OrbitType orbitType, ODEIntegrator integrator, ForceModel[] models) {
         this.propType = propType;
         this.orbitType = orbitType;
+        this.integrator = integrator;
+        this.models = models;
     }
 
     public Propagator createPropagator(Orbit orbit, double mass) throws OrekitException {
@@ -45,20 +82,14 @@ public class PropagatorFactory implements Serializable {
             case KEPLERIAN:
                 return createKeplerianPropagator(orbit, mass);
             case J2:
-               return createJ2Propagator(orbit, mass);
+                return createJ2Propagator(orbit, mass);
+            case NUMERICAL:
+                return createNumericalPropagator(orbit, mass, integrator, models);
             default:
                 throw new UnsupportedOperationException(String.format("Propagator of type %s is not supported by factory or by this constructor.", propType));
         }
     }
 
-    public Propagator createPropagator(ODEIntegrator integrator,Orbit orbit, double mass) throws OrekitException {
-        switch (propType) {
-            case NUMERICAL:
-                return createNumericalPropagator(integrator,orbit,mass);
-            default:
-                throw new UnsupportedOperationException(String.format("Propagator of type %s is not supported by factory or by this constructor.", propType));
-        }
-    }
     /**
      * Creates a Keplerian propagator
      *
@@ -72,16 +103,19 @@ public class PropagatorFactory implements Serializable {
     }
 
     /**
-     * Creates a J2 propagator assuming an Earth-centric orbit. Currently set for using GRIM5C1 model
+     * Creates a J2 propagator assuming an Earth-centric orbit. Currently set
+     * for using GRIM5C1 model
+     *
      * @param orbit
      * @return
-     * @throws OrekitException 
+     * @throws OrekitException
      */
-    private Propagator createJ2Propagator(Orbit orbit, double mass) throws OrekitException{
-        
+    private Propagator createJ2Propagator(Orbit orbit, double mass) throws OrekitException {
+
         return new EcksteinHechlerPropagator(orbit, mass, Constants.WGS84_EARTH_EQUATORIAL_RADIUS,
-                        Constants.WGS84_EARTH_MU, Constants.WGS84_EARTH_C20, 0,0,0,0);
+                Constants.WGS84_EARTH_MU, Constants.WGS84_EARTH_C20, 0, 0, 0, 0);
     }
+
     /**
      * Creates a TLE propagator
      *
@@ -93,21 +127,24 @@ public class PropagatorFactory implements Serializable {
     private Propagator createTLEPropagator(TLE tle, double mass) throws OrekitException {
         return new SGP4(tle, Propagator.DEFAULT_LAW, mass);
     }
-    
-        /**
-     * Creates a numerical propagator
+
+    /**
+     * Creates a numerical propagator. Assumed that the position of the orbit is
+     * given with true anomaly.
+     *
      * @param orbit
      * @return
-     * @throws OrekitException 
+     * @throws OrekitException
      */
-    private Propagator createNumericalPropagator(ODEIntegrator integrator) throws OrekitException{
-        
-        return new NumericalPropagator(integrator);
-    }
-    private Propagator createNumericalPropagator(ODEIntegrator integrator,Orbit orbit,double mass) throws OrekitException{
-        SpacecraftState s=new SpacecraftState(orbit, mass);
-        Propagator p=new NumericalPropagator(integrator);
+    private Propagator createNumericalPropagator(Orbit orbit, double mass, ODEIntegrator integrator, ForceModel[] models) throws OrekitException {
+        SpacecraftState s = new SpacecraftState(orbit, mass);
+        NumericalPropagator p = new NumericalPropagator(integrator);
         p.resetInitialState(s);
+        p.setOrbitType(orbitType);
+        p.setPositionAngleType(PositionAngle.TRUE);
+        for(ForceModel fm : models){
+            p.addForceModel(fm);
+        }
         return p;
     }
 
@@ -118,33 +155,5 @@ public class PropagatorFactory implements Serializable {
     public PropagatorType getPropType() {
         return propType;
     }
-
-    @Override
-    public int hashCode() {
-        int hash = 7;
-        hash = 59 * hash + Objects.hashCode(this.propType.toString());
-        hash = 59 * hash + Objects.hashCode(this.orbitType.toString());
-        return hash;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == null) {
-            return false;
-        }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        final PropagatorFactory other = (PropagatorFactory) obj;
-        if (this.propType != other.propType) {
-            return false;
-        }
-        if (this.orbitType != other.orbitType) {
-            return false;
-        }
-        return true;
-    }
-    
-    
 
 }

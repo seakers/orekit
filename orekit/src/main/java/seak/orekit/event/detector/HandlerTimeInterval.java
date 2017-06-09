@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package seak.orekit.events;
+package seak.orekit.event.detector;
 
 import seak.orekit.coverage.access.TimeIntervalArray;
 import org.orekit.errors.OrekitException;

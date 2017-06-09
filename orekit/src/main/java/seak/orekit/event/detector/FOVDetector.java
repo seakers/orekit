@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package seak.orekit.events;
+package seak.orekit.event.detector;
 
 import seak.orekit.object.Instrument;
 import org.orekit.errors.OrekitException;
@@ -118,28 +118,6 @@ public class FOVDetector extends AbstractEventDetector<FOVDetector> {
     }
 
     /**
-     * Private constructor with full parameters.
-     * <p>
-     * This constructor is private as users are expected to use the builder API
-     * with the various {@code withXxx()} methods to set up the instance in a
-     * readable manner without using a huge amount of parameters.
-     * </p>
-     *
-     * @param maxCheck maximum checking interval (s)
-     * @param threshold convergence threshold (s)
-     * @param maxIter maximum number of iterations in the event time search
-     * @param handler event handler to call at event occurrences
-     * @param pvTarget Position/velocity provider of the considered target
-     * @param instrument the instrument that will observe the target
-     */
-    private FOVDetector(final TopocentricFrame target, final Instrument instrument,
-            final double maxCheck, final double threshold, final int maxIter, EventHandler newHandler) {
-        super(maxCheck, threshold, maxIter, newHandler);
-        this.instrument = instrument;
-        this.target = target;
-    }
-
-    /**
      * Get the position/velocity provider of the target .
      *
      * @return the position/velocity provider of the target
@@ -168,7 +146,7 @@ public class FOVDetector extends AbstractEventDetector<FOVDetector> {
     }
 
     @Override
-    protected EventDetector create(double newMaxCheck, double newThreshold, int newMaxIter, EventHandler newHandler) {
-        return new FOVDetector(target, instrument, newMaxCheck, newThreshold, newMaxIter, newHandler);
+    protected EventDetector create(SpacecraftState initialState, AbsoluteDate startDate, AbsoluteDate endDate, EventHandler.Action action, double maxCheck, double threshold, int maxIter) {
+        return new FOVDetector(initialState, startDate, endDate, target, instrument, maxCheck, threshold, maxIter, action);
     }
 }

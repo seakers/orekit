@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package seak.orekit.events;
+package seak.orekit.event.detector;
 
 import seak.orekit.object.CoveragePoint;
 import org.hipparchus.geometry.euclidean.threed.Vector3D;
@@ -139,36 +139,6 @@ public class LOSDetector extends AbstractEventDetector<LOSDetector> {
         this.shape = shape;
         this.inertialFrame = inertialFrame;
     }
-    
-    /**
-     * Private constructor with full parameters.
-     * <p>
-     * This constructor is private as users are expected to use the builder API
-     * with the various {@code withXxx()} methods to set up the instance in a
-     * readable manner without using a huge amount of parameters.
-     * </p>
-     *
-     * @param initialState initial state of the spacecraft given at the start
-     * date
-     * @param startDate the start date of the simulation or propagation
-     * @param endDate the end date of the simulation or propagation
-     * @param maxCheck maximum checking interval (s)
-     * @param threshold convergence threshold (s)
-     * @param maxIter maximum number of iterations in the event time search
-     * @param handler event handler to call at event occurrences
-     * @param pt The ground point that needs to be viewed
-     * @param shape The shape of the body on which the point lies
-     * @param inertialFrame The inertial frame used in the scenario evaluated
-     */
-    private LOSDetector(
-            final CoveragePoint pt, final BodyShape shape, final Frame inertialFrame, final double maxCheck, final double threshold,
-            final int maxIter, EventHandler newHandler) {
-        super(maxCheck, threshold, maxIter, newHandler);
-        this.pt = pt;
-        this.shape = shape;
-        this.inertialFrame = inertialFrame;
-    }
-
 
     @Override
     public double g(SpacecraftState s) throws OrekitException {
@@ -186,13 +156,9 @@ public class LOSDetector extends AbstractEventDetector<LOSDetector> {
         return cosThetas - minCosTheta;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    protected EventDetector create(double newMaxCheck, double newThreshold, int newMaxIter, EventHandler newHandler) {
-        return new LOSDetector(pt, shape, inertialFrame,
-                newMaxCheck, newThreshold, newMaxIter, newHandler);
+    protected EventDetector create(SpacecraftState initialState, AbsoluteDate startDate, AbsoluteDate endDate, EventHandler.Action action, double maxCheck, double threshold, int maxIter) {
+        return new LOSDetector(initialState, startDate, endDate, pt, shape, inertialFrame, maxCheck, threshold, maxIter, action);
     }
 
 }

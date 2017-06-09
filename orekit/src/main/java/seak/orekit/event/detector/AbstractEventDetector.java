@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package seak.orekit.events;
+package seak.orekit.event.detector;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -14,6 +14,7 @@ import org.orekit.propagation.events.AbstractDetector;
 import static org.orekit.propagation.events.AbstractDetector.DEFAULT_MAXCHECK;
 import static org.orekit.propagation.events.AbstractDetector.DEFAULT_MAX_ITER;
 import static org.orekit.propagation.events.AbstractDetector.DEFAULT_THRESHOLD;
+import org.orekit.propagation.events.EventDetector;
 import org.orekit.propagation.events.handlers.EventHandler;
 import org.orekit.propagation.events.handlers.StopOnIncreasing;
 import org.orekit.time.AbsoluteDate;
@@ -26,8 +27,9 @@ import org.orekit.time.AbsoluteDate;
  * open.
  *
  * @author nozomihitomi
+ * @param <T>
  */
-public abstract class AbstractEventDetector<T> extends AbstractDetector {
+public abstract class AbstractEventDetector<T extends EventDetector> extends AbstractDetector {
 
     private static final long serialVersionUID = 1500574292575623469L;
 
@@ -51,17 +53,16 @@ public abstract class AbstractEventDetector<T> extends AbstractDetector {
      * interval handler;
      */
     private boolean timeIntervalInit;
-    
+
     /**
      * specifies action after event is detected.
      */
     private final EventHandler.Action action;
-    
+
     /**
      * Event handler for the time intervals
      */
     private HandlerTimeInterval handlerTimeInterval;
-    
 
     /**
      * Constructor for the detector.
@@ -116,29 +117,6 @@ public abstract class AbstractEventDetector<T> extends AbstractDetector {
         this.action = action;
     }
 
-    /**
-     * Private constructor with full parameters. Can specify an event handler of
-     * choice.
-     * <p>
-     * This constructor is private as users are expected to use the builder API
-     * with the various {@code withXxx()} methods to set up the instance in a
-     * readable manner without using a huge amount of parameters.
-     * </p>
-     *
-     * @param maxCheck maximum checking interval (s)
-     * @param threshold convergence threshold (s)
-     * @param maxIter maximum number of iterations in the event time search
-     * @param newHandler
-     */
-    protected AbstractEventDetector(double maxCheck, double threshold, int maxIter, EventHandler newHandler) {
-        super(maxCheck, threshold, maxIter, newHandler);
-        this.initialState = null;
-        this.startDate = null;
-        this.endDate = null;
-        this.timeIntervalInit = false;
-        this.action = null;
-    }
-
     @Override
     public void init(SpacecraftState s0, AbsoluteDate t) {
         super.init(s0, t);
@@ -153,19 +131,37 @@ public abstract class AbstractEventDetector<T> extends AbstractDetector {
                 Logger.getLogger(AbstractEventDetector.class.getName()).log(Level.SEVERE, null, ex);
             }
             //only initialize time interval array once
-            timeIntervalInit = false; 
+            timeIntervalInit = false;
         }
     }
 
+    /**
+     * Abstract Event Detector does not utilize the given event handler. It is
+     * set up to use a default time interval handler (HandlerTimeInterval)
+     *
+     * @param newMaxCheck
+     * @param newThreshold
+     * @param newMaxIter
+     * @param newHandler
+     * @return
+     */
+    @Override
+    protected final EventDetector create(double newMaxCheck, double newThreshold, int newMaxIter, EventHandler newHandler) {
+        return create(initialState, startDate, endDate, action, newMaxCheck, newThreshold, newMaxIter);
+    }
+
+    protected abstract EventDetector create(SpacecraftState initialState,
+            AbsoluteDate startDate, AbsoluteDate endDate,
+            EventHandler.Action action, double maxCheck, double threshold, int maxIter);
+
     @Override
     public EventHandler getHandler() {
-        if(this.handlerTimeInterval == null){
+        if (this.handlerTimeInterval == null) {
             return super.getHandler();
-        }else{
+        } else {
             return this.handlerTimeInterval;
         }
     }
-    
 
     /**
      * If the event handler is the default HandlreTimeInterval, the recorded

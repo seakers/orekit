@@ -10,26 +10,25 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
+import java.util.Properties;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import seak.orekit.analysis.Analysis;
-import seak.orekit.analysis.CompoundAnalysis;
 import seak.orekit.analysis.ephemeris.OrbitalElementsAnalysis;
-import seak.orekit.analysis.vectors.VectorAnalysis;
 import seak.orekit.constellations.Walker;
 import seak.orekit.coverage.access.TimeIntervalArray;
 import seak.orekit.object.CoverageDefinition;
-import seak.orekit.object.CoverageDefinition.GridStyle.*;
 import seak.orekit.object.CoveragePoint;
 import seak.orekit.object.Instrument;
 import seak.orekit.object.Satellite;
-import seak.orekit.object.fieldofview.NadirRectangularFOV;
 import seak.orekit.object.fieldofview.NadirSimpleConicalFOV;
 import seak.orekit.object.linkbudget.LinkBudget;
 import seak.orekit.propagation.PropagatorFactory;
 import seak.orekit.propagation.PropagatorType;
-import seak.orekit.scenario.Scenario3;
+import seak.orekit.scenario.Scenario;
 import seak.orekit.scenario.ScenarioIO;
 import seak.orekit.util.OrekitConfig;
-import org.hipparchus.geometry.euclidean.threed.Vector3D;
 import org.hipparchus.stat.descriptive.DescriptiveStatistics;
 import org.hipparchus.util.FastMath;
 import org.orekit.bodies.BodyShape;
@@ -38,13 +37,18 @@ import org.orekit.bodies.OneAxisEllipsoid;
 import org.orekit.errors.OrekitException;
 import org.orekit.frames.Frame;
 import org.orekit.frames.FramesFactory;
-import org.orekit.orbits.OrbitType;
-import org.orekit.propagation.SpacecraftState;
 import org.orekit.time.AbsoluteDate;
 import org.orekit.time.TimeScale;
 import org.orekit.time.TimeScalesFactory;
 import org.orekit.utils.Constants;
 import org.orekit.utils.IERSConventions;
+import seak.orekit.coverage.analysis.AnalysisMetric;
+import seak.orekit.coverage.analysis.EventAnalyzer;
+import seak.orekit.event.EventAnalysis;
+import seak.orekit.event.EventAnalysisEnum;
+import seak.orekit.event.EventAnalysisFactory;
+import seak.orekit.event.FieldOfViewEventAnalysis;
+import static seak.orekit.object.CoverageDefinition.GridStyle.UNIFORM;
 
 /**
  *
@@ -69,6 +73,12 @@ public class Orekit {
         }
 
         OrekitConfig.init();
+        //setup logger
+        Level level = Level.ALL;
+        Logger.getGlobal().setLevel(level);
+        ConsoleHandler handler = new ConsoleHandler();
+        handler.setLevel(level);
+        Logger.getGlobal().addHandler(handler);
 
         TimeScale utc = TimeScalesFactory.getUTC();
         AbsoluteDate startDate = new AbsoluteDate(2016, 1, 1, 00, 00, 00.000, utc);
@@ -89,7 +99,7 @@ public class Orekit {
         Walker walker = new Walker("walker1", i, 1, 1, 0, a, inertialFrame, startDate, mu);
 
         //define instruments
-        NadirSimpleConicalFOV fov = new NadirSimpleConicalFOV( FastMath.toRadians(45), earthShape);
+        NadirSimpleConicalFOV fov = new NadirSimpleConicalFOV(FastMath.toRadians(45), earthShape);
 //        NadirRectangularFOV fov = new NadirRectangularFOV(FastMath.toRadians(57), FastMath.toRadians(2.5), 0, earthShape);
         Instrument view1 = new Instrument("view1", fov, 100, 100);
         //assign instruments
@@ -98,100 +108,89 @@ public class Orekit {
         }
 
         ArrayList<GeodeticPoint> pts = new ArrayList<>();
-        pts.add(new GeodeticPoint(-0.1745329251994330, 6.0737457969402699, 0.0));
+//        pts.add(new GeodeticPoint(-0.1745329251994330, 6.0737457969402699, 0.0));
 //        pts.add(new GeodeticPoint(-0.8726646259971650,  0.209439510239320, 0.0));
 //        pts.add(new GeodeticPoint(1.5707963267949001, 0.0000000000000000, 0.0));
-        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", pts, earthShape);
+//        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", pts, earthShape);
 //        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", 6, earthShape, UNIFORM);
-//        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", STKGRID.getPoints20(), earthShape);
+        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", STKGRID.getPoints20(), earthShape);
 
         covDef1.assignConstellation(walker);
 
         HashSet<CoverageDefinition> covDefs = new HashSet<>();
         covDefs.add(covDef1);
 
-        PropagatorFactory pf = new PropagatorFactory(PropagatorType.KEPLERIAN, OrbitType.KEPLERIAN);
+        PropagatorFactory pf = new PropagatorFactory(PropagatorType.KEPLERIAN);
 //        PropagatorFactory pf = new PropagatorFactory(PropagatorType.NUMERICAL, OrbitType.KEPLERIAN);
+
+        Properties properties = new Properties();
+        properties.setProperty("fov.numThreads", "6");
+
+        //set the event analyses
+        EventAnalysisFactory eaf = new EventAnalysisFactory(startDate, endDate, inertialFrame, covDefs, pf);
+        ArrayList<EventAnalysis> eventanalyses = new ArrayList<>();
+        FieldOfViewEventAnalysis fovEvent = (FieldOfViewEventAnalysis) eaf.create(EventAnalysisEnum.FOV, properties);
+        eventanalyses.add(fovEvent);
+
+        //set the analyses
         double analysisTimeStep = 60;
-        ArrayList<Analysis> analysesList = new ArrayList<>();
-        analysesList.add(new OrbitalElementsAnalysis(analysisTimeStep));
-//        ArrayList<FOVDetector> fovs = new ArrayList<FOVDetector>();
-//        for(CoveragePoint pt : covDef1.getPoints()){
-//            fovs.add( new FOVDetector(pt, view1).withMaxCheck(1));
-//        }
-//        analysesList.add(new EventAnalysis(analysisTimeStep, fovs));
-//        analysesList.add(new EventAnalysis2(analysisTimeStep, new ArrayList(covDef1.getPoints()), earthShape,  new FieldOfView(Vector3D.PLUS_K,
-//                       Vector3D.PLUS_I, FastMath.toRadians(45),
-//                       Vector3D.PLUS_J, FastMath.toRadians(45),0),
-//                        inertialFrame, startDate));
-        analysesList.add(new VectorAnalysis(inertialFrame, 60) {
-            private static final long serialVersionUID = 4680062066885650976L;
-            @Override
-            public Vector3D getVector(SpacecraftState currentState, Frame frame) throws OrekitException {
-                return currentState.getPVCoordinates(frame).getPosition();
-            }
-        });
-
-        CompoundAnalysis analyses = new CompoundAnalysis(analysesList);
-        
-        //LINK BUDGET
-        double txPower=0.05;
-        double txGain=1;
-        double rxGain=31622.8;
-        double lambda=0.15;
-        double noiseTemperature=165;
-        double dataRate=50e6;
-        LinkBudget lb=new LinkBudget(txPower, txGain, rxGain, lambda, noiseTemperature, dataRate);
-
-        Scenario3 scen = new Scenario3.Builder(startDate, endDate, utc).
-                analysis(analyses).covDefs(covDefs).name("test1").numThreads(1).
-                propagatorFactory(pf).saveAllAccesses(true).saveToDB(false).linkBudget(lb).build();
-        scen.call();
-
-        Scenario3 scenComp = scen;
-
-        System.out.println(String.format("Done Running Scenario %s", scenComp));
-
-        CoverageDefinition cdefToSave = scenComp.getCoverageDefinitions().iterator().next();
-        HashMap<CoveragePoint, TimeIntervalArray> covDefAccess = scenComp.getMergedAccesses(cdefToSave);
-
-        DescriptiveStatistics accessStats = new DescriptiveStatistics();
-        DescriptiveStatistics gapStats = new DescriptiveStatistics();
-        if (covDefAccess != null) {
-            for (CoveragePoint pt : covDefAccess.keySet()) {
-                for (Double duration : covDefAccess.get(pt).getDurations()) {
-                    accessStats.addValue(duration);
-                }
-                for (Double duration : covDefAccess.get(pt).complement().getDurations()) {
-                    gapStats.addValue(duration);
-                }
-            }
-
-            System.out.println(String.format("Max access time %s", accessStats.getMax()));
-            System.out.println(String.format("Mean access time %s", accessStats.getMean()));
-            System.out.println(String.format("Min access time %s", accessStats.getMin()));
-            System.out.println(String.format("50th access time %s", accessStats.getPercentile(50)));
-            System.out.println(String.format("80th access time %s", accessStats.getPercentile(80)));
-            System.out.println(String.format("90th access time %s", accessStats.getPercentile(90)));
-
-            System.out.println(String.format("Max gap time %s", gapStats.getMax()));
-            System.out.println(String.format("Mean gap time %s", gapStats.getMean()));
-            System.out.println(String.format("Min gap time %s", gapStats.getMin()));
-            System.out.println(String.format("50th gap time %s", gapStats.getPercentile(50)));
-            System.out.println(String.format("80th gap time %s", gapStats.getPercentile(80)));
-            System.out.println(String.format("90th gap time %s", gapStats.getPercentile(90)));
-
-            ScenarioIO.saveAccess(Paths.get(System.getProperty("results"), ""), filename, scenComp, cdefToSave);
-            ScenarioIO.saveLinkBudget(Paths.get(System.getProperty("results"), ""), filename, scenComp, cdefToSave);
+        ArrayList<Analysis> analyses = new ArrayList<>();
+        for (Satellite sat : walker.getSatellites()) {
+            analyses.add(new OrbitalElementsAnalysis(startDate, endDate, analysisTimeStep, sat, pf));
         }
 
-        System.out.println("Saving scenario...");
+        //LINK BUDGET
+        double txPower = 0.05;
+        double txGain = 1;
+        double rxGain = 31622.8;
+        double lambda = 0.15;
+        double noiseTemperature = 165;
+        double dataRate = 50e6;
+        LinkBudget lb = new LinkBudget(txPower, txGain, rxGain, lambda, noiseTemperature, dataRate);
 
-        ScenarioIO.save(Paths.get(System.getProperty("results"), ""), filename, scenComp);
+        Scenario scen = new Scenario.Builder(startDate, endDate, utc).
+                eventAnalysis(eventanalyses).analysis(analyses).
+                covDefs(covDefs).name("test1").properties(properties).
+                propagatorFactory(pf).build();
+        try {
+            Logger.getGlobal().finest(String.format("Running Scenario %s", scen));
+            Logger.getGlobal().finest(String.format("Number of points:     %d", covDef1.getNumberOfPoints()));
+            Logger.getGlobal().finest(String.format("Number of satellites: %d", walker.getSatellites().size()));
+            scen.call();
+        } catch (Exception ex) {
+            Logger.getLogger(Orekit.class.getName()).log(Level.SEVERE, null, ex);
+            throw new IllegalStateException("scenario failed to complete.");
+        }
+
+        Logger.getGlobal().finest(String.format("Done Running Scenario %s", scen));
+        
+        EventAnalyzer ea = new EventAnalyzer(fovEvent.getEvents(covDef1));
+        DescriptiveStatistics accessStats = ea.getStatistics(AnalysisMetric.DURATION, true);
+        DescriptiveStatistics gapStats = ea.getStatistics(AnalysisMetric.DURATION, false);
+
+        System.out.println(String.format("Max access time %s", accessStats.getMax()));
+        System.out.println(String.format("Mean access time %s", accessStats.getMean()));
+        System.out.println(String.format("Min access time %s", accessStats.getMin()));
+        System.out.println(String.format("50th access time %s", accessStats.getPercentile(50)));
+        System.out.println(String.format("80th access time %s", accessStats.getPercentile(80)));
+        System.out.println(String.format("90th access time %s", accessStats.getPercentile(90)));
+
+        System.out.println(String.format("Max gap time %s", gapStats.getMax()));
+        System.out.println(String.format("Mean gap time %s", gapStats.getMean()));
+        System.out.println(String.format("Min gap time %s", gapStats.getMin()));
+        System.out.println(String.format("50th gap time %s", gapStats.getPercentile(50)));
+        System.out.println(String.format("80th gap time %s", gapStats.getPercentile(80)));
+        System.out.println(String.format("90th gap time %s", gapStats.getPercentile(90)));
+
+        ScenarioIO.saveAccess(Paths.get(System.getProperty("results"), ""), filename, scen, covDef1);
+//            ScenarioIO.saveLinkBudget(Paths.get(System.getProperty("results"), ""), filename, scenComp, cdefToSave);
 //        ScenarioIO.saveReadMe(Paths.get(path, ""), filename, scenComp);
-//        ScenarioIO.saveAnalyses(Paths.get(path, ""), scenComp);
+        for (Analysis analysis : analyses) {
+            ScenarioIO.saveAnalysis(Paths.get(System.getProperty("results"), ""),
+                    String.format("%s_%s",scen.toString(),analysis.getName()), analysis);
+        }
         long end = System.nanoTime();
-        System.out.println("Took " + (end - start) / Math.pow(10, 9) + " sec");
+        Logger.getGlobal().finest(String.format("Took %.4f sec", (end - start) / Math.pow(10, 9)));
     }
 
 }

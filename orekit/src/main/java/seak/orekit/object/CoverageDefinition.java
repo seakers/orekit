@@ -21,7 +21,6 @@ import org.orekit.bodies.GeodeticPoint;
 public class CoverageDefinition implements OrekitObject, Serializable {
 
     public enum GridStyle {
-
         EQUAL_AREA, //Fewer points are placed in high latitudes
         UNIFORM //the same number of points are placed in each latitude
     }

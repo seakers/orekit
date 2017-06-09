@@ -5,15 +5,13 @@
  */
 package seak.orekit.analysis.ephemeris;
 
-import java.io.Serializable;
 import org.hipparchus.util.FastMath;
 
 /**
  * 
  * @author nozomihitomi
  */
-public class OrbitalElements implements Serializable{
-    private static final long serialVersionUID = -3726051095120448229L;
+public class OrbitalElements{
     
     /**
      * Semi-major axis[km]

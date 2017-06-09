@@ -5,13 +5,14 @@
  */
 package seak.orekit.analysis.ephemeris;
 
-import java.io.Serializable;
-import seak.orekit.analysis.AbstractAnalysis;
 import seak.orekit.analysis.Record;
-import org.orekit.errors.OrekitException;
 import org.orekit.orbits.KeplerianOrbit;
 import org.orekit.orbits.OrbitType;
 import org.orekit.propagation.SpacecraftState;
+import org.orekit.time.AbsoluteDate;
+import seak.orekit.analysis.AbstractSpacecraftAnalysis;
+import seak.orekit.object.Satellite;
+import seak.orekit.propagation.PropagatorFactory;
 
 /**
  * This class will record the orbital parameters of a satellite over the course
@@ -19,11 +20,10 @@ import org.orekit.propagation.SpacecraftState;
  *
  * @author nozomihitomi
  */
-public class OrbitalElementsAnalysis extends AbstractAnalysis<OrbitalElements> implements Serializable{
-    private static final long serialVersionUID = 2364842286699623867L;
-
-    public OrbitalElementsAnalysis(double timeStep) {
-        super(timeStep);
+public class OrbitalElementsAnalysis extends AbstractSpacecraftAnalysis<OrbitalElements> {
+   
+    public OrbitalElementsAnalysis(AbsoluteDate startDate, AbsoluteDate endDate, double timeStep, Satellite sat, PropagatorFactory propagatorFactory) {
+        super(startDate, endDate, timeStep, sat, propagatorFactory);
     }
 
     @Override
@@ -36,16 +36,13 @@ public class OrbitalElementsAnalysis extends AbstractAnalysis<OrbitalElements> i
         return "eph";
     }
 
-
     /**
      * At each step, the ephemeris of the satellite is recorded
      *
      * @param currentState
-     * @param isLast
-     * @throws OrekitException
      */
     @Override
-    public void handleStep(SpacecraftState currentState, boolean isLast) throws OrekitException {
+    protected void handleStep(SpacecraftState currentState) {
         KeplerianOrbit o = (KeplerianOrbit) OrbitType.KEPLERIAN.convertType(currentState.getOrbit());
         Record<OrbitalElements> e = new Record(currentState.getDate(), new OrbitalElements(o.getA(), o.getE(), o.getI(),
                 o.getRightAscensionOfAscendingNode(), o.getPerigeeArgument(),
@@ -53,24 +50,9 @@ public class OrbitalElementsAnalysis extends AbstractAnalysis<OrbitalElements> i
         addRecord(e);
     }
 
-    
     @Override
-    public int hashCode() {
-        int hash = super.hashCode();
-        return hash;
+    public String getName() {
+        return String.format("%s_%s","eph",getSatellite().getName());
     }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == null) {
-            return false;
-        }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        final OrbitalElementsAnalysis other = (OrbitalElementsAnalysis) obj;
-        return true;
-    }
-    
 
 }

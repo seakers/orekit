@@ -5,13 +5,17 @@
  */
 package seak.orekit.analysis.vectors;
 
-import java.util.Objects;
-import seak.orekit.analysis.AbstractAnalysis;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import seak.orekit.analysis.Record;
 import org.hipparchus.geometry.euclidean.threed.Vector3D;
 import org.orekit.errors.OrekitException;
 import org.orekit.frames.Frame;
 import org.orekit.propagation.SpacecraftState;
+import org.orekit.time.AbsoluteDate;
+import seak.orekit.analysis.AbstractSpacecraftAnalysis;
+import seak.orekit.object.Satellite;
+import seak.orekit.propagation.PropagatorFactory;
 
 /**
  * This analysis will record how the angle [rad] between two vector changes in the
@@ -20,8 +24,7 @@ import org.orekit.propagation.SpacecraftState;
  *
  * @author nozomihitomi
  */
-public abstract class VectorAnalysis extends AbstractAnalysis<String> {
-    private static final long serialVersionUID = 920486541477495142L;
+public abstract class VectorAnalysis extends AbstractSpacecraftAnalysis<String> {
 
     /**
      * The desired frame to use. Frame used to transform vectors into the same
@@ -29,15 +32,19 @@ public abstract class VectorAnalysis extends AbstractAnalysis<String> {
      */
     private final Frame frame;
 
-
     /**
      * Constructor to obtain a 3D vector in the specified frame at the specified time step.
      *
-     * @param frame
+     * @param startDate
+     * @param endDate
      * @param timeStep
+     * @param sat
+     * @param propagatorFactory
+     * @param frame
      */
-    public VectorAnalysis(Frame frame, double timeStep) {
-        super(timeStep);
+    public VectorAnalysis(AbsoluteDate startDate, AbsoluteDate endDate,
+            double timeStep, Satellite sat, PropagatorFactory propagatorFactory, Frame frame) {
+        super(startDate, endDate, timeStep, sat, propagatorFactory);
         this.frame = frame;
     }
     
@@ -54,31 +61,17 @@ public abstract class VectorAnalysis extends AbstractAnalysis<String> {
     } 
 
     @Override
-    public void handleStep(SpacecraftState currentState, boolean isLast) throws OrekitException {
-        Vector3D pos = getVector(currentState, frame);
+    public void handleStep(SpacecraftState currentState) {
+        Vector3D pos = null;
+        try {
+            pos = getVector(currentState, frame);
+        } catch (OrekitException ex) {
+            Logger.getLogger(VectorAnalysis.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        if(pos == null){
+            throw new IllegalStateException("Could not complete Vector Analysis");
+        }
         String str = String.format("%f,%f,%f", pos.getX(),pos.getY(),pos.getZ());
         addRecord(new Record(currentState.getDate(),str));
-    }
-
-    @Override
-    public int hashCode() {
-        int hash = 3;
-        hash = 97 * hash + Objects.hashCode(this.frame);
-        return hash;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == null) {
-            return false;
-        }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        final VectorAnalysis other = (VectorAnalysis) obj;
-        if (!Objects.equals(this.frame, other.frame)) {
-            return false;
-        }
-        return true;
     }
 }

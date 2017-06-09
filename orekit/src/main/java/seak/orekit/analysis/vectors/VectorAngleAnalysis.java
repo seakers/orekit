@@ -5,13 +5,14 @@
  */
 package seak.orekit.analysis.vectors;
 
-import java.util.Objects;
-import seak.orekit.analysis.AbstractAnalysis;
 import seak.orekit.analysis.Record;
 import org.hipparchus.geometry.euclidean.threed.Vector3D;
-import org.orekit.errors.OrekitException;
 import org.orekit.frames.Frame;
 import org.orekit.propagation.SpacecraftState;
+import org.orekit.time.AbsoluteDate;
+import seak.orekit.analysis.AbstractSpacecraftAnalysis;
+import seak.orekit.object.Satellite;
+import seak.orekit.propagation.PropagatorFactory;
 
 /**
  * This analysis will record how the angle [rad] between two vector changes in
@@ -20,9 +21,7 @@ import org.orekit.propagation.SpacecraftState;
  *
  * @author nozomihitomi
  */
-public abstract class VectorAngleAnalysis extends AbstractAnalysis<Double> {
-
-    private static final long serialVersionUID = 7181097236602721128L;
+public abstract class VectorAngleAnalysis extends AbstractSpacecraftAnalysis<Double> {
 
     /**
      * The desired frame to use. Frame used to transform vectors into the same
@@ -35,11 +34,16 @@ public abstract class VectorAngleAnalysis extends AbstractAnalysis<Double> {
      * the specified frame. Both vectors must be obtainable from the spacecraft
      * state.
      *
-     * @param frame
+     * @param startDate
+     * @param endDate
      * @param timeStep
+     * @param sat
+     * @param propagatorFactory
+     * @param frame
      */
-    public VectorAngleAnalysis(Frame frame, double timeStep) {
-        super(timeStep);
+    public VectorAngleAnalysis(AbsoluteDate startDate, AbsoluteDate endDate,
+            double timeStep, Satellite sat, PropagatorFactory propagatorFactory, Frame frame) {
+        super(startDate, endDate, timeStep,sat, propagatorFactory);
         this.frame = frame;
     }
 
@@ -58,32 +62,10 @@ public abstract class VectorAngleAnalysis extends AbstractAnalysis<Double> {
     }
 
     @Override
-    public void handleStep(SpacecraftState currentState, boolean isLast) throws OrekitException {
+    public void handleStep(SpacecraftState currentState) {
         Vector3D v1 = getVector1(currentState, frame);
         Vector3D v2 = getVector2(currentState, frame);
         addRecord(new Record(currentState.getDate(), Vector3D.angle(v1, v2)));
-    }
-
-    @Override
-    public int hashCode() {
-        int hash = 3;
-        hash = 97 * hash + Objects.hashCode(this.frame);
-        return hash;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == null) {
-            return false;
-        }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        final VectorAngleAnalysis other = (VectorAngleAnalysis) obj;
-        if (!Objects.equals(this.frame, other.frame)) {
-            return false;
-        }
-        return true;
     }
 
 }

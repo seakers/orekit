@@ -6,7 +6,8 @@
 package seak.orekit.analysis;
 
 import java.util.Collection;
-import org.orekit.propagation.sampling.OrekitFixedStepHandler;
+import java.util.concurrent.Callable;
+import org.orekit.time.AbsoluteDate;
 
 /**
  * An analysis is used to record certain states at fixed time steps during the
@@ -21,7 +22,7 @@ import org.orekit.propagation.sampling.OrekitFixedStepHandler;
  * @author nozomihitomi
  * @param <Record>
  */
-public interface Analysis<Record> extends OrekitFixedStepHandler {
+public interface Analysis<Record> extends Callable<Analysis>{
 
     /**
      * Gets the recorded value of an analysis from each time step. The returned
@@ -31,7 +32,21 @@ public interface Analysis<Record> extends OrekitFixedStepHandler {
      * @return
      */
     public Collection<Record> getHistory();
-
+    
+    /**
+     * Gets the start date of the analysis
+     *
+     * @return
+     */
+    public AbsoluteDate getStartDate();
+    
+    /**
+     * Gets the end date of the analysis
+     *
+     * @return
+     */
+    public AbsoluteDate getEndDate();
+    
     /**
      * Gets the fixed time step at which values are recorded
      *
@@ -52,4 +67,10 @@ public interface Analysis<Record> extends OrekitFixedStepHandler {
      * @return
      */
     public String getExtension();
+    
+    /**
+     * Gets the name of the analysis
+     * @return 
+     */
+    public String getName();
 }
