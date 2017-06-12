@@ -12,8 +12,20 @@ package seak.orekit.propagation;
  * @author nozomihitomi
  */
 public enum PropagatorType {
-    KEPLERIAN, //for keplerian propagation
-    J2, //for J2 propagation
-    TLE, //Use if TLE is available
-    NUMERICAL //numerical propagation for when using force models (i.e. atmospheric drag)
+    /**
+     * for keplerian propagation
+     */
+    KEPLERIAN,
+    /**
+     * for J2 propagation
+     */
+    J2,
+    /**
+     * Use if TLE is available
+     */
+    TLE,
+    /**
+     * numerical propagation for when using force models (i.e. atmospheric drag)
+     */
+    NUMERICAL
 }

@@ -9,9 +9,7 @@ import java.util.HashSet;
 import java.util.Properties;
 import org.hipparchus.geometry.euclidean.threed.Vector3D;
 import org.orekit.frames.Frame;
-import org.orekit.propagation.events.handlers.EventHandler;
 import org.orekit.time.AbsoluteDate;
-import seak.orekit.event.detector.GroundSunAngleDetector;
 import seak.orekit.object.CoverageDefinition;
 import seak.orekit.propagation.PropagatorFactory;
 
@@ -114,7 +112,7 @@ public class EventAnalysisFactory {
             case GND_SUN_ANGLE:
                 //Option to set the angle threshold for the angle between a 
                 //specified topocentric direction and the sun
-                String threshold = prop.getProperty("gndsunangle.threshold", "3.14159");
+                double threshold = Double.parseDouble(prop.getProperty("gndsunangle.threshold", "1.570795"));
                 //Option to set the topocentric, where +X is east, +Y is north, and +Z is zenith
                 double x = Double.parseDouble(prop.getProperty("gndsunangle.x", "0"));
                 double y = Double.parseDouble(prop.getProperty("gndsunangle.y", "0"));
@@ -122,8 +120,8 @@ public class EventAnalysisFactory {
                 
                 Vector3D direction = new Vector3D(x, y, z);
                 
-//                ea = new GroundSunAngleDetector(initialState, startDate, endDate, target, 0, direction, EventHandler.Action.CONTINUE, 0, 0, 0);
-                
+                ea = new GroundSunAngleEventAnalysis(startDate, endDate, inertialFrame, covDefs, threshold, direction);
+                break;
             default:
                 throw new UnsupportedOperationException(
                         String.format("Analysis type %s is unsupported.", type));

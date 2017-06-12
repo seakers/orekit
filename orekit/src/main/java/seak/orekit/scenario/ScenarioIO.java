@@ -13,17 +13,16 @@ import java.io.ObjectInputStream;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import seak.orekit.analysis.Analysis;
 import seak.orekit.analysis.Record;
 import seak.orekit.coverage.access.RiseSetTime;
 import seak.orekit.coverage.access.TimeIntervalArray;
-import seak.orekit.event.EventAnalysis;
-import seak.orekit.event.FieldOfViewEventAnalysis;
+import seak.orekit.event.GroundEventAnalysis;
 import seak.orekit.object.Constellation;
 import seak.orekit.object.CoverageDefinition;
 import seak.orekit.object.CoveragePoint;
@@ -45,24 +44,15 @@ public class ScenarioIO {
      * @param filename name of the file without the extension
      * @param scenario Scenario that was simulated
      * @param covdef the coverage definition of interest
+     * @param analysis the analysis to save
      * @return
      */
-    public static boolean saveAccess(Path path, String filename,
-            Scenario scenario, CoverageDefinition covdef) {
-
-        Map<CoveragePoint, TimeIntervalArray> cvaa = new HashMap<>();
-        for (EventAnalysis eventAnalysis : scenario.getEventAnalyses()) {
-            if (eventAnalysis instanceof FieldOfViewEventAnalysis) {
-                FieldOfViewEventAnalysis fovEvent = (FieldOfViewEventAnalysis) eventAnalysis;
-                if (fovEvent.getCoverageDefinitions().contains(covdef)) {
-                    //if found, then set the metrics
-                    cvaa = fovEvent.getEvents(covdef);
-                }
-            }
-        }
-
+    public static boolean saveGroundEventAnalysis(Path path, String filename, 
+            Scenario scenario, CoverageDefinition covdef, GroundEventAnalysis analysis) {
+        
+        Map<CoveragePoint,TimeIntervalArray> groundEvents = analysis.getEvents(covdef);
         File file = new File(path.toFile(),
-                String.format("%s_%s_%s.cva", filename, scenario.getName(), covdef.getName()));
+                String.format("%s_%s_%s.res", filename, scenario.getName(), covdef.getName()));
         try (FileWriter fw = new FileWriter(file)) {
             fw.append(String.format("EpochTime: %s\n\n", scenario.getStartDate()));
             fw.append("Assigned Constellations:\n");
@@ -75,17 +65,22 @@ public class ScenarioIO {
             fw.flush();
 
             int i = 0;
-            ArrayList<CoveragePoint> girdPoints = new ArrayList(cvaa.keySet());
-            Collections.sort(girdPoints);
-            for (CoveragePoint pt : girdPoints) {
+            ArrayList<CoveragePoint> gridPoints = new ArrayList(groundEvents.keySet());
+            Collections.sort(gridPoints);
+            for (CoveragePoint pt : gridPoints) {
                 fw.append(String.format("PointNumber:        %d\n", i));
                 fw.append(String.format("Lat:                %.14e\n", pt.getPoint().getLatitude()));
                 fw.append(String.format("Lon:                %.14e\n", pt.getPoint().getLongitude()));
                 fw.append(String.format("Alt:                %.14e\n", pt.getPoint().getAltitude()));
-                fw.append(String.format("NumberOfAccesses:   %d\n", cvaa.get(pt).numIntervals()));
-                Iterator<RiseSetTime> iter = cvaa.get(pt).getRiseSetTimes().iterator();
+                fw.append(String.format("NumberOfEvents  :   %d\n", groundEvents.get(pt).numIntervals()));
+                Iterator<RiseSetTime> iter = groundEvents.get(pt).getRiseSetTimes().iterator();
                 while (iter.hasNext()) {
-                    fw.append(String.format("%.14e   %.14e\n", iter.next().getTime(), iter.next().getTime()));
+                    fw.append(String.format("%.14e", iter.next().getTime()));
+                    try{
+                        fw.append(String.format("   %.14e\n", iter.next().getTime()));
+                    }catch(NoSuchElementException ex){
+                        Logger.getLogger(ScenarioIO.class.getName()).log(Level.SEVERE, "Expected all intervals to be closed. Found an open one", ex);
+                    }
                 }
                 fw.append("\n");
                 fw.flush();

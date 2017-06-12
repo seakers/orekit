@@ -173,7 +173,7 @@ public abstract class AbstractEventDetector<T extends EventDetector> extends Abs
         if (this.handlerTimeInterval == null) {
             return null;
         } else {
-            return this.handlerTimeInterval.getTimeArray();
+            return this.handlerTimeInterval.getTimeArray().createImmutable();
         }
     }
 

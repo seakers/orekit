@@ -20,48 +20,7 @@ import org.hipparchus.stat.descriptive.DescriptiveStatistics;
  *
  * @author nozomihitomi
  */
-public class EventAnalyzer {
-
-    /**
-     * Data on all occurring events (e.g. accesses) across entire coverage
-     * definition
-     */
-    private final DescriptiveStatistics occurringStats;
-
-    /**
-     * Data on all non-occurring events (e.g. gaps) across entire coverage
-     * definition
-     */
-    private final DescriptiveStatistics nonoccurringStats;
-
-    /**
-     * Data on occurring events (e.g. accesses) at each point in the coverage
-     * definition
-     */
-    private final HashMap<CoveragePoint, DescriptiveStatistics> occurringPerPoint;
-
-    /**
-     * Data on non-occurring events (e.g. gaps) at each point in the coverage
-     * definition
-     */
-    private final HashMap<CoveragePoint, DescriptiveStatistics> nonoccurringsPerPoint;
-
-    /**
-     * Data on occurring events (e.g. accesses) at each latitude in the coverage
-     * definition
-     */
-    private final HashMap<Double, DescriptiveStatistics> occurringPerLatitude;
-
-    /**
-     * Data on non-occurring events (e.g. gaps) at each latitude in the coverage
-     * definition
-     */
-    private final HashMap<Double, DescriptiveStatistics> nonoccuringPerLatitude;
-
-    /**
-     * Collection of the CoveragePoints at each latitude
-     */
-    private final HashMap<Double, ArrayList<CoveragePoint>> pointsAtLatitude;
+public class GroundEventAnalyzer {
 
     /**
      * Collection of the CoveragePoints
@@ -74,41 +33,8 @@ public class EventAnalyzer {
      *
      * @param events
      */
-    public EventAnalyzer(Map<CoveragePoint, TimeIntervalArray> events) {
+    public GroundEventAnalyzer(Map<CoveragePoint, TimeIntervalArray> events) {
         this.events = events;
-
-        occurringStats = new DescriptiveStatistics();
-        nonoccurringStats = new DescriptiveStatistics();
-        occurringPerPoint = new HashMap<>(events.keySet().size());
-        nonoccurringsPerPoint = new HashMap<>(events.keySet().size());
-        occurringPerLatitude = new HashMap<>();
-        nonoccuringPerLatitude = new HashMap<>();
-        pointsAtLatitude = new HashMap<>();
-
-        for (CoveragePoint pt : events.keySet()) {
-            occurringPerPoint.put(pt, new DescriptiveStatistics());
-            nonoccurringsPerPoint.put(pt, new DescriptiveStatistics());
-
-            double latitude = pt.getPoint().getLatitude();
-            if (!occurringPerLatitude.containsKey(latitude)) {
-                occurringPerLatitude.put(pt.getPoint().getLatitude(), new DescriptiveStatistics());
-                nonoccuringPerLatitude.put(pt.getPoint().getLatitude(), new DescriptiveStatistics());
-                pointsAtLatitude.put(pt.getPoint().getLatitude(), new ArrayList());
-            }
-
-            pointsAtLatitude.get(pt.getPoint().getLatitude()).add(pt);
-
-            for (Double duration : events.get(pt).getDurations()) {
-                occurringStats.addValue(duration);
-                occurringPerPoint.get(pt).addValue(duration);
-                occurringPerLatitude.get(latitude).addValue(duration);
-            }
-            for (Double duration : events.get(pt).complement().getDurations()) {
-                nonoccurringStats.addValue(duration);
-                nonoccurringsPerPoint.get(pt).addValue(duration);
-                nonoccuringPerLatitude.get(latitude).addValue(duration);
-            }
-        }
     }
 
     /**

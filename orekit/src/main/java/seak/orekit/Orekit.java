@@ -43,11 +43,12 @@ import org.orekit.time.TimeScalesFactory;
 import org.orekit.utils.Constants;
 import org.orekit.utils.IERSConventions;
 import seak.orekit.coverage.analysis.AnalysisMetric;
-import seak.orekit.coverage.analysis.EventAnalyzer;
+import seak.orekit.coverage.analysis.GroundEventAnalyzer;
 import seak.orekit.event.EventAnalysis;
 import seak.orekit.event.EventAnalysisEnum;
 import seak.orekit.event.EventAnalysisFactory;
 import seak.orekit.event.FieldOfViewEventAnalysis;
+import seak.orekit.event.GroundSunAngleEventAnalysis;
 import static seak.orekit.object.CoverageDefinition.GridStyle.UNIFORM;
 
 /**
@@ -131,6 +132,8 @@ public class Orekit {
         ArrayList<EventAnalysis> eventanalyses = new ArrayList<>();
         FieldOfViewEventAnalysis fovEvent = (FieldOfViewEventAnalysis) eaf.create(EventAnalysisEnum.FOV, properties);
         eventanalyses.add(fovEvent);
+        GroundSunAngleEventAnalysis gndSunAngEvent = (GroundSunAngleEventAnalysis) eaf.create(EventAnalysisEnum.GND_SUN_ANGLE, properties);
+        eventanalyses.add(gndSunAngEvent);
 
         //set the analyses
         double analysisTimeStep = 60;
@@ -164,7 +167,7 @@ public class Orekit {
 
         Logger.getGlobal().finest(String.format("Done Running Scenario %s", scen));
         
-        EventAnalyzer ea = new EventAnalyzer(fovEvent.getEvents(covDef1));
+        GroundEventAnalyzer ea = new GroundEventAnalyzer(fovEvent.getEvents(covDef1));
         DescriptiveStatistics accessStats = ea.getStatistics(AnalysisMetric.DURATION, true);
         DescriptiveStatistics gapStats = ea.getStatistics(AnalysisMetric.DURATION, false);
 
@@ -182,7 +185,8 @@ public class Orekit {
         System.out.println(String.format("80th gap time %s", gapStats.getPercentile(80)));
         System.out.println(String.format("90th gap time %s", gapStats.getPercentile(90)));
 
-        ScenarioIO.saveAccess(Paths.get(System.getProperty("results"), ""), filename, scen, covDef1);
+        ScenarioIO.saveGroundEventAnalysis(Paths.get(System.getProperty("results"), ""), filename + "_cva", scen, covDef1, fovEvent);
+        ScenarioIO.saveGroundEventAnalysis(Paths.get(System.getProperty("results"), ""), filename + "_gsa", scen, covDef1, gndSunAngEvent);
 //            ScenarioIO.saveLinkBudget(Paths.get(System.getProperty("results"), ""), filename, scenComp, cdefToSave);
 //        ScenarioIO.saveReadMe(Paths.get(path, ""), filename, scenComp);
         for (Analysis analysis : analyses) {

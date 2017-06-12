@@ -10,10 +10,24 @@ package seak.orekit.coverage.analysis;
  * @author nhitomi
  */
 public enum AnalysisMetric {
-    
+
+    /**
+     * Used when obtaining the duration of the event occurrences or
+     * non-occurrences (e.g. mean access time or max gap time)
+     */
     DURATION,
-    MEAN_TIME_TO_T, //used for mean time to access or mean response time
-    TIME_AVERAGE, //Analytically, it is simply double the the mean time to T
-    PERCENT_TIME, //the quotient between the sum of the durations when the event is occuring and the total simulation time
-    
+    /**
+     * used for mean time to access or mean response time
+     */
+    MEAN_TIME_TO_T,
+    /**
+     * Analytically, it is simply double the the mean time to T
+     */
+    TIME_AVERAGE,
+    /**
+     * the quotient between the sum of the durations when the event is occurring
+     * and the total simulation time
+     */
+    PERCENT_TIME,
+
 }
