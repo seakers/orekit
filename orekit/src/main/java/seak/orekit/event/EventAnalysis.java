@@ -32,4 +32,10 @@ public interface EventAnalysis extends Callable<EventAnalysis> {
      * @return the inertial frame used in the analysis
      */
     public Frame getInertialFrame();
+    
+    /**
+     * The header to write to file when saving the results.
+     * @return 
+     */
+    public String getHeader();
 }

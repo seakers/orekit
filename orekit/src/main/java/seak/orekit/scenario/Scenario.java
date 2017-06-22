@@ -6,6 +6,7 @@
 package seak.orekit.scenario;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Properties;
@@ -38,7 +39,12 @@ public class Scenario extends AbstractScenario {
      * fixed time steps
      */
     private final Collection<Analysis> analyses;
-    
+
+    /**
+     * Flag to signal if the scenario was simulated without errors.
+     */
+    private boolean done;
+
     /**
      * Creates a new scenario.
      *
@@ -63,20 +69,34 @@ public class Scenario extends AbstractScenario {
 
         super(name, startDate, endDate, timeScale, inertialFrame, propagatorFactory, covDefs, analyses);
         this.eventAnalyses = eventAnalyses;
-        this.analyses = analyses;
+        if (analyses == null) {
+            this.analyses = new ArrayList<>();
+        } else {
+            this.analyses = analyses;
+        }
     }
 
     @Override
     public Scenario call() throws Exception {
-        System.out.println("");
-        
+        done = false;
         for (EventAnalysis eventAnalysis : eventAnalyses) {
             eventAnalysis.call();
         }
         for (Analysis analysis : analyses) {
             analysis.call();
         }
+        done = true;
         return this;
+    }
+
+    /**
+     * A flag that says if the simulation successfully completed. Resets every
+     * time scenario is called
+     *
+     * @return true if the scenario simulated completely without any errors. else false;
+     */
+    public boolean isDone() {
+        return done;
     }
 
     /**

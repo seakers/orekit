@@ -20,7 +20,7 @@ import org.orekit.time.AbsoluteDate;
  * the history can be retrieved after propagation.
  *
  * @author nozomihitomi
- * @param <Record>
+ * @param <Record> the generic object for the record
  */
 public interface Analysis<Record> extends Callable<Analysis>{
 
@@ -29,48 +29,48 @@ public interface Analysis<Record> extends Callable<Analysis>{
      * history shall be sorted in chronological order with the earliest record
      * as the first element
      *
-     * @return
+     * @return the recorded value of an analysis from each time step.
      */
     public Collection<Record> getHistory();
     
     /**
      * Gets the start date of the analysis
      *
-     * @return
+     * @return the start date of the analysis
      */
     public AbsoluteDate getStartDate();
     
     /**
      * Gets the end date of the analysis
      *
-     * @return
+     * @return the end date of the analysis
      */
     public AbsoluteDate getEndDate();
     
     /**
      * Gets the fixed time step at which values are recorded
      *
-     * @return
+     * @return the fixed time step at which values are recorded
      */
     public double getTimeStep();
 
     /**
      * The header to use in a saved file to inform a user of what the data are
      *
-     * @return
+     * @return the header to use in a saved file to inform a user of what the data are
      */
     public String getHeader();
 
     /**
      * The file extension required to save the analysis
      *
-     * @return
+     * @return the file extension required to save the analysis
      */
     public String getExtension();
     
     /**
      * Gets the name of the analysis
-     * @return 
+     * @return  the name of the analysis
      */
     public String getName();
 }

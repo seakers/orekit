@@ -24,6 +24,7 @@ import org.orekit.time.AbsoluteDate;
  * @author SEAK1
  */
 public class Walker extends Constellation {
+
     private static final long serialVersionUID = 6994388604876873748L;
 
     /**
@@ -34,18 +35,18 @@ public class Walker extends Constellation {
      * true anomaly are 0 rad.
      *
      * @param name name of the constellation
+     * @param semimajoraxis the semimajor axis of each satellite [m]
      * @param i inclination of the constellation [rad]
      * @param t the total number of satellites
      * @param p the number of equally spaced planes
      * @param f the relative spacing between satellites in adjacent planes
-     * @param semimajoraxis the semimajor axis of each satellite [m]
      * @param inertialFrame the frame in which the PVCoordinates are defined
      * (must be a pseudo-inertial frame)
      * @param startDate the date to begin simulating this constellation
      * @param mu central attraction coefficient (m³/s²)
      */
-    public Walker(String name, double i, int t, int p, int f, double semimajoraxis, Frame inertialFrame, AbsoluteDate startDate, double mu) {
-        this(name, i, t, p, f, semimajoraxis, inertialFrame, startDate, mu, 0.0, 0.0);
+    public Walker(String name, double semimajoraxis, double i, int t, int p, int f, Frame inertialFrame, AbsoluteDate startDate, double mu) {
+        this(name, semimajoraxis, i, t, p, f, inertialFrame, startDate, mu, 0.0, 0.0);
     }
 
     /**
@@ -56,11 +57,11 @@ public class Walker extends Constellation {
      * anomaly to orient the walker configuration
      *
      * @param name name of the constellation
+     * @param semimajoraxis the semimajor axis of each satellite [m]
      * @param i inclination of the constellation [rad]
      * @param t the total number of satellites
      * @param p the number of equally spaced planes
      * @param f the relative spacing between satellites in adjacent planes
-     * @param semimajoraxis the semimajor axis of each satellite [m]
      * @param inertialFrame the frame in which the PVCoordinates are defined
      * (must be a pseudo-inertial frame)
      * @param startDate the date to begin simulating this constellation
@@ -70,8 +71,8 @@ public class Walker extends Constellation {
      * @param refAnom the reference true anomaly of the first satellite in the
      * first orbital plane to begin constructing constellation [rad]
      */
-    public Walker(String name, double i, int t, int p, int f, double semimajoraxis, Frame inertialFrame, AbsoluteDate startDate, double mu, double refRaan, double refAnom) {
-        super(name, createConstellation(i, t, p, f, semimajoraxis, inertialFrame, startDate, mu, refRaan, refAnom));
+    public Walker(String name, double semimajoraxis, double i, int t, int p, int f, Frame inertialFrame, AbsoluteDate startDate, double mu, double refRaan, double refAnom) {
+        super(name, createConstellation(semimajoraxis, i, t, p, f, inertialFrame, startDate, mu, refRaan, refAnom));
     }
 
     /**
@@ -92,16 +93,22 @@ public class Walker extends Constellation {
      * first orbital plane to begin constructing constellation [rad]
      * @return
      */
-    private static Collection<Satellite> createConstellation(double i, int t, int p, int f, double semimajoraxis, Frame inertialFrame, AbsoluteDate startDate, double mu, double refRaan, double refAnom) {
+    private static Collection<Satellite> createConstellation(double semimajoraxis, double i, int t, int p, int f, Frame inertialFrame, AbsoluteDate startDate, double mu, double refRaan, double refAnom) {
         //checks for valid parameters
         if (t < 0 || p < 0) {
-            throw new IllegalArgumentException(String.format("Expected t>0, p>0. Found f=%d and p=%d", t, p));
+            throw new IllegalArgumentException(String.format("Expected t>0, p>0."
+                    + " Found f=%d and p=%d", t, p));
         }
         if ((t % p) != 0) {
-            throw new IllegalArgumentException(String.format("Incompatible values for total number of satellites <t=%d> and number of planes <p=%d>. t must be divisible by p.", t, p));
+            throw new IllegalArgumentException(
+                    String.format("Incompatible values for total number of "
+                            + "satellites <t=%d> and number of planes <p=%d>. "
+                            + "t must be divisible by p.", t, p));
         }
         if (f < 0 && f > p - 1) {
-            throw new IllegalArgumentException(String.format("Expected 0 <= f <= p-1. Found f = %d and p = %d.", f, p));
+            throw new IllegalArgumentException(
+                    String.format("Expected 0 <= f <= p-1. "
+                            + "Found f = %d and p = %d.", f, p));
         }
 
         //Uses Walker delta pa
@@ -111,17 +118,19 @@ public class Walker extends Constellation {
         final double delRaan = pu * s; //node spacing
         final double phasing = pu * f;
 
-
         final ArrayList<Satellite> walker = new ArrayList(t);
         for (int planeNum = 0; planeNum < p; planeNum++) {
             for (int satNum = 0; satNum < s; satNum++) {
                 //since eccentricity = 0, doesn't matter if using true or mean anomaly
-                Orbit orb = new KeplerianOrbit(semimajoraxis, 0.0001, i, 0.0, refRaan + planeNum * delRaan, refAnom + satNum * delAnom + phasing * planeNum, PositionAngle.TRUE, inertialFrame, startDate, mu);
+                Orbit orb = new KeplerianOrbit(semimajoraxis, 0.0001, i, 0.0, 
+                        refRaan + planeNum * delRaan, 
+                        refAnom + satNum * delAnom + phasing * planeNum, 
+                        PositionAngle.TRUE, inertialFrame, startDate, mu);
                 Satellite sat = new Satellite(String.format("sat_walker_%d", s * planeNum + satNum), orb);
                 walker.add(sat);
             }
         }
         return walker;
     }
-    
+
 }

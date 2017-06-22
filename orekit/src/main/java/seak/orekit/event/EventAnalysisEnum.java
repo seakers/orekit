@@ -18,6 +18,6 @@ public enum EventAnalysisEnum {
     /**
      * Analysis that detects when targets experience a specified sun angle 
      */
-    GND_SUN_ANGLE,
+    GND_BODY_ANGLE,
     
 }

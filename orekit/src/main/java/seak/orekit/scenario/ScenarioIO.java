@@ -54,14 +54,9 @@ public class ScenarioIO {
         File file = new File(path.toFile(),
                 String.format("%s_%s_%s.res", filename, scenario.getName(), covdef.getName()));
         try (FileWriter fw = new FileWriter(file)) {
-            fw.append(String.format("EpochTime: %s\n\n", scenario.getStartDate()));
-            fw.append("Assigned Constellations:\n");
-            for (Constellation constel : covdef.getConstellations()) {
-                fw.append(String.format("\tConstelation %s: %d satellites\n", constel.getName(), constel.getSatellites().size()));
-                for (Satellite sat : constel.getSatellites()) {
-                    fw.append(String.format("\t\tSatellite %s\n", sat.toString()));
-                }
-            }
+            fw.append(String.format("Start Date: %s\n\n", scenario.getStartDate()));
+            fw.append(String.format("End Date: %s\n\n", scenario.getEndDate()));
+            fw.append(analysis.getHeader());
             fw.flush();
 
             int i = 0;

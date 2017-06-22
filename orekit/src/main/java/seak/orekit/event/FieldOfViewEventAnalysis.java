@@ -5,6 +5,13 @@
  */
 package seak.orekit.event;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -27,6 +34,7 @@ import seak.orekit.coverage.access.TimeIntervalArray;
 import seak.orekit.coverage.access.TimeIntervalMerger;
 import seak.orekit.event.detector.FOVDetector;
 import seak.orekit.event.detector.LOSDetector;
+import seak.orekit.object.Constellation;
 import seak.orekit.object.CoverageDefinition;
 import seak.orekit.object.CoveragePoint;
 import seak.orekit.object.Instrument;
@@ -49,7 +57,6 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
      * satellite
      */
     private final PropagatorFactory propagatorFactory;
-
 
     /**
      * a flag set by the user to toggle whether to save the access of each
@@ -104,7 +111,6 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
         this.numThreads = numThreads;
     }
 
-
     /**
      * Runs the scenario from the start date to the end date. Running the
      * scenario propagates the orbits of each satellite in the constellation and
@@ -122,14 +128,29 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
         CompletionService<FieldOfViewSubRoutine> ecs = new ExecutorCompletionService(pool);
 
         for (CoverageDefinition cdef : getCoverageDefinitions()) {
-            Logger.getGlobal().finest(String.format("Acquiring access times for %s...", cdef));
+            Logger.getGlobal().finer(String.format("Acquiring access times for %s...", cdef));
+            Logger.getGlobal().finer(
+                    String.format("Simulation dates %s to %s (%.2f days)",
+                            getStartDate(), getEndDate(),
+                            getEndDate().durationFrom(getStartDate()) / 86400.));
             if (saveAllAccesses) {
                 allAccesses.put(cdef, new HashMap());
             }
-            
+
             //propogate each satellite individually
             int nSubRoutines = 0;
             for (Satellite sat : getUniqueSatellites(cdef)) {
+                //first check if the satellite accesses are already saved in the database
+                File file = new File(
+                        System.getProperty("orekit.coveragedatabase"),
+                        String.valueOf(sat.hashCode()));
+                if (file.canRead()) {
+                    HashMap<CoveragePoint, TimeIntervalArray> satAccesses = readAccesses(file);
+                    processAccesses(sat, cdef, satAccesses);
+                    break;
+                }
+
+                //if no precomuted times available, then propagate
                 Propagator prop = propagatorFactory.createPropagator(sat.getOrbit(), sat.getGrossMass());
                 //Set stepsizes and threshold for detectors
                 double losStepSize = sat.getOrbit().getKeplerianPeriod() / 10.;
@@ -140,8 +161,8 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
                 ecs.submit(subRoutine);
                 nSubRoutines++;
             }
-            
-            for(int i=0; i<nSubRoutines; i++){
+
+            for (int i = 0; i < nSubRoutines; i++) {
                 FieldOfViewSubRoutine subRoutine = null;
                 try {
                     subRoutine = ecs.take().get();
@@ -151,25 +172,20 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
                     Logger.getLogger(FieldOfViewEventAnalysis.class.getName()).log(Level.SEVERE, null, ex);
                 }
 
-                if(subRoutine == null){
+                if (subRoutine == null) {
+                    pool.shutdown();
                     throw new IllegalStateException("Subroutine failed in field of view event.");
                 }
-                
+
                 Satellite sat = subRoutine.getSat();
                 HashMap<CoveragePoint, TimeIntervalArray> satAccesses = subRoutine.getSatAccesses();
-                
-                //save the satellite accesses 
-                if (saveAllAccesses) {
-                    allAccesses.get(cdef).put(sat, satAccesses);
-                }
+                processAccesses(sat, cdef, satAccesses);
 
-                //merge the time accesses across all satellite for each coverage definition
-                if (getEvents().containsKey(cdef)) {
-                    Map<CoveragePoint, TimeIntervalArray> mergedAccesses
-                            = EventIntervalMerger.merge(getEvents().get(cdef), satAccesses, false);
-                    getEvents().put(cdef, mergedAccesses);
-                } else {
-                    getEvents().put(cdef, satAccesses);
+                if (saveToDB) {
+                    File file = new File(
+                            System.getProperty("orekit.coveragedatabase"),
+                            String.valueOf(sat.hashCode()));
+                    writeAccesses(file, satAccesses);
                 }
             }
 
@@ -181,6 +197,56 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
 
         pool.shutdown();
         return this;
+    }
+
+    /**
+     * Saves the computed accesses from the satellite assigned to the coverage
+     * definition.
+     *
+     * @param sat the satellite
+     * @param cdef the coverage definition that the satellite is assigned to
+     * @param satAccesses the accesses computed for the satellite to its
+     * assigned coverage definition
+     */
+    private void processAccesses(Satellite sat, CoverageDefinition cdef,
+            HashMap<CoveragePoint, TimeIntervalArray> satAccesses) {
+        //save the satellite accesses 
+        if (saveAllAccesses) {
+            allAccesses.get(cdef).put(sat, satAccesses);
+        }
+
+        //merge the time accesses across all satellite for each coverage definition
+        if (getEvents().containsKey(cdef)) {
+            Map<CoveragePoint, TimeIntervalArray> mergedAccesses
+                    = EventIntervalMerger.merge(getEvents().get(cdef), satAccesses, false);
+            getEvents().put(cdef, mergedAccesses);
+        } else {
+            getEvents().put(cdef, satAccesses);
+        }
+    }
+
+    private void writeAccesses(File file, HashMap<CoveragePoint, TimeIntervalArray> accesses) {
+        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(file))) {
+            oos.writeObject(accesses);
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(FieldOfViewEventAnalysis.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(FieldOfViewEventAnalysis.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    private HashMap<CoveragePoint, TimeIntervalArray> readAccesses(File file) {
+        HashMap<CoveragePoint, TimeIntervalArray> out = new HashMap<>();
+        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file))) {
+            out = (HashMap<CoveragePoint, TimeIntervalArray>) ois.readObject();
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(FieldOfViewEventAnalysis.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(FieldOfViewEventAnalysis.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (ClassNotFoundException ex) {
+            Logger.getLogger(FieldOfViewEventAnalysis.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return out;
     }
 
     /**
@@ -235,6 +301,26 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
      */
     public PropagatorFactory getPropagatorFactory() {
         return propagatorFactory;
+    }
+
+    @Override
+    public String getHeader() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Field of View Event Analysis\n");
+        sb.append("Assigned Constellations:\n");
+        for (CoverageDefinition cdef : getCoverageDefinitions()) {
+            sb.append("CoverageDefinition = ");
+            sb.append(cdef.getName()).append("{");
+            for (Constellation constel : cdef.getConstellations()) {
+                sb.append(String.format("\tConstelation %s: %d satellites\n", constel.getName(), constel.getSatellites().size()));
+                for (Satellite sat : constel.getSatellites()) {
+                    sb.append(String.format("\t\tSatellite %s\n", sat.toString()));
+                }
+            }
+            sb.append("}\n");
+        }
+        sb.append("\n");
+        return sb.toString();
     }
 
     /**
@@ -312,10 +398,11 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
             }
         }
 
+        //NOTE: this implementation of in the field of view is a bit fragile if propagating highly elliptical orbits (>0.75). Maybe need to use smaller time steps los and fov detectors
         @Override
         public FieldOfViewSubRoutine call() throws Exception {
             SpacecraftState initialState = prop.getInitialState();
-            Logger.getGlobal().finest(String.format("Propagating satellite %s...", sat));
+            Logger.getGlobal().finer(String.format("Propagating satellite %s...", sat));
             for (Instrument inst : sat.getPayload()) {
                 for (CoveragePoint pt : cdef.getPoints()) {
                     prop.resetInitialState(initialState);
@@ -353,10 +440,19 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
                         if (!Double.isNaN(date1)) {
                             //first propagation will find the start time when the point is in the field of view
                             SpacecraftState s = prop.propagate(getStartDate().shiftedBy(date0), getStartDate().shiftedBy(date1));
+                            if (Math.abs(s.getDate().durationFrom(initialState.getDate()) - date1) < 1e-6) {
+                                //did not find an access
+                                break;
+                            }
 
-                            //prop.resetInitialState(s);
+                            //check to see if the first access was closing an access
+                            if (!fovDetec.isOpen()) {
+                                break;
+                            }
+
                             //second propagation will find the end time when the point is in the field of view
                             prop.propagate(s.getDate(), getStartDate().shiftedBy(date1));
+
                             date1 = Double.NaN;
                         }
                     }

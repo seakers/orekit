@@ -50,12 +50,32 @@ public class GroundEventAnalyzer {
         return points;
     }
 
+    /**
+     * Computes the statistics for a specified metric over all points given to
+     * the analyzer
+     *
+     * @param metric the metric to compute
+     * @param occurrences flag to declare whether to use the saved time
+     * intervals [true] or its complement [false].
+     * @return statistics computed on the specified metric
+     */
     public DescriptiveStatistics getStatistics(AnalysisMetric metric, boolean occurrences) {
         return this.getStatistics(metric, occurrences,
                 new double[]{-Math.PI / 2, Math.PI / 2},
                 new double[]{-Math.PI, Math.PI});
     }
 
+    /**
+     * Computes the statistics for a specified metric on the points in the given
+     * bounds for latitude and longitude
+     *
+     * @param metric the metric to compute
+     * @param occurrences flag to declare whether to use the saved time
+     * intervals [true] or its complement [false].
+     * @param latBounds latitude bounds
+     * @param lonBounds longitude bounds
+     * @return statistics computed on the specified metric
+     */
     public DescriptiveStatistics getStatistics(AnalysisMetric metric, boolean occurrences, double[] latBounds, double[] lonBounds) {
         if (latBounds[0] > latBounds[1] || latBounds[0] < -Math.PI / 2 || latBounds[0] > Math.PI / 2
                 || latBounds[1] < -Math.PI / 2 || latBounds[1] > Math.PI / 2) {
@@ -78,7 +98,34 @@ public class GroundEventAnalyzer {
         }
         return this.getStatistics(metric, occurrences, points);
     }
+    
+    /**
+     * Computes the statistics for a specified metric on the specified point
+     *
+     * @param metric the metric to compute
+     * @param occurrences flag to declare whether to use the saved time
+     * intervals [true] or its complement [false].
+     * @param point the specific point to compute the metrics on
+     
+     * @return statistics computed on the specified metric
+     */
+    public DescriptiveStatistics getStatistics(AnalysisMetric metric, boolean occurrences, CoveragePoint point) {
+        ArrayList<CoveragePoint> list = new ArrayList<>();
+        list.add(point);
+        return this.getStatistics(metric, occurrences, list);
+    }
 
+    /**
+     * Computes the statistics for a specified metric on the specified subset of
+     * given points
+     *
+     * @param metric the metric to compute
+     * @param occurrences flag to declare whether to use the saved time
+     * intervals [true] or its complement [false].
+     * @param points the subset of points to compute the metrics on
+     
+     * @return statistics computed on the specified metric
+     */
     public DescriptiveStatistics getStatistics(AnalysisMetric metric, boolean occurrences, Collection<CoveragePoint> points) {
         Map<CoveragePoint, TimeIntervalArray> data = new HashMap<>();
         for (CoveragePoint cp : points) {

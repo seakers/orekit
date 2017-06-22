@@ -7,7 +7,12 @@ package seak.orekit.event;
 
 import java.util.HashSet;
 import java.util.Properties;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.hipparchus.geometry.euclidean.threed.Vector3D;
+import org.orekit.bodies.CelestialBody;
+import org.orekit.bodies.CelestialBodyFactory;
+import org.orekit.errors.OrekitException;
 import org.orekit.frames.Frame;
 import org.orekit.time.AbsoluteDate;
 import seak.orekit.object.CoverageDefinition;
@@ -45,23 +50,6 @@ public class EventAnalysisFactory {
      * Inertial frame
      */
     private final Frame inertialFrame;
-
-    /**
-     * Constructor without a propagator assigned. It can be set later through
-     * the set methods. Some analyses use a default, low-fidelity propagator
-     * (e.g. sun angle to ground point)
-     *
-     * @param startDate the start date of the analysis
-     * @param endDate the end date of the analysis
-     * @param inertialFrame the inertial frame of reference
-     * @param covDefs The coverage definitions to conduct analyses on
-     */
-    public EventAnalysisFactory(AbsoluteDate startDate, AbsoluteDate endDate,
-            Frame inertialFrame, HashSet<CoverageDefinition> covDefs) {
-        this.startDate = startDate;
-        this.endDate = endDate;
-        this.inertialFrame = inertialFrame;
-    }
 
     /**
      * Constructor specifying the propagator factory to use,
@@ -109,18 +97,27 @@ public class EventAnalysisFactory {
                         Boolean.parseBoolean(saveToDBStr),
                         Integer.parseInt(numThreadsStr));
                 break;
-            case GND_SUN_ANGLE:
+            case GND_BODY_ANGLE:
                 //Option to set the angle threshold for the angle between a 
-                //specified topocentric direction and the sun
-                double threshold = Double.parseDouble(prop.getProperty("gndsunangle.threshold", "1.570795"));
+                //specified topocentric direction and the celestial body
+                double threshold = Double.parseDouble(prop.getProperty("gndbodyangle.threshold", "1.570795"));
                 //Option to set the topocentric, where +X is east, +Y is north, and +Z is zenith
-                double x = Double.parseDouble(prop.getProperty("gndsunangle.x", "0"));
-                double y = Double.parseDouble(prop.getProperty("gndsunangle.y", "0"));
-                double z = Double.parseDouble(prop.getProperty("gndsunangle.z", "1"));
-                
+                double x = Double.parseDouble(prop.getProperty("gndbodyangle.x", "0"));
+                double y = Double.parseDouble(prop.getProperty("gndbodyangle.y", "0"));
+                double z = Double.parseDouble(prop.getProperty("gndbodyangle.z", "1"));
+
                 Vector3D direction = new Vector3D(x, y, z);
-                
-                ea = new GroundSunAngleEventAnalysis(startDate, endDate, inertialFrame, covDefs, threshold, direction);
+
+                String bodyStr = prop.getProperty("gndbodyangle.body", "SUN");
+                CelestialBody body;
+                try {
+                    body = CelestialBodyFactory.getBody(bodyStr);
+                    ea = new GroundBodyAngleEventAnalysis(startDate, endDate, inertialFrame, covDefs, body, threshold, direction);
+                } catch (OrekitException ex) {
+                    Logger.getLogger(EventAnalysisFactory.class.getName()).log(Level.SEVERE, null, ex);
+                    throw new UnsupportedOperationException(String.format("No known celestial body: %s", bodyStr));
+                }
+
                 break;
             default:
                 throw new UnsupportedOperationException(

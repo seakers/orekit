@@ -48,7 +48,7 @@ import seak.orekit.event.EventAnalysis;
 import seak.orekit.event.EventAnalysisEnum;
 import seak.orekit.event.EventAnalysisFactory;
 import seak.orekit.event.FieldOfViewEventAnalysis;
-import seak.orekit.event.GroundSunAngleEventAnalysis;
+import seak.orekit.event.GroundBodyAngleEventAnalysis;
 import static seak.orekit.object.CoverageDefinition.GridStyle.UNIFORM;
 
 /**
@@ -97,8 +97,8 @@ public class Orekit {
         double a = 6978137.0;
         double i = FastMath.toRadians(45);
 
-        Walker walker = new Walker("walker1", i, 1, 1, 0, a, inertialFrame, startDate, mu);
-
+        Walker walker = new Walker( "walker1", a, i, 1, 1, 0, inertialFrame, startDate, mu);
+        
         //define instruments
         NadirSimpleConicalFOV fov = new NadirSimpleConicalFOV(FastMath.toRadians(45), earthShape);
 //        NadirRectangularFOV fov = new NadirRectangularFOV(FastMath.toRadians(57), FastMath.toRadians(2.5), 0, earthShape);
@@ -132,7 +132,7 @@ public class Orekit {
         ArrayList<EventAnalysis> eventanalyses = new ArrayList<>();
         FieldOfViewEventAnalysis fovEvent = (FieldOfViewEventAnalysis) eaf.create(EventAnalysisEnum.FOV, properties);
         eventanalyses.add(fovEvent);
-        GroundSunAngleEventAnalysis gndSunAngEvent = (GroundSunAngleEventAnalysis) eaf.create(EventAnalysisEnum.GND_SUN_ANGLE, properties);
+        GroundBodyAngleEventAnalysis gndSunAngEvent = (GroundBodyAngleEventAnalysis) eaf.create(EventAnalysisEnum.GND_BODY_ANGLE, properties);
         eventanalyses.add(gndSunAngEvent);
 
         //set the analyses

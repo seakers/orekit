@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.orekit.attitudes.Attitude;
 import org.orekit.attitudes.AttitudeProvider;
 import org.orekit.errors.OrekitException;
 import org.orekit.frames.FramesFactory;
@@ -142,11 +141,19 @@ public class Satellite implements OrekitObject, Serializable {
         return grossMass;
     }
 
+    /**
+     * pretty print the orbit
+     * @return 
+     */
     public String ppOrbit() {
         KeplerianOrbit kepOrb = (KeplerianOrbit) OrbitType.KEPLERIAN.convertType(this.orbit);
         return kepOrb.toString();
     }
 
+    /**
+     * Pretty prints the payload
+     * @return 
+     */
     public String ppPayload() {
         String out = "{";
         for (Instrument inst : payload) {
@@ -158,7 +165,9 @@ public class Satellite implements OrekitObject, Serializable {
 
     @Override
     public String toString() {
-        return "Satellite{" + "payload=" + payload + ", orbit=" + orbit + ", name=" + name + ", attProv=" + attProv + ", wetMass=" + wetMass + ", dryMass=" + dryMass + ", grossMass=" + grossMass + '}';
+        return "Satellite{" + "payload=" + payload + ", orbit=" + orbit +
+                ", name=" + name + ", attProv=" + attProv + ", wetMass=" + wetMass 
+                + ", dryMass=" + dryMass + ", grossMass=" + grossMass + '}';
     }
 
     @Override

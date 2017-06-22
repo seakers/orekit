@@ -27,7 +27,6 @@ public class NadirSimpleConicalFOV extends SimpleConicalFieldOfView {
 
     private final BodyShape shape;
    
-
     /**
      * Constructor to create a simple conical field of view
      *

@@ -177,4 +177,13 @@ public abstract class AbstractEventDetector<T extends EventDetector> extends Abs
         }
     }
 
+    /**
+     * Checks to see if the latest time interval in the time interval array is open or closed
+     *
+     * @return true if the latest time interval in the time interval array is open or closed
+     */
+    public boolean isOpen() {
+        return handlerTimeInterval.getTimeArray().isAccessing();
+    }
+
 }

@@ -10,10 +10,10 @@ import org.orekit.time.AbsoluteDate;
 import seak.orekit.propagation.PropagatorFactory;
 
 /**
- *
+ * An abstract class for the Analysis interface
  * @author nozomihitomi
- * @param <T>
- */
+ * @param <T> The generic for the record object to record 
+ */ 
 public abstract class AbstractAnalysis<T> implements Analysis {
 
     /**
@@ -68,7 +68,7 @@ public abstract class AbstractAnalysis<T> implements Analysis {
     /**
      * Returns the recorded data structures from the analysis
      *
-     * @return
+     * @return the recorded data structures from the analysis
      */
     @Override
     public Collection<Record<T>> getHistory() {

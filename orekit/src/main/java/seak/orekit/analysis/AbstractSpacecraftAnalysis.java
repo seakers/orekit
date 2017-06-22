@@ -14,7 +14,7 @@ import seak.orekit.propagation.PropagatorFactory;
 /**
  *
  * @author nhitomi
- * @param <T>
+ * @param <T> The generic for the record object to record 
  */
 public abstract class AbstractSpacecraftAnalysis<T> extends AbstractAnalysis<T>{
     
@@ -50,7 +50,7 @@ public abstract class AbstractSpacecraftAnalysis<T> extends AbstractAnalysis<T>{
 
     /**
      * Gets the satellite involved in this analysis
-     * @return 
+     * @return the satellite involved in this analysis
      */
     public Satellite getSatellite() {
         return sat;

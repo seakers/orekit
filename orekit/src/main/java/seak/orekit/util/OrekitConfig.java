@@ -52,7 +52,7 @@ public class OrekitConfig {
                 throw new IllegalArgumentException(String.format("Expected coverage database to be a directory. Found %s to not be a directory.", covDB.getAbsolutePath()));
             }
         }
-        System.setProperty("CoverageDatabase", covDB.getAbsolutePath());
+        System.setProperty("orekit.coveragedatabase", covDB.getAbsolutePath());
         final File res = new File(currrentDir, "results");
         if (!res.isDirectory()) {
             //if coverage database doesn't exist, create a new directory
