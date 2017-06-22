@@ -28,6 +28,7 @@ import org.orekit.frames.Frame;
 import org.orekit.propagation.Propagator;
 import org.orekit.propagation.SpacecraftState;
 import org.orekit.propagation.events.handlers.EventHandler;
+import org.orekit.propagation.numerical.NumericalPropagator;
 import org.orekit.time.AbsoluteDate;
 import seak.orekit.coverage.access.RiseSetTime;
 import seak.orekit.coverage.access.TimeIntervalArray;
@@ -401,6 +402,22 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
         //NOTE: this implementation of in the field of view is a bit fragile if propagating highly elliptical orbits (>0.75). Maybe need to use smaller time steps los and fov detectors
         @Override
         public FieldOfViewSubRoutine call() throws Exception {
+//            if (prop instanceof NumericalPropagator) {
+                singlePropagate();
+//            }else{
+//                multiPropogate();
+//            }
+            return this;
+        }
+
+        /**
+         * If using an analytical propagator, taking short cuts and propagating
+         * the satellite many many times is faster than packing all event
+         * detectors into one propagator.
+         *
+         * @throws OrekitException
+         */
+        private void multiPropogate() throws OrekitException {
             SpacecraftState initialState = prop.getInitialState();
             Logger.getGlobal().finer(String.format("Propagating satellite %s...", sat));
             for (Instrument inst : sat.getPayload()) {
@@ -465,7 +482,38 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
                     prop.clearEventsDetectors();
                 }
             }
-            return this;
+        }
+
+        /**
+         * If using a numerical propagator, don't try to take short cuts.
+         * Packing all event detectors in the propagator is faster than
+         * propagating the satellite many many times.
+         *
+         * @throws OrekitException
+         */
+        private void singlePropagate() throws OrekitException {
+            SpacecraftState initialState = prop.getInitialState();
+            Logger.getGlobal().finer(String.format("Propagating satellite %s...", sat));
+            HashMap<CoveragePoint, FOVDetector> map = new HashMap<>();
+            for (Instrument inst : sat.getPayload()) {
+                for (CoveragePoint pt : cdef.getPoints()) {
+                    FOVDetector fovDetec = new FOVDetector(initialState, getStartDate(), getEndDate(),
+                            pt, inst, fovStepSize, threshold, EventHandler.Action.CONTINUE);
+                    prop.addEventDetector(fovDetec);
+                    map.put(pt, fovDetec);
+
+                }
+                prop.propagate(getStartDate(), getEndDate());
+                for (CoveragePoint pt : map.keySet()) {
+                    TimeIntervalArray fovTimeArray = map.get(pt).getTimeIntervalArray();
+                    if (fovTimeArray == null || fovTimeArray.isEmpty()) {
+                        continue;
+                    }
+                    TimeIntervalMerger merger = new TimeIntervalMerger(satAccesses.get(pt), fovTimeArray);
+                    satAccesses.put(pt, merger.orCombine());
+                }
+                prop.clearEventsDetectors();
+            }
         }
 
         public Satellite getSat() {

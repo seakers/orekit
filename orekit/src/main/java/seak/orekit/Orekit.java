@@ -114,14 +114,14 @@ public class Orekit {
 //        pts.add(new GeodeticPoint(1.5707963267949001, 0.0000000000000000, 0.0));
 //        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", pts, earthShape);
 //        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", 6, earthShape, UNIFORM);
-        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", STKGRID.getPoints20(), earthShape);
+        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", STKGRID.getPoints6(), earthShape);
 
         covDef1.assignConstellation(walker);
 
         HashSet<CoverageDefinition> covDefs = new HashSet<>();
         covDefs.add(covDef1);
 
-        PropagatorFactory pf = new PropagatorFactory(PropagatorType.KEPLERIAN);
+        PropagatorFactory pf = new PropagatorFactory(PropagatorType.J2);
 //        PropagatorFactory pf = new PropagatorFactory(PropagatorType.NUMERICAL, OrbitType.KEPLERIAN);
 
         Properties properties = new Properties();
@@ -132,8 +132,8 @@ public class Orekit {
         ArrayList<EventAnalysis> eventanalyses = new ArrayList<>();
         FieldOfViewEventAnalysis fovEvent = (FieldOfViewEventAnalysis) eaf.create(EventAnalysisEnum.FOV, properties);
         eventanalyses.add(fovEvent);
-        GroundBodyAngleEventAnalysis gndSunAngEvent = (GroundBodyAngleEventAnalysis) eaf.create(EventAnalysisEnum.GND_BODY_ANGLE, properties);
-        eventanalyses.add(gndSunAngEvent);
+//        GroundBodyAngleEventAnalysis gndSunAngEvent = (GroundBodyAngleEventAnalysis) eaf.create(EventAnalysisEnum.GND_BODY_ANGLE, properties);
+//        eventanalyses.add(gndSunAngEvent);
 
         //set the analyses
         double analysisTimeStep = 60;
@@ -156,16 +156,16 @@ public class Orekit {
                 covDefs(covDefs).name("test1").properties(properties).
                 propagatorFactory(pf).build();
         try {
-            Logger.getGlobal().finest(String.format("Running Scenario %s", scen));
-            Logger.getGlobal().finest(String.format("Number of points:     %d", covDef1.getNumberOfPoints()));
-            Logger.getGlobal().finest(String.format("Number of satellites: %d", walker.getSatellites().size()));
+            Logger.getGlobal().finer(String.format("Running Scenario %s", scen));
+            Logger.getGlobal().finer(String.format("Number of points:     %d", covDef1.getNumberOfPoints()));
+            Logger.getGlobal().finer(String.format("Number of satellites: %d", walker.getSatellites().size()));
             scen.call();
         } catch (Exception ex) {
             Logger.getLogger(Orekit.class.getName()).log(Level.SEVERE, null, ex);
             throw new IllegalStateException("scenario failed to complete.");
         }
 
-        Logger.getGlobal().finest(String.format("Done Running Scenario %s", scen));
+        Logger.getGlobal().finer(String.format("Done Running Scenario %s", scen));
         
         GroundEventAnalyzer ea = new GroundEventAnalyzer(fovEvent.getEvents(covDef1));
         DescriptiveStatistics accessStats = ea.getStatistics(AnalysisMetric.DURATION, true);
@@ -186,7 +186,7 @@ public class Orekit {
         System.out.println(String.format("90th gap time %s", gapStats.getPercentile(90)));
 
         ScenarioIO.saveGroundEventAnalysis(Paths.get(System.getProperty("results"), ""), filename + "_cva", scen, covDef1, fovEvent);
-        ScenarioIO.saveGroundEventAnalysis(Paths.get(System.getProperty("results"), ""), filename + "_gsa", scen, covDef1, gndSunAngEvent);
+//        ScenarioIO.saveGroundEventAnalysis(Paths.get(System.getProperty("results"), ""), filename + "_gsa", scen, covDef1, gndSunAngEvent);
 //            ScenarioIO.saveLinkBudget(Paths.get(System.getProperty("results"), ""), filename, scenComp, cdefToSave);
 //        ScenarioIO.saveReadMe(Paths.get(path, ""), filename, scenComp);
         for (Analysis analysis : analyses) {
