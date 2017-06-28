@@ -7,19 +7,17 @@ package seak.orekit;
 
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Properties;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.hipparchus.geometry.euclidean.threed.Vector3D;
 import seak.orekit.analysis.Analysis;
 import seak.orekit.analysis.ephemeris.OrbitalElementsAnalysis;
 import seak.orekit.constellations.Walker;
-import seak.orekit.coverage.access.TimeIntervalArray;
 import seak.orekit.object.CoverageDefinition;
-import seak.orekit.object.CoveragePoint;
 import seak.orekit.object.Instrument;
 import seak.orekit.object.Satellite;
 import seak.orekit.object.fieldofview.NadirSimpleConicalFOV;
@@ -37,19 +35,21 @@ import org.orekit.bodies.OneAxisEllipsoid;
 import org.orekit.errors.OrekitException;
 import org.orekit.frames.Frame;
 import org.orekit.frames.FramesFactory;
+import org.orekit.propagation.SpacecraftState;
 import org.orekit.time.AbsoluteDate;
 import org.orekit.time.TimeScale;
 import org.orekit.time.TimeScalesFactory;
 import org.orekit.utils.Constants;
 import org.orekit.utils.IERSConventions;
+import seak.orekit.analysis.AbstractSpacecraftAnalysis;
+import seak.orekit.analysis.CompoundSpacecraftAnalysis;
+import seak.orekit.analysis.vectors.VectorAnalysis;
 import seak.orekit.coverage.analysis.AnalysisMetric;
 import seak.orekit.coverage.analysis.GroundEventAnalyzer;
 import seak.orekit.event.EventAnalysis;
 import seak.orekit.event.EventAnalysisEnum;
 import seak.orekit.event.EventAnalysisFactory;
 import seak.orekit.event.FieldOfViewEventAnalysis;
-import seak.orekit.event.GroundBodyAngleEventAnalysis;
-import static seak.orekit.object.CoverageDefinition.GridStyle.UNIFORM;
 
 /**
  *
@@ -97,8 +97,8 @@ public class Orekit {
         double a = 6978137.0;
         double i = FastMath.toRadians(45);
 
-        Walker walker = new Walker( "walker1", a, i, 1, 1, 0, inertialFrame, startDate, mu);
-        
+        Walker walker = new Walker("walker1", a, i, 1, 1, 0, inertialFrame, startDate, mu);
+
         //define instruments
         NadirSimpleConicalFOV fov = new NadirSimpleConicalFOV(FastMath.toRadians(45), earthShape);
 //        NadirRectangularFOV fov = new NadirRectangularFOV(FastMath.toRadians(57), FastMath.toRadians(2.5), 0, earthShape);
@@ -114,23 +114,23 @@ public class Orekit {
 //        pts.add(new GeodeticPoint(1.5707963267949001, 0.0000000000000000, 0.0));
 //        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", pts, earthShape);
 //        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", 6, earthShape, UNIFORM);
-        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", STKGRID.getPoints6(), earthShape);
+        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", STKGRID.getPoints20(), earthShape);
 
         covDef1.assignConstellation(walker);
 
         HashSet<CoverageDefinition> covDefs = new HashSet<>();
         covDefs.add(covDef1);
 
-        PropagatorFactory pf = new PropagatorFactory(PropagatorType.J2);
-//        PropagatorFactory pf = new PropagatorFactory(PropagatorType.NUMERICAL, OrbitType.KEPLERIAN);
+//        PropagatorFactory pf = new PropagatorFactory(PropagatorType.J2);
+        PropagatorFactory pf = new PropagatorFactory(PropagatorType.NUMERICAL);
 
         Properties properties = new Properties();
         properties.setProperty("fov.numThreads", "6");
 
         //set the event analyses
-        EventAnalysisFactory eaf = new EventAnalysisFactory(startDate, endDate, inertialFrame, covDefs, pf);
+        EventAnalysisFactory eaf = new EventAnalysisFactory(startDate, endDate, inertialFrame, pf);
         ArrayList<EventAnalysis> eventanalyses = new ArrayList<>();
-        FieldOfViewEventAnalysis fovEvent = (FieldOfViewEventAnalysis) eaf.create(EventAnalysisEnum.FOV, properties);
+        FieldOfViewEventAnalysis fovEvent = (FieldOfViewEventAnalysis) eaf.createGroundPointAnalysis(EventAnalysisEnum.FOV, covDefs, properties);
         eventanalyses.add(fovEvent);
 //        GroundBodyAngleEventAnalysis gndSunAngEvent = (GroundBodyAngleEventAnalysis) eaf.create(EventAnalysisEnum.GND_BODY_ANGLE, properties);
 //        eventanalyses.add(gndSunAngEvent);
@@ -139,7 +139,23 @@ public class Orekit {
         double analysisTimeStep = 60;
         ArrayList<Analysis> analyses = new ArrayList<>();
         for (Satellite sat : walker.getSatellites()) {
-            analyses.add(new OrbitalElementsAnalysis(startDate, endDate, analysisTimeStep, sat, pf));
+            AbstractSpacecraftAnalysis a1 = new OrbitalElementsAnalysis(startDate, endDate, analysisTimeStep, sat, pf);
+            AbstractSpacecraftAnalysis a2 = new VectorAnalysis(startDate, endDate, analysisTimeStep, sat, pf, earthFrame) {
+                @Override
+                public Vector3D getVector(SpacecraftState currentState, Frame frame) throws OrekitException {
+                    return currentState.getPVCoordinates().getPosition();
+                }
+
+                @Override
+                public String getName() {
+                    return "angle";
+                }
+            };
+            ArrayList<AbstractSpacecraftAnalysis> satAnalyses = new ArrayList<>();
+            satAnalyses.add(a1);
+            satAnalyses.add(a2);
+            CompoundSpacecraftAnalysis ca = new CompoundSpacecraftAnalysis(startDate, endDate, analysisTimeStep, sat, pf, satAnalyses);
+            analyses.add(ca);
         }
 
         //LINK BUDGET
@@ -166,7 +182,7 @@ public class Orekit {
         }
 
         Logger.getGlobal().finer(String.format("Done Running Scenario %s", scen));
-        
+
         GroundEventAnalyzer ea = new GroundEventAnalyzer(fovEvent.getEvents(covDef1));
         DescriptiveStatistics accessStats = ea.getStatistics(AnalysisMetric.DURATION, true);
         DescriptiveStatistics gapStats = ea.getStatistics(AnalysisMetric.DURATION, false);
@@ -191,7 +207,7 @@ public class Orekit {
 //        ScenarioIO.saveReadMe(Paths.get(path, ""), filename, scenComp);
         for (Analysis analysis : analyses) {
             ScenarioIO.saveAnalysis(Paths.get(System.getProperty("results"), ""),
-                    String.format("%s_%s",scen.toString(),analysis.getName()), analysis);
+                    String.format("%s_%s", scen.toString(), "analysis"), analysis);
         }
         long end = System.nanoTime();
         Logger.getGlobal().finest(String.format("Took %.4f sec", (end - start) / Math.pow(10, 9)));

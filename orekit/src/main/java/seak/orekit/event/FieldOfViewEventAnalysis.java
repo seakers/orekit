@@ -13,8 +13,8 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletionService;
 import java.util.concurrent.ExecutionException;
@@ -98,7 +98,7 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
      * scenario by dividing up the coverage grid points across multiple threads
      */
     public FieldOfViewEventAnalysis(AbsoluteDate startDate, AbsoluteDate endDate,
-            Frame inertialFrame, HashSet<CoverageDefinition> covDefs,
+            Frame inertialFrame, Set<CoverageDefinition> covDefs,
             PropagatorFactory propagatorFactory, boolean saveAllAccesses,
             boolean saveToDB, int numThreads) {
         super(startDate, endDate, inertialFrame, covDefs);
@@ -402,11 +402,11 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
         //NOTE: this implementation of in the field of view is a bit fragile if propagating highly elliptical orbits (>0.75). Maybe need to use smaller time steps los and fov detectors
         @Override
         public FieldOfViewSubRoutine call() throws Exception {
-//            if (prop instanceof NumericalPropagator) {
+            if (prop instanceof NumericalPropagator) {
                 singlePropagate();
-//            }else{
-//                multiPropogate();
-//            }
+            }else{
+                multiPropogate();
+            }
             return this;
         }
 

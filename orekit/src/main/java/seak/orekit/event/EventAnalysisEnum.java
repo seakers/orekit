@@ -20,4 +20,8 @@ public enum EventAnalysisEnum {
      */
     GND_BODY_ANGLE,
     
+    /**
+     * Analysis of ground station accesses
+     */
+    ACCESS
 }

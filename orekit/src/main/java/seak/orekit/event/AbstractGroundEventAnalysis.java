@@ -53,7 +53,7 @@ public abstract class AbstractGroundEventAnalysis extends AbstractEventAnalysis 
      */
     private Map<CoverageDefinition, Map<CoveragePoint, TimeIntervalArray>> events;
 
-    public AbstractGroundEventAnalysis(AbsoluteDate startDate, AbsoluteDate endDate, Frame inertialFrame, HashSet<CoverageDefinition> covDefs) {
+    public AbstractGroundEventAnalysis(AbsoluteDate startDate, AbsoluteDate endDate, Frame inertialFrame, Set<CoverageDefinition> covDefs) {
         super(startDate, endDate, inertialFrame);
 
         this.covDefs = Collections.unmodifiableSet(covDefs);

@@ -8,6 +8,7 @@ package seak.orekit.event;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Logger;
 import org.hipparchus.geometry.euclidean.threed.Vector3D;
 import org.orekit.bodies.CelestialBody;
@@ -47,7 +48,7 @@ public class GroundBodyAngleEventAnalysis extends AbstractGroundEventAnalysis {
 
     public GroundBodyAngleEventAnalysis(AbsoluteDate startDate,
             AbsoluteDate endDate, Frame inertialFrame,
-            HashSet<CoverageDefinition> covDefs, CelestialBody body,
+            Set<CoverageDefinition> covDefs, CelestialBody body,
             double maxAngle, Vector3D direction) {
         super(startDate, endDate, inertialFrame, covDefs);
         this.maxAngle = maxAngle;
