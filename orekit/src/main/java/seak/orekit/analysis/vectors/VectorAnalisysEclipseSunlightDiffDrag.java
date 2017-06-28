@@ -42,11 +42,13 @@ import seak.orekit.object.Satellite;
 import seak.orekit.propagation.PropagatorFactory;
 
 /**
- *
+ * An analysis for recording the position of a satellite that changes its
+ * drag area while in eclipse or in sunlight.
+ * 
  * @author paugarciabuzzi
  */
 public class VectorAnalisysEclipseSunlightDiffDrag extends VectorAnalysis{
-    
+   
     private final double eclipseDragArea;
     
     private final double sunlightDragArea;
@@ -95,18 +97,28 @@ public class VectorAnalisysEclipseSunlightDiffDrag extends VectorAnalysis{
         prop.addEventDetector(detector);
         boolean end=false;
         SpacecraftState s=prop.getInitialState();
-        
+        handleStep(s);
+        /*Flag that captures when the satellite changes from sunlight to eclipse
+        and viceversa*/
+        boolean flag=true;
         while (!end){
             prop.resetInitialState(s);
             ((NumericalPropagator) prop).removeForceModels();
-            if (detector.g(prop.getInitialState())<0){
-                prop=setNumericalPropagator(prop, eclipseDragArea, solarArea);
-            }else{
-                prop=setNumericalPropagator(prop, sunlightDragArea, solarArea);
+            if (flag){
+                if (detector.g(prop.getInitialState())<0){
+                    prop=setNumericalPropagator(prop, eclipseDragArea, solarArea);
+                    flag=false;
+                }else{
+                    prop=setNumericalPropagator(prop, sunlightDragArea, solarArea);
+                    flag=false;
+                }
             }
-            //s =prop.propagate(s.getDate(), getEndDate());
+            AbsoluteDate date0=s.getDate();
             s =prop.propagate(s.getDate(), s.getDate().shiftedBy(getTimeStep()));
             handleStep(s);
+            if (s.getDate().durationFrom(date0)<getTimeStep()){
+                flag=true;
+            }
             if(s.getDate().compareTo(getEndDate())>0){
                 end=true;
             }
@@ -126,7 +138,7 @@ public class VectorAnalisysEclipseSunlightDiffDrag extends VectorAnalysis{
         final NormalizedSphericalHarmonicsProvider harmonicsProvider = GravityFieldFactory.getNormalizedProvider(21, 21);
         ((NumericalPropagator)prop).addForceModel(new HolmesFeatherstoneAttractionModel(earthFrame, harmonicsProvider));
         
-        //check if add the drag model (DTM2000 model)
+        //Add the drag model (DTM2000 model)
         double dragCoeff = 2.2;
 
         String supportedNames = "(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\\p{Digit}\\p{Digit}\\p{Digit}\\p{Digit}F10\\.(?:txt|TXT)";
@@ -141,7 +153,7 @@ public class VectorAnalisysEclipseSunlightDiffDrag extends VectorAnalysis{
         ((NumericalPropagator)prop).addForceModel(new ThirdBodyAttraction(CelestialBodyFactory.getMoon()));
 
 
-        //check if add the solar radiation pressure model
+        //Add the solar radiation pressure model
         double equatorialRadius = Constants.WGS84_EARTH_EQUATORIAL_RADIUS;
         double cr = 1;
         RadiationSensitive spacecraft1 = new IsotropicRadiationSingleCoefficient(solarArea, cr);
