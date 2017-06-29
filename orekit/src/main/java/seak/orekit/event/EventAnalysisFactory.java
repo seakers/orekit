@@ -5,6 +5,7 @@
  */
 package seak.orekit.event;
 
+import java.util.HashMap;
 import java.util.Properties;
 import java.util.Set;
 import java.util.logging.Level;
@@ -17,6 +18,7 @@ import org.orekit.frames.Frame;
 import org.orekit.time.AbsoluteDate;
 import seak.orekit.object.CoverageDefinition;
 import seak.orekit.object.GndStation;
+import seak.orekit.object.Satellite;
 import seak.orekit.propagation.PropagatorFactory;
 
 /**
@@ -87,7 +89,7 @@ public class EventAnalysisFactory {
 
                 //Option to set the number of threads to use to run the scenario.
                 //By default it is set to 1.
-                String numThreadsStr = prop.getProperty("fov.numThreads", "1");
+                String numThreadsStr = prop.getProperty("numThreads", "1");
 
                 //Option to dictate whether the coverage accesses of individual 
                 //satellites should be saved to the coverage database. 
@@ -129,10 +131,31 @@ public class EventAnalysisFactory {
 
         return ea;
     }
-    
-    public EventAnalysis createGroundStationAnalysis(Set<GndStation> groundStations, Properties prop) {
+
+    /**
+     * Creates event analyses pertaining to ground stations
+     * @param type the type of analysis
+     * @param stationAssignment the assignment of satellites to ground stations
+     * @param prop the properties for the analysis
+     * @return 
+     */
+    public EventAnalysis createGroundStationAnalysis(EventAnalysisEnum type,
+            HashMap<Satellite, Set<GndStation>> stationAssignment, Properties prop) {
         EventAnalysis ea = null;
 
+        //Option to set the number of threads to use to run the scenario.
+        //By default it is set to 1.
+        String numThreadsStr = prop.getProperty("numThreads", "1");
+
+        switch (type) {
+            case ACCESS:
+                ea = new GndStationEventAnalysis(startDate, endDate, inertialFrame,
+                        stationAssignment, propagatorFactory, Integer.parseInt(numThreadsStr));
+                break;
+            default:
+                throw new UnsupportedOperationException(
+                        String.format("Analysis type %s is unsupported.", type));
+        }
 
         return ea;
     }

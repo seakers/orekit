@@ -60,7 +60,9 @@ public class LOSDetector extends AbstractEventDetector<LOSDetector> {
      * @param shape The shape of the body on which the point lies
      * @param inertialFrame The inertial frame used in the scenario evaluated
      */
-    public LOSDetector(SpacecraftState initialState, AbsoluteDate startDate, AbsoluteDate endDate, final CoveragePoint pt, final BodyShape shape, final Frame inertialFrame) {
+    public LOSDetector(SpacecraftState initialState,
+            AbsoluteDate startDate, AbsoluteDate endDate, 
+            final CoveragePoint pt, final BodyShape shape, final Frame inertialFrame) {
         this(initialState, startDate, endDate, pt, shape, inertialFrame, DEFAULT_MAXCHECK, DEFAULT_THRESHOLD, DEFAULT_MAX_ITER, EventHandler.Action.STOP);
     }
 
@@ -157,7 +159,9 @@ public class LOSDetector extends AbstractEventDetector<LOSDetector> {
     }
 
     @Override
-    protected EventDetector create(SpacecraftState initialState, AbsoluteDate startDate, AbsoluteDate endDate, EventHandler.Action action, double maxCheck, double threshold, int maxIter) {
+    protected EventDetector create(SpacecraftState initialState, 
+            AbsoluteDate startDate, AbsoluteDate endDate, 
+            EventHandler.Action action, double maxCheck, double threshold, int maxIter) {
         return new LOSDetector(initialState, startDate, endDate, pt, shape, inertialFrame, maxCheck, threshold, maxIter, action);
     }
 

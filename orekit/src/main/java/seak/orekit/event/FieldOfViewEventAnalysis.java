@@ -82,12 +82,12 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
     private final int numThreads;
 
     /**
-     * Creates a new scenario.
+     * Creates a new event analysis.
      *
-     * @param startDate of scenario
-     * @param endDate of scenario
-     * @param inertialFrame
-     * @param propagatorFactory
+     * @param startDate of analysis
+     * @param endDate of analysis
+     * @param inertialFrame the inertial frame used in the simulation
+     * @param propagatorFactory the factory to create propagtors for each satellite
      * @param covDefs
      * @param saveAllAccesses true if user wants to maintain all the accesses
      * from each individual satellite. false if user would like to only get the
@@ -95,7 +95,7 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
      * @param saveToDB flag to dictate whether the coverage accesses of
      * individual satellites should be saved to the coverage database
      * @param numThreads number of threads to uses in parallelization of the
-     * scenario by dividing up the coverage grid points across multiple threads
+     * scenario by dividing up the propagation across multiple threads
      */
     public FieldOfViewEventAnalysis(AbsoluteDate startDate, AbsoluteDate endDate,
             Frame inertialFrame, Set<CoverageDefinition> covDefs,
@@ -293,17 +293,7 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
     public boolean isSaveToDB() {
         return saveToDB;
     }
-
-    /**
-     * Gets the propagator factory used to create new propagators for this
-     * scenario
-     *
-     * @return
-     */
-    public PropagatorFactory getPropagatorFactory() {
-        return propagatorFactory;
-    }
-
+    
     @Override
     public String getHeader() {
         StringBuilder sb = new StringBuilder();
@@ -519,11 +509,7 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
         public Satellite getSat() {
             return sat;
         }
-
-        public CoverageDefinition getCoverageDefinition() {
-            return cdef;
-        }
-
+        
         public HashMap<CoveragePoint, TimeIntervalArray> getSatAccesses() {
             return satAccesses;
         }

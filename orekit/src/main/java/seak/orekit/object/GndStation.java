@@ -22,18 +22,34 @@ public class GndStation extends GroundStation implements OrekitObject {
     /**
      * downlink antenna for this ground station
      */
-    private final Receiver downlink;
+    private final Receiver receiver;
 
     /**
      * uplink antenna for this ground station
      */
-    private final Transmitter uplink;
+    private final Transmitter transmitter;
 
+    /**
+     * Minimum elevation angle [rad]
+     */
+    private final double minEl;
+
+    /**
+     * Creates a new ground station
+     *
+     * @param topo the topocentric frame defining the position of the ground
+     * station
+     * @param receiver the receiving antenna
+     * @param transmitter the transmitting antenna
+     * @param minEl the minimum elevation angle [rad]
+     * @throws OrekitException
+     */
     public GndStation(TopocentricFrame topo,
-            Receiver downlink, Transmitter uplink) throws OrekitException {
+            Receiver receiver, Transmitter transmitter, double minEl) throws OrekitException {
         super(topo);
-        this.downlink = downlink;
-        this.uplink = uplink;
+        this.receiver = receiver;
+        this.transmitter = transmitter;
+        this.minEl = minEl;
     }
 
     /**
@@ -42,7 +58,7 @@ public class GndStation extends GroundStation implements OrekitObject {
      * @return the antenna for downlinking receiver to this ground station
      */
     public Receiver getReceiver() {
-        return downlink;
+        return receiver;
     }
 
     /**
@@ -51,14 +67,24 @@ public class GndStation extends GroundStation implements OrekitObject {
      * @return the antenna for uplinking transmitter from this ground station
      */
     public Transmitter getTransmitter() {
-        return uplink;
+        return transmitter;
+    }
+
+    /**
+     * The minimum elevation angle that at satellite can be with respect to the
+     * ground station and still communicate
+     *
+     * @return
+     */
+    public double getMinEl() {
+        return minEl;
     }
 
     @Override
     public int hashCode() {
         int hash = super.hashCode();
-        hash = 53 * hash + Objects.hashCode(this.downlink);
-        hash = 53 * hash + Objects.hashCode(this.uplink);
+        hash = 53 * hash + Objects.hashCode(this.receiver);
+        hash = 53 * hash + Objects.hashCode(this.transmitter);
         return hash;
     }
 
@@ -74,18 +100,17 @@ public class GndStation extends GroundStation implements OrekitObject {
             return false;
         }
         final GndStation other = (GndStation) obj;
-        if (!Objects.equals(this.downlink, other.downlink)) {
+        if (!Objects.equals(this.receiver, other.receiver)) {
             return false;
         }
-        if (!Objects.equals(this.uplink, other.uplink)) {
+        if (!Objects.equals(this.transmitter, other.transmitter)) {
             return false;
         }
-        if (!Objects.equals(this.getBaseFrame().getPoint(), 
+        if (!Objects.equals(this.getBaseFrame().getPoint(),
                 other.getBaseFrame().getPoint())) {
             return false;
         }
         return true;
     }
 
-    
 }

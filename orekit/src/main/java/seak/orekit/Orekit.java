@@ -95,19 +95,17 @@ public class Orekit {
                 Constants.WGS84_EARTH_FLATTENING, earthFrame);
 
         //Enter satellite orbital parameters
-        double a = Constants.WGS84_EARTH_EQUATORIAL_RADIUS+600000;
+        double a = Constants.WGS84_EARTH_EQUATORIAL_RADIUS + 600000;
         double i = FastMath.toRadians(30);
-
-        Walker walker = new Walker("walker1", a, i, 1, 1, 0, inertialFrame, startDate, mu);
 
         //define instruments
         NadirSimpleConicalFOV fov = new NadirSimpleConicalFOV(FastMath.toRadians(45), earthShape);
 //        NadirRectangularFOV fov = new NadirRectangularFOV(FastMath.toRadians(57), FastMath.toRadians(2.5), 0, earthShape);
+        ArrayList<Instrument> payload = new ArrayList<>();
         Instrument view1 = new Instrument("view1", fov, 100, 100);
-        //assign instruments
-        for (Satellite sat : walker.getSatellites()) {
-            sat.addInstrument(view1);
-        }
+        payload.add(view1);
+
+        Walker walker = new Walker("walker1", payload, a, i, 1, 1, 0, inertialFrame, startDate, mu);
 
         ArrayList<GeodeticPoint> pts = new ArrayList<>();
 //        pts.add(new GeodeticPoint(-0.1745329251994330, 6.0737457969402699, 0.0));
@@ -121,7 +119,7 @@ public class Orekit {
 
         HashSet<CoverageDefinition> covDefs = new HashSet<>();
         covDefs.add(covDef1);
-        
+
         Properties propertiesPropagator = new Properties();
         propertiesPropagator.setProperty("orekit.propagator.atmdrag", "true");
         propertiesPropagator.setProperty("orekit.propagator.dragarea", "10");
@@ -132,10 +130,10 @@ public class Orekit {
         propertiesPropagator.setProperty("orekit.propagator.solararea", "10");
 
 //        PropagatorFactory pf = new PropagatorFactory(PropagatorType.J2,propertiesPropagator);
-        PropagatorFactory pf = new PropagatorFactory(PropagatorType.NUMERICAL,propertiesPropagator);
+        PropagatorFactory pf = new PropagatorFactory(PropagatorType.NUMERICAL, propertiesPropagator);
 
         Properties propertiesEventAnalysis = new Properties();
-        propertiesEventAnalysis.setProperty("fov.numThreads", "6");
+        propertiesEventAnalysis.setProperty("numThreads", "6");
 
         //set the event analyses
         EventAnalysisFactory eaf = new EventAnalysisFactory(startDate, endDate, inertialFrame, pf);
@@ -200,7 +198,7 @@ public class Orekit {
 //        ScenarioIO.saveGroundEventAnalysis(Paths.get(System.getProperty("results"), ""), filename + "_gsa", scen, covDef1, gndSunAngEvent);
 //        ScenarioIO.saveLinkBudget(Paths.get(System.getProperty("results"), ""), filename, scenComp, cdefToSave);
 //        ScenarioIO.saveReadMe(Paths.get(path, ""), filename, scenComp);
-        
+
         for (Analysis analysis : analyses) {
             ScenarioIO.saveAnalysis(Paths.get(System.getProperty("results"), ""),
                     String.format("%s_%s", scen.toString(), "analysis"), analysis);
