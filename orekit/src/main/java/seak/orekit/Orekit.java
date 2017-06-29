@@ -44,6 +44,7 @@ import org.orekit.utils.IERSConventions;
 import seak.orekit.analysis.AbstractSpacecraftAnalysis;
 import seak.orekit.analysis.CompoundSpacecraftAnalysis;
 import seak.orekit.analysis.vectors.VectorAnalysis;
+import seak.orekit.analysis.vectors.VectorAnalisysEclipseSunlightDiffDrag;
 import seak.orekit.coverage.analysis.AnalysisMetric;
 import seak.orekit.coverage.analysis.GroundEventAnalyzer;
 import seak.orekit.event.EventAnalysis;
@@ -83,7 +84,7 @@ public class Orekit {
 
         TimeScale utc = TimeScalesFactory.getUTC();
         AbsoluteDate startDate = new AbsoluteDate(2016, 1, 1, 00, 00, 00.000, utc);
-        AbsoluteDate endDate = new AbsoluteDate(2016, 1, 10, 00, 00, 00.000, utc);
+        AbsoluteDate endDate = new AbsoluteDate(2016, 1, 1, 01, 00, 00.000, utc);
         double mu = Constants.WGS84_EARTH_MU; // gravitation coefficient
 
         //must use IERS_2003 and EME2000 frames to be consistent with STK
@@ -94,8 +95,8 @@ public class Orekit {
                 Constants.WGS84_EARTH_FLATTENING, earthFrame);
 
         //Enter satellite orbital parameters
-        double a = 6978137.0;
-        double i = FastMath.toRadians(45);
+        double a = Constants.WGS84_EARTH_EQUATORIAL_RADIUS+600000;
+        double i = FastMath.toRadians(30);
 
         Walker walker = new Walker("walker1", a, i, 1, 1, 0, inertialFrame, startDate, mu);
 
@@ -120,17 +121,26 @@ public class Orekit {
 
         HashSet<CoverageDefinition> covDefs = new HashSet<>();
         covDefs.add(covDef1);
+        
+        Properties propertiesPropagator = new Properties();
+        propertiesPropagator.setProperty("orekit.propagator.atmdrag", "true");
+        propertiesPropagator.setProperty("orekit.propagator.dragarea", "10");
+        propertiesPropagator.setProperty("orekit.propagator.dragcoeff", "2.2");
+        propertiesPropagator.setProperty("orekit.propagator.thirdbody.sun", "true");
+        propertiesPropagator.setProperty("orekit.propagator.thirdbody.moon", "true");
+        propertiesPropagator.setProperty("orekit.propagator.solarpressure", "true");
+        propertiesPropagator.setProperty("orekit.propagator.solararea", "10");
 
-//        PropagatorFactory pf = new PropagatorFactory(PropagatorType.J2);
-        PropagatorFactory pf = new PropagatorFactory(PropagatorType.NUMERICAL);
+//        PropagatorFactory pf = new PropagatorFactory(PropagatorType.J2,propertiesPropagator);
+        PropagatorFactory pf = new PropagatorFactory(PropagatorType.NUMERICAL,propertiesPropagator);
 
-        Properties properties = new Properties();
-        properties.setProperty("fov.numThreads", "6");
+        Properties propertiesEventAnalysis = new Properties();
+        propertiesEventAnalysis.setProperty("fov.numThreads", "6");
 
         //set the event analyses
         EventAnalysisFactory eaf = new EventAnalysisFactory(startDate, endDate, inertialFrame, pf);
         ArrayList<EventAnalysis> eventanalyses = new ArrayList<>();
-        FieldOfViewEventAnalysis fovEvent = (FieldOfViewEventAnalysis) eaf.createGroundPointAnalysis(EventAnalysisEnum.FOV, covDefs, properties);
+        FieldOfViewEventAnalysis fovEvent = (FieldOfViewEventAnalysis) eaf.createGroundPointAnalysis(EventAnalysisEnum.FOV, covDefs, propertiesEventAnalysis);
         eventanalyses.add(fovEvent);
 //        GroundBodyAngleEventAnalysis gndSunAngEvent = (GroundBodyAngleEventAnalysis) eaf.create(EventAnalysisEnum.GND_BODY_ANGLE, properties);
 //        eventanalyses.add(gndSunAngEvent);
@@ -139,23 +149,8 @@ public class Orekit {
         double analysisTimeStep = 60;
         ArrayList<Analysis> analyses = new ArrayList<>();
         for (Satellite sat : walker.getSatellites()) {
-            AbstractSpacecraftAnalysis a1 = new OrbitalElementsAnalysis(startDate, endDate, analysisTimeStep, sat, pf);
-            AbstractSpacecraftAnalysis a2 = new VectorAnalysis(startDate, endDate, analysisTimeStep, sat, pf, earthFrame) {
-                @Override
-                public Vector3D getVector(SpacecraftState currentState, Frame frame) throws OrekitException {
-                    return currentState.getPVCoordinates().getPosition();
-                }
-
-                @Override
-                public String getName() {
-                    return "angle";
-                }
-            };
-            ArrayList<AbstractSpacecraftAnalysis> satAnalyses = new ArrayList<>();
-            satAnalyses.add(a1);
-            satAnalyses.add(a2);
-            CompoundSpacecraftAnalysis ca = new CompoundSpacecraftAnalysis(startDate, endDate, analysisTimeStep, sat, pf, satAnalyses);
-            analyses.add(ca);
+            //analyses.add(new OrbitalElementsAnalysis(startDate, endDate, analysisTimeStep, sat, pf));
+            analyses.add(new VectorAnalisysEclipseSunlightDiffDrag(startDate, endDate, analysisTimeStep, sat, pf, inertialFrame, 0.015, 0.075, 0.058, 6));
         }
 
         //LINK BUDGET
@@ -169,7 +164,7 @@ public class Orekit {
 
         Scenario scen = new Scenario.Builder(startDate, endDate, utc).
                 eventAnalysis(eventanalyses).analysis(analyses).
-                covDefs(covDefs).name("test1").properties(properties).
+                covDefs(covDefs).name("test1").properties(propertiesEventAnalysis).
                 propagatorFactory(pf).build();
         try {
             Logger.getGlobal().finer(String.format("Running Scenario %s", scen));
@@ -203,8 +198,9 @@ public class Orekit {
 
         ScenarioIO.saveGroundEventAnalysis(Paths.get(System.getProperty("results"), ""), filename + "_cva", scen, covDef1, fovEvent);
 //        ScenarioIO.saveGroundEventAnalysis(Paths.get(System.getProperty("results"), ""), filename + "_gsa", scen, covDef1, gndSunAngEvent);
-//            ScenarioIO.saveLinkBudget(Paths.get(System.getProperty("results"), ""), filename, scenComp, cdefToSave);
+//        ScenarioIO.saveLinkBudget(Paths.get(System.getProperty("results"), ""), filename, scenComp, cdefToSave);
 //        ScenarioIO.saveReadMe(Paths.get(path, ""), filename, scenComp);
+        
         for (Analysis analysis : analyses) {
             ScenarioIO.saveAnalysis(Paths.get(System.getProperty("results"), ""),
                     String.format("%s_%s", scen.toString(), "analysis"), analysis);

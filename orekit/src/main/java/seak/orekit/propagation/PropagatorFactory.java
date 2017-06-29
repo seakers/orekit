@@ -183,7 +183,7 @@ public class PropagatorFactory {
         //check if add the drag model (DTM2000 model)
         if (Boolean.parseBoolean(properties.getProperty("orekit.propagator.atmdrag", "false"))) {
             double dragArea = Double.parseDouble(properties.getProperty("orekit.propagator.dragarea", "10"));
-            double dragCoeff = Double.parseDouble(properties.getProperty("orekit.propagator.dragarea", "2.2"));
+            double dragCoeff = Double.parseDouble(properties.getProperty("orekit.propagator.dragcoeff", "2.2"));
 
             String supportedNames = "(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\\p{Digit}\\p{Digit}\\p{Digit}\\p{Digit}F10\\.(?:txt|TXT)";
             MarshallSolarActivityFutureEstimation.StrengthLevel strengthlevel = MarshallSolarActivityFutureEstimation.StrengthLevel.AVERAGE;
