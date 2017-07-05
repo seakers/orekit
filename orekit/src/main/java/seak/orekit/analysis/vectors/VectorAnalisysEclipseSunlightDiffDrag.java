@@ -96,7 +96,7 @@ public class VectorAnalisysEclipseSunlightDiffDrag extends VectorAnalysis{
         prop.addEventDetector(detector);
         boolean end=false;
         SpacecraftState s=prop.getInitialState();
-        handleStep(s);
+        handleStep(s, false);
         /*Flag that captures when the satellite changes from sunlight to eclipse
         and viceversa*/
         boolean flag=true;
@@ -114,7 +114,7 @@ public class VectorAnalisysEclipseSunlightDiffDrag extends VectorAnalysis{
             }
             AbsoluteDate date0=s.getDate();
             s =prop.propagate(s.getDate(), s.getDate().shiftedBy(getTimeStep()));
-            handleStep(s);
+            handleStep(s, false);
             if (s.getDate().durationFrom(date0)<getTimeStep()){
                 flag=true;
             }
