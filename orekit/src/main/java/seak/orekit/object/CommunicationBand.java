@@ -12,6 +12,11 @@ package seak.orekit.object;
 public enum CommunicationBand {
 
     /**
+     * Very high frequency -band
+     */
+    VHF(0.03, 0.3),
+    
+    /**
      * Ultra high frequency -band
      */
     UHF(0.3, 3.),
@@ -27,6 +32,10 @@ public enum CommunicationBand {
      * Ku-band
      */
     KU(12., 18.),
+    /**
+     * K-band
+     */
+    K(18., 26.5),
     /**
      * Ka-band
      */
@@ -79,6 +88,8 @@ public enum CommunicationBand {
      */
     public static CommunicationBand get(String bandName) {
         switch (bandName) {
+            case "VHF":
+                return VHF;
             case "UHF":
                 return UHF;
             case "S":
@@ -87,6 +98,8 @@ public enum CommunicationBand {
                 return X;
             case "Ku":
                 return KU;
+            case "K":
+                return K;
             case "Ka":
                 return KA;
             default:

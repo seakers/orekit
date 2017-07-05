@@ -5,6 +5,8 @@
  */
 package seak.orekit.event;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -18,6 +20,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.orekit.errors.OrekitException;
 import org.orekit.frames.Frame;
+import org.orekit.frames.TopocentricFrame;
 import org.orekit.propagation.Propagator;
 import org.orekit.propagation.SpacecraftState;
 import org.orekit.propagation.events.handlers.EventHandler;
@@ -191,6 +194,50 @@ public class GndStationEventAnalysis extends AbstractEventAnalysis {
      */
     public HashMap<Satellite, HashMap<GndStation, TimeIntervalArray>> getAllAccesses() {
         return allAccesses;
+    }
+
+    /**
+     * Returns the computed accesses for each ground station by their assigned
+     * satellites. The user can chose to combine all accesses of one ground
+     * station into one time interval array or keep them separate.
+     *
+     * @param combine flag chose to combine all accesses of one ground station
+     * into one time interval array or keep them separate. Keeping them separate
+     * can provide an accurate metric on the contact times by individual
+     * satellites
+     * @return The access times to each ground station
+     */
+    public Map<TopocentricFrame, TimeIntervalArray> getAllAccesses(boolean combine) {
+        Map<TopocentricFrame, TimeIntervalArray> out = new HashMap<>();
+        if (combine) {
+            Map<TopocentricFrame, Collection<TimeIntervalArray>> timeArrays = new HashMap<>();
+            for (Satellite sat : allAccesses.keySet()) {
+                for (GndStation station : allAccesses.get(sat).keySet()) {
+                    if (combine) {
+                        //check if the ground station was already added to results
+                        if (timeArrays.containsKey(station.getBaseFrame())) {
+                            timeArrays.put(station.getBaseFrame(), new ArrayList<>());
+                        }
+                        timeArrays.get(station.getBaseFrame()).add(allAccesses.get(sat).get(station));
+                    }
+                }
+            }
+            for (TopocentricFrame pt : timeArrays.keySet()) {
+                TimeIntervalMerger merger = new TimeIntervalMerger(timeArrays.get(pt));
+                out.put(pt, merger.orCombine());
+            }
+        } else {
+            for (Satellite sat : allAccesses.keySet()) {
+                for (GndStation station : allAccesses.get(sat).keySet()) {
+                    TopocentricFrame tpt = new TopocentricFrame(
+                            station.getBaseFrame().getParentShape(),
+                            station.getBaseFrame().getPoint(),
+                            String.format("%s_%s", station, sat));
+                    out.put(tpt, allAccesses.get(sat).get(station));
+                }
+            }
+        }
+        return out;
     }
 
     @Override

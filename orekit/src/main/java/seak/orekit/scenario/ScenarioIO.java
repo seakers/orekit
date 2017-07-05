@@ -18,6 +18,7 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.orekit.frames.TopocentricFrame;
 import seak.orekit.analysis.Analysis;
 import seak.orekit.analysis.CompoundSpacecraftAnalysis;
 import seak.orekit.analysis.Record;
@@ -51,7 +52,7 @@ public class ScenarioIO {
     public static boolean saveGroundEventAnalysis(Path path, String filename, 
             Scenario scenario, CoverageDefinition covdef, GroundEventAnalysis analysis) {
         
-        Map<CoveragePoint,TimeIntervalArray> groundEvents = analysis.getEvents(covdef);
+        Map<TopocentricFrame,TimeIntervalArray> groundEvents = analysis.getEvents(covdef);
         File file = new File(path.toFile(),
                 String.format("%s_%s_%s.res", filename, scenario.getName(), covdef.getName()));
         try (FileWriter fw = new FileWriter(file)) {

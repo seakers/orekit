@@ -12,11 +12,11 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import org.orekit.frames.Frame;
+import org.orekit.frames.TopocentricFrame;
 import org.orekit.time.AbsoluteDate;
 import seak.orekit.coverage.access.TimeIntervalArray;
 import seak.orekit.object.Constellation;
 import seak.orekit.object.CoverageDefinition;
-import seak.orekit.object.CoveragePoint;
 import seak.orekit.object.Satellite;
 
 /**
@@ -51,7 +51,7 @@ public abstract class AbstractGroundEventAnalysis extends AbstractEventAnalysis 
      * This object stores when the events occur at each point for each coverage
      * definition
      */
-    private Map<CoverageDefinition, Map<CoveragePoint, TimeIntervalArray>> events;
+    private Map<CoverageDefinition, Map<TopocentricFrame, TimeIntervalArray>> events;
 
     public AbstractGroundEventAnalysis(AbsoluteDate startDate, AbsoluteDate endDate, Frame inertialFrame, Set<CoverageDefinition> covDefs) {
         super(startDate, endDate, inertialFrame);
@@ -74,8 +74,8 @@ public abstract class AbstractGroundEventAnalysis extends AbstractEventAnalysis 
             }
 
             //create a new time interval array for each point in the coverage definition
-            HashMap<CoveragePoint, TimeIntervalArray> ptAccesses = new HashMap<>();
-            for (CoveragePoint pt : cdef.getPoints()) {
+            HashMap<TopocentricFrame, TimeIntervalArray> ptAccesses = new HashMap<>();
+            for (TopocentricFrame pt : cdef.getPoints()) {
                 ptAccesses.put(pt, new TimeIntervalArray(startDate, endDate));
             }
             
@@ -91,12 +91,12 @@ public abstract class AbstractGroundEventAnalysis extends AbstractEventAnalysis 
     }
 
     @Override
-    public Map<CoverageDefinition, Map<CoveragePoint, TimeIntervalArray>> getEvents() {
+    public Map<CoverageDefinition, Map<TopocentricFrame, TimeIntervalArray>> getEvents() {
         return events;
     }
 
     @Override
-    public Map<CoveragePoint, TimeIntervalArray> getEvents(CoverageDefinition covDef) {
+    public Map<TopocentricFrame, TimeIntervalArray> getEvents(CoverageDefinition covDef) {
         return events.get(covDef);
     }
 
