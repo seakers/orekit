@@ -84,7 +84,7 @@ public class Orekit {
 
         TimeScale utc = TimeScalesFactory.getUTC();
         AbsoluteDate startDate = new AbsoluteDate(2016, 1, 1, 00, 00, 00.000, utc);
-        AbsoluteDate endDate = new AbsoluteDate(2016, 1, 1, 01, 00, 00.000, utc);
+        AbsoluteDate endDate = new AbsoluteDate(2016, 1, 10, 00, 00, 00.000, utc);
         double mu = Constants.WGS84_EARTH_MU; // gravitation coefficient
 
         //must use IERS_2003 and EME2000 frames to be consistent with STK
@@ -96,10 +96,10 @@ public class Orekit {
 
         //Enter satellite orbital parameters
         double a = Constants.WGS84_EARTH_EQUATORIAL_RADIUS + 600000;
-        double i = FastMath.toRadians(30);
+        double i = FastMath.toRadians(45);
 
         //define instruments
-        NadirSimpleConicalFOV fov = new NadirSimpleConicalFOV(FastMath.toRadians(45), earthShape);
+        NadirSimpleConicalFOV fov = new NadirSimpleConicalFOV(FastMath.toRadians(15), earthShape);
 //        NadirRectangularFOV fov = new NadirRectangularFOV(FastMath.toRadians(57), FastMath.toRadians(2.5), 0, earthShape);
         ArrayList<Instrument> payload = new ArrayList<>();
         Instrument view1 = new Instrument("view1", fov, 100, 100);
@@ -129,8 +129,8 @@ public class Orekit {
         propertiesPropagator.setProperty("orekit.propagator.solarpressure", "true");
         propertiesPropagator.setProperty("orekit.propagator.solararea", "10");
 
-//        PropagatorFactory pf = new PropagatorFactory(PropagatorType.J2,propertiesPropagator);
-        PropagatorFactory pf = new PropagatorFactory(PropagatorType.NUMERICAL, propertiesPropagator);
+        PropagatorFactory pf = new PropagatorFactory(PropagatorType.J2,propertiesPropagator);
+//        PropagatorFactory pf = new PropagatorFactory(PropagatorType.NUMERICAL, propertiesPropagator);
 
         Properties propertiesEventAnalysis = new Properties();
         propertiesEventAnalysis.setProperty("numThreads", "6");
@@ -148,7 +148,7 @@ public class Orekit {
         ArrayList<Analysis> analyses = new ArrayList<>();
         for (Satellite sat : walker.getSatellites()) {
             //analyses.add(new OrbitalElementsAnalysis(startDate, endDate, analysisTimeStep, sat, pf));
-            analyses.add(new VectorAnalisysEclipseSunlightDiffDrag(startDate, endDate, analysisTimeStep, sat, pf, inertialFrame, 0.015, 0.075, 0.058, 6));
+//            analyses.add(new VectorAnalisysEclipseSunlightDiffDrag(startDate, endDate, analysisTimeStep, sat, pf, inertialFrame, 0.015, 0.075, 0.058, 6));
         }
 
         //LINK BUDGET

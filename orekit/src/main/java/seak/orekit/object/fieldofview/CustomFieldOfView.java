@@ -24,6 +24,7 @@ public class CustomFieldOfView extends AbstractFieldOfViewDefinition{
     private final FieldOfView fov;
 
     public CustomFieldOfView(FieldOfView fov) {
+        super(0.0);
         this.fov = fov;
     }
 

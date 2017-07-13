@@ -42,6 +42,7 @@ public class SimpleConicalFieldOfView extends AbstractFieldOfViewDefinition{
      * @param halfAngle FOV half aperture angle, must be less than π/2.
      */
     public SimpleConicalFieldOfView(Vector3D centerAxis, double halfAngle) {
+        super(0.0);
         this.centerAxis = centerAxis.normalize();
         this.halfAngle = halfAngle;
         this.cosAngle = FastMath.cos(halfAngle);
