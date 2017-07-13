@@ -13,8 +13,8 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletionService;
 import java.util.concurrent.ExecutionException;
@@ -25,6 +25,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.orekit.errors.OrekitException;
 import org.orekit.frames.Frame;
+import org.orekit.frames.TopocentricFrame;
 import org.orekit.propagation.Propagator;
 import org.orekit.propagation.SpacecraftState;
 import org.orekit.propagation.events.handlers.EventHandler;
@@ -74,7 +75,7 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
     /**
      * Stores all the accesses of each satellite if saveAllAccesses is true.
      */
-    private HashMap<CoverageDefinition, HashMap<Satellite, HashMap<CoveragePoint, TimeIntervalArray>>> allAccesses;
+    private HashMap<CoverageDefinition, HashMap<Satellite, HashMap<TopocentricFrame, TimeIntervalArray>>> allAccesses;
 
     /**
      * the number of threads to use in parallel processing
@@ -82,12 +83,12 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
     private final int numThreads;
 
     /**
-     * Creates a new scenario.
+     * Creates a new event analysis.
      *
-     * @param startDate of scenario
-     * @param endDate of scenario
-     * @param inertialFrame
-     * @param propagatorFactory
+     * @param startDate of analysis
+     * @param endDate of analysis
+     * @param inertialFrame the inertial frame used in the simulation
+     * @param propagatorFactory the factory to create propagtors for each satellite
      * @param covDefs
      * @param saveAllAccesses true if user wants to maintain all the accesses
      * from each individual satellite. false if user would like to only get the
@@ -95,10 +96,10 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
      * @param saveToDB flag to dictate whether the coverage accesses of
      * individual satellites should be saved to the coverage database
      * @param numThreads number of threads to uses in parallelization of the
-     * scenario by dividing up the coverage grid points across multiple threads
+     * scenario by dividing up the propagation across multiple threads
      */
     public FieldOfViewEventAnalysis(AbsoluteDate startDate, AbsoluteDate endDate,
-            Frame inertialFrame, HashSet<CoverageDefinition> covDefs,
+            Frame inertialFrame, Set<CoverageDefinition> covDefs,
             PropagatorFactory propagatorFactory, boolean saveAllAccesses,
             boolean saveToDB, int numThreads) {
         super(startDate, endDate, inertialFrame, covDefs);
@@ -146,7 +147,7 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
                         System.getProperty("orekit.coveragedatabase"),
                         String.valueOf(sat.hashCode()));
                 if (file.canRead()) {
-                    HashMap<CoveragePoint, TimeIntervalArray> satAccesses = readAccesses(file);
+                    HashMap<TopocentricFrame, TimeIntervalArray> satAccesses = readAccesses(file);
                     processAccesses(sat, cdef, satAccesses);
                     break;
                 }
@@ -179,7 +180,7 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
                 }
 
                 Satellite sat = subRoutine.getSat();
-                HashMap<CoveragePoint, TimeIntervalArray> satAccesses = subRoutine.getSatAccesses();
+                HashMap<TopocentricFrame, TimeIntervalArray> satAccesses = subRoutine.getSatAccesses();
                 processAccesses(sat, cdef, satAccesses);
 
                 if (saveToDB) {
@@ -191,7 +192,7 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
             }
 
             //Make all time intervals stored in finalAccesses immutable
-            for (CoveragePoint pt : getEvents().get(cdef).keySet()) {
+            for (TopocentricFrame pt : getEvents().get(cdef).keySet()) {
                 getEvents().get(cdef).put(pt, getEvents().get(cdef).get(pt).createImmutable());
             }
         }
@@ -210,7 +211,7 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
      * assigned coverage definition
      */
     private void processAccesses(Satellite sat, CoverageDefinition cdef,
-            HashMap<CoveragePoint, TimeIntervalArray> satAccesses) {
+            HashMap<TopocentricFrame, TimeIntervalArray> satAccesses) {
         //save the satellite accesses 
         if (saveAllAccesses) {
             allAccesses.get(cdef).put(sat, satAccesses);
@@ -218,7 +219,7 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
 
         //merge the time accesses across all satellite for each coverage definition
         if (getEvents().containsKey(cdef)) {
-            Map<CoveragePoint, TimeIntervalArray> mergedAccesses
+            Map<TopocentricFrame, TimeIntervalArray> mergedAccesses
                     = EventIntervalMerger.merge(getEvents().get(cdef), satAccesses, false);
             getEvents().put(cdef, mergedAccesses);
         } else {
@@ -226,7 +227,7 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
         }
     }
 
-    private void writeAccesses(File file, HashMap<CoveragePoint, TimeIntervalArray> accesses) {
+    private void writeAccesses(File file, HashMap<TopocentricFrame, TimeIntervalArray> accesses) {
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(file))) {
             oos.writeObject(accesses);
         } catch (FileNotFoundException ex) {
@@ -236,10 +237,10 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
         }
     }
 
-    private HashMap<CoveragePoint, TimeIntervalArray> readAccesses(File file) {
-        HashMap<CoveragePoint, TimeIntervalArray> out = new HashMap<>();
+    private HashMap<TopocentricFrame, TimeIntervalArray> readAccesses(File file) {
+        HashMap<TopocentricFrame, TimeIntervalArray> out = new HashMap<>();
         try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file))) {
-            out = (HashMap<CoveragePoint, TimeIntervalArray>) ois.readObject();
+            out = (HashMap<TopocentricFrame, TimeIntervalArray>) ois.readObject();
         } catch (FileNotFoundException ex) {
             Logger.getLogger(FieldOfViewEventAnalysis.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
@@ -260,7 +261,7 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
      * and the satellite is assigned to the coverage definition, a map of
      * coverage points and time interval array will be returned. else null
      */
-    public HashMap<CoveragePoint, TimeIntervalArray> getSatelliteAccesses(CoverageDefinition covDef, Satellite sat) {
+    public HashMap<TopocentricFrame, TimeIntervalArray> getSatelliteAccesses(CoverageDefinition covDef, Satellite sat) {
         return allAccesses.get(covDef).get(sat);
     }
 
@@ -280,7 +281,7 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
      *
      * @return
      */
-    public HashMap<CoverageDefinition, HashMap<Satellite, HashMap<CoveragePoint, TimeIntervalArray>>> getAllAccesses() {
+    public HashMap<CoverageDefinition, HashMap<Satellite, HashMap<TopocentricFrame, TimeIntervalArray>>> getAllAccesses() {
         return allAccesses;
     }
 
@@ -293,17 +294,7 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
     public boolean isSaveToDB() {
         return saveToDB;
     }
-
-    /**
-     * Gets the propagator factory used to create new propagators for this
-     * scenario
-     *
-     * @return
-     */
-    public PropagatorFactory getPropagatorFactory() {
-        return propagatorFactory;
-    }
-
+    
     @Override
     public String getHeader() {
         StringBuilder sb = new StringBuilder();
@@ -367,7 +358,7 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
          * The times, for each point, when it is being accessed by the given
          * satellite and its payload.
          */
-        private final HashMap<CoveragePoint, TimeIntervalArray> satAccesses;
+        private final HashMap<TopocentricFrame, TimeIntervalArray> satAccesses;
 
         /**
          *
@@ -402,11 +393,11 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
         //NOTE: this implementation of in the field of view is a bit fragile if propagating highly elliptical orbits (>0.75). Maybe need to use smaller time steps los and fov detectors
         @Override
         public FieldOfViewSubRoutine call() throws Exception {
-//            if (prop instanceof NumericalPropagator) {
+            if (prop instanceof NumericalPropagator) {
                 singlePropagate();
-//            }else{
-//                multiPropogate();
-//            }
+            }else{
+                multiPropogate();
+            }
             return this;
         }
 
@@ -427,7 +418,7 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
 
                     //First find all intervals with line of sight.
                     LOSDetector losDetec = new LOSDetector(
-                            prop.getInitialState(), getStartDate(), getEndDate(),
+                            initialState, getStartDate(), getEndDate(),
                             pt, cdef.getPlanetShape(), getInertialFrame(),
                             losStepSize, threshold, EventHandler.Action.CONTINUE);
                     prop.addEventDetector(losDetec);
@@ -459,12 +450,12 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
                             SpacecraftState s = prop.propagate(getStartDate().shiftedBy(date0), getStartDate().shiftedBy(date1));
                             if (Math.abs(s.getDate().durationFrom(initialState.getDate()) - date1) < 1e-6) {
                                 //did not find an access
-                                break;
+                                continue;
                             }
 
                             //check to see if the first access was closing an access
                             if (!fovDetec.isOpen()) {
-                                break;
+                                continue;
                             }
 
                             //second propagation will find the end time when the point is in the field of view
@@ -519,12 +510,8 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
         public Satellite getSat() {
             return sat;
         }
-
-        public CoverageDefinition getCoverageDefinition() {
-            return cdef;
-        }
-
-        public HashMap<CoveragePoint, TimeIntervalArray> getSatAccesses() {
+        
+        public HashMap<TopocentricFrame, TimeIntervalArray> getSatAccesses() {
             return satAccesses;
         }
 

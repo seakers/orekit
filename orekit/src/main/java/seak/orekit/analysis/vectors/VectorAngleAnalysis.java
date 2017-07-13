@@ -7,6 +7,7 @@ package seak.orekit.analysis.vectors;
 
 import seak.orekit.analysis.Record;
 import org.hipparchus.geometry.euclidean.threed.Vector3D;
+import org.orekit.errors.OrekitException;
 import org.orekit.frames.Frame;
 import org.orekit.propagation.SpacecraftState;
 import org.orekit.time.AbsoluteDate;
@@ -62,7 +63,7 @@ public abstract class VectorAngleAnalysis extends AbstractSpacecraftAnalysis<Dou
     }
 
     @Override
-    public void handleStep(SpacecraftState currentState) {
+    public void handleStep(SpacecraftState currentState, boolean isLast) throws OrekitException{   
         Vector3D v1 = getVector1(currentState, frame);
         Vector3D v2 = getVector2(currentState, frame);
         addRecord(new Record(currentState.getDate(), Vector3D.angle(v1, v2)));

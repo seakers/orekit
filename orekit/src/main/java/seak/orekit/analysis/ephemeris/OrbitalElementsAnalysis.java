@@ -5,6 +5,7 @@
  */
 package seak.orekit.analysis.ephemeris;
 
+import org.orekit.errors.OrekitException;
 import seak.orekit.analysis.Record;
 import org.orekit.orbits.KeplerianOrbit;
 import org.orekit.orbits.OrbitType;
@@ -49,23 +50,18 @@ public class OrbitalElementsAnalysis extends AbstractSpacecraftAnalysis<OrbitalE
         return "eph";
     }
 
-    /**
-     * At each step, the ephemeris of the satellite is recorded
-     *
-     * @param currentState
-     */
     @Override
-    protected void handleStep(SpacecraftState currentState) {
+    public String getName() {
+        return String.format("%s_%s","eph",getSatellite().getName());
+    }
+
+    @Override
+    public void handleStep(SpacecraftState currentState, boolean isLast) throws OrekitException {
         KeplerianOrbit o = (KeplerianOrbit) OrbitType.KEPLERIAN.convertType(currentState.getOrbit());
         Record<OrbitalElements> e = new Record(currentState.getDate(), new OrbitalElements(o.getA(), o.getE(), o.getI(),
                 o.getRightAscensionOfAscendingNode(), o.getPerigeeArgument(),
                 o.getAnomaly(type)));
         addRecord(e);
-    }
-
-    @Override
-    public String getName() {
-        return String.format("%s_%s","eph",getSatellite().getName());
     }
 
 }

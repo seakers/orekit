@@ -21,7 +21,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.hipparchus.stat.descriptive.DescriptiveStatistics;
 import org.hipparchus.util.FastMath;
+import org.orekit.frames.TopocentricFrame;
 import seak.orekit.analysis.Analysis;
+import seak.orekit.analysis.CompoundSpacecraftAnalysis;
 import seak.orekit.analysis.Record;
 import seak.orekit.coverage.access.RiseSetTime;
 import seak.orekit.coverage.access.TimeIntervalArray;
@@ -55,7 +57,7 @@ public class ScenarioIO {
     public static boolean saveGroundEventAnalysis(Path path, String filename, 
             Scenario scenario, CoverageDefinition covdef, GroundEventAnalysis analysis) {
         
-        Map<CoveragePoint,TimeIntervalArray> groundEvents = analysis.getEvents(covdef);
+        Map<TopocentricFrame,TimeIntervalArray> groundEvents = analysis.getEvents(covdef);
         File file = new File(path.toFile(),
                 String.format("%s_%s_%s.res", filename, scenario.getName(), covdef.getName()));
         try (FileWriter fw = new FileWriter(file)) {
@@ -184,6 +186,26 @@ public class ScenarioIO {
      * @return true if the analysis is successfully saved
      */
     public static boolean saveAnalysis(Path path, String fileName, Analysis analysis) {
+        if(analysis instanceof CompoundSpacecraftAnalysis){
+            boolean out = true;
+            for(Analysis a : ((CompoundSpacecraftAnalysis) analysis).getAnalyses()){
+                out = Boolean.logicalAnd(out, saveSingleAnalysis(path, fileName, a));
+            }
+            return out;
+        }else{
+            return saveSingleAnalysis(path, fileName, analysis);
+        }
+    }
+    
+    /**
+     * Saves the recorded history from the given analysis that is not a compound analysis
+     *
+     * @param path path to save the results
+     * @param fileName name of the analysis file to save
+     * @param analysis analysis to save
+     * @return true if the analysis is successfully saved
+     */
+    private static boolean saveSingleAnalysis(Path path, String fileName, Analysis analysis) {
         File file = new File(path.toFile(), String.format("%s.%s", fileName, analysis.getExtension()));
         Iterator<Record> histIter = analysis.getHistory().iterator();
         try (FileWriter fw = new FileWriter(file)) {

@@ -53,14 +53,8 @@ public class GroundTrackAnalysis extends AbstractSpacecraftAnalysis<String> {
     public String getExtension() {
         return "gdt";
     }
-
-    /**
-     * At each step, the ephemeris of the satellite is recorded
-     *
-     * @param currentState
-     */
-    @Override
-    protected void handleStep(SpacecraftState currentState) {
+    
+    public void handleStep(SpacecraftState currentState, boolean isLast) {
         try {
             GeodeticPoint pt = body.transform(
                     currentState.getPVCoordinates().getPosition(),

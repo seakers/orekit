@@ -7,6 +7,7 @@ package seak.orekit.analysis;
 
 import java.util.Collection;
 import java.util.concurrent.Callable;
+import org.orekit.propagation.sampling.OrekitFixedStepHandler;
 import org.orekit.time.AbsoluteDate;
 
 /**
@@ -22,7 +23,7 @@ import org.orekit.time.AbsoluteDate;
  * @author nozomihitomi
  * @param <Record> the generic object for the record
  */
-public interface Analysis<Record> extends Callable<Analysis>{
+public interface Analysis<Record> extends Callable<Analysis>, OrekitFixedStepHandler{
 
     /**
      * Gets the recorded value of an analysis from each time step. The returned

@@ -15,6 +15,7 @@ import org.orekit.orbits.KeplerianOrbit;
 import org.orekit.orbits.Orbit;
 import org.orekit.orbits.PositionAngle;
 import org.orekit.time.AbsoluteDate;
+import seak.orekit.object.Instrument;
 
 /**
  * A Walker constellation is defined by its parameters i:t/p/f. i is the
@@ -35,6 +36,7 @@ public class Walker extends Constellation {
      * true anomaly are 0 rad.
      *
      * @param name name of the constellation
+     * @param payload the instruments to assign to each satellite in the constellation
      * @param semimajoraxis the semimajor axis of each satellite [m]
      * @param i inclination of the constellation [rad]
      * @param t the total number of satellites
@@ -45,8 +47,9 @@ public class Walker extends Constellation {
      * @param startDate the date to begin simulating this constellation
      * @param mu central attraction coefficient (m³/s²)
      */
-    public Walker(String name, double semimajoraxis, double i, int t, int p, int f, Frame inertialFrame, AbsoluteDate startDate, double mu) {
-        this(name, semimajoraxis, i, t, p, f, inertialFrame, startDate, mu, 0.0, 0.0);
+    public Walker(String name, Collection<Instrument> payload,
+            double semimajoraxis, double i, int t, int p, int f, Frame inertialFrame, AbsoluteDate startDate, double mu) {
+        this(name, payload, semimajoraxis, i, t, p, f, inertialFrame, startDate, mu, 0.0, 0.0);
     }
 
     /**
@@ -57,6 +60,7 @@ public class Walker extends Constellation {
      * anomaly to orient the walker configuration
      *
      * @param name name of the constellation
+     * @param payload the instruments to assign to each satellite in the constellation
      * @param semimajoraxis the semimajor axis of each satellite [m]
      * @param i inclination of the constellation [rad]
      * @param t the total number of satellites
@@ -71,8 +75,10 @@ public class Walker extends Constellation {
      * @param refAnom the reference true anomaly of the first satellite in the
      * first orbital plane to begin constructing constellation [rad]
      */
-    public Walker(String name, double semimajoraxis, double i, int t, int p, int f, Frame inertialFrame, AbsoluteDate startDate, double mu, double refRaan, double refAnom) {
-        super(name, createConstellation(semimajoraxis, i, t, p, f, inertialFrame, startDate, mu, refRaan, refAnom));
+    public Walker(String name, Collection<Instrument> payload,
+            double semimajoraxis, double i, int t, int p, int f, 
+            Frame inertialFrame, AbsoluteDate startDate, double mu, double refRaan, double refAnom) {
+        super(name, createConstellation(payload, semimajoraxis, i, t, p, f, inertialFrame, startDate, mu, refRaan, refAnom));
     }
 
     /**
@@ -93,7 +99,9 @@ public class Walker extends Constellation {
      * first orbital plane to begin constructing constellation [rad]
      * @return
      */
-    private static Collection<Satellite> createConstellation(double semimajoraxis, double i, int t, int p, int f, Frame inertialFrame, AbsoluteDate startDate, double mu, double refRaan, double refAnom) {
+    private static Collection<Satellite> createConstellation(
+            Collection<Instrument> payload, double semimajoraxis, double i, int t, int p, int f, 
+            Frame inertialFrame, AbsoluteDate startDate, double mu, double refRaan, double refAnom) {
         //checks for valid parameters
         if (t < 0 || p < 0) {
             throw new IllegalArgumentException(String.format("Expected t>0, p>0."
@@ -126,7 +134,7 @@ public class Walker extends Constellation {
                         refRaan + planeNum * delRaan, 
                         refAnom + satNum * delAnom + phasing * planeNum, 
                         PositionAngle.TRUE, inertialFrame, startDate, mu);
-                Satellite sat = new Satellite(String.format("sat_walker_%d", s * planeNum + satNum), orb);
+                Satellite sat = new Satellite(String.format("sat_walker_%d", s * planeNum + satNum), orb, null, payload);
                 walker.add(sat);
             }
         }
