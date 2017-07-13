@@ -5,6 +5,7 @@
  */
 package seak.orekit.scenario;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileWriter;
@@ -18,10 +19,14 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.hipparchus.stat.descriptive.DescriptiveStatistics;
+import org.hipparchus.util.FastMath;
 import seak.orekit.analysis.Analysis;
 import seak.orekit.analysis.Record;
 import seak.orekit.coverage.access.RiseSetTime;
 import seak.orekit.coverage.access.TimeIntervalArray;
+import seak.orekit.coverage.analysis.AnalysisMetric;
+import seak.orekit.coverage.analysis.GroundEventAnalyzer;
 import seak.orekit.event.GroundEventAnalysis;
 import seak.orekit.object.Constellation;
 import seak.orekit.object.CoverageDefinition;
@@ -86,6 +91,38 @@ public class ScenarioIO {
             return false;
         }
          Logger.getGlobal().finest(String.format("Saved accesses in %s", file.toString()));
+        return true;
+    }
+    
+    public static boolean saveGroundEventAnalysisMetrics(Path path, String filename, 
+            Scenario scenario, GroundEventAnalyzer gea) {
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(
+                new File(path.toFile(),
+                        String.format("%s_%s_metric.csv", filename, scenario))))) {
+            for(CoveragePoint pt : gea.getCoveragePoints()){
+                bw.append(String.valueOf(FastMath.toDegrees(pt.getPoint().getLatitude())));
+                bw.append(",");
+                bw.append(String.valueOf(FastMath.toDegrees(pt.getPoint().getLongitude())));
+                bw.append(",");
+                DescriptiveStatistics stats = gea.getStatistics(AnalysisMetric.DURATION, true, pt);
+                bw.append(String.valueOf(stats.getMin()));
+                bw.append(",");
+                bw.append(String.valueOf(stats.getMax()));
+                bw.append(",");
+                bw.append(String.valueOf(stats.getMean()));
+                bw.append(",");
+                bw.append(String.valueOf(stats.getStandardDeviation()));
+                bw.append(",");
+                for(int i=1; i<= 100; i++){
+                    bw.append(String.valueOf(stats.getPercentile(i)));
+                    bw.append(",");
+                }
+                bw.newLine();
+            }
+        } catch (IOException ex) {
+            Logger.getLogger(ScenarioIO.class.getName()).log(Level.SEVERE, null, ex);
+            return false;
+        }
         return true;
     }
 

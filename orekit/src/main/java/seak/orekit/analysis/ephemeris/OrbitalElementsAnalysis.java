@@ -8,6 +8,7 @@ package seak.orekit.analysis.ephemeris;
 import seak.orekit.analysis.Record;
 import org.orekit.orbits.KeplerianOrbit;
 import org.orekit.orbits.OrbitType;
+import org.orekit.orbits.PositionAngle;
 import org.orekit.propagation.SpacecraftState;
 import org.orekit.time.AbsoluteDate;
 import seak.orekit.analysis.AbstractSpacecraftAnalysis;
@@ -21,14 +22,26 @@ import seak.orekit.propagation.PropagatorFactory;
  * @author nozomihitomi
  */
 public class OrbitalElementsAnalysis extends AbstractSpacecraftAnalysis<OrbitalElements> {
+    
+    private final PositionAngle type;
    
-    public OrbitalElementsAnalysis(AbsoluteDate startDate, AbsoluteDate endDate, double timeStep, Satellite sat, PropagatorFactory propagatorFactory) {
+    /**
+     * 
+     * @param startDate start date of the analysis
+     * @param endDate end date of the analysis
+     * @param timeStep the time step at which to record the orbital elements
+     * @param sat the satellite of interest
+     * @param type the type of anomaly to record (True or Mean)
+     * @param propagatorFactory the propagator factory that will create the appropriate propagator for the satellite of interest
+     */
+    public OrbitalElementsAnalysis(AbsoluteDate startDate, AbsoluteDate endDate, double timeStep, Satellite sat, PositionAngle type, PropagatorFactory propagatorFactory) {
         super(startDate, endDate, timeStep, sat, propagatorFactory);
+        this.type = type;
     }
 
     @Override
     public String getHeader() {
-        return super.getHeader()+",semimajor axis[deg],ecc.,inc.[deg],raan[deg],arg. per.[deg],mean anom.[deg]"; 
+        return super.getHeader()+",semimajor axis[deg],ecc.,inc.[deg],raan[deg],arg. per.[deg]," + type.toString() + " anom.[deg]"; 
     }
 
     @Override
@@ -46,7 +59,7 @@ public class OrbitalElementsAnalysis extends AbstractSpacecraftAnalysis<OrbitalE
         KeplerianOrbit o = (KeplerianOrbit) OrbitType.KEPLERIAN.convertType(currentState.getOrbit());
         Record<OrbitalElements> e = new Record(currentState.getDate(), new OrbitalElements(o.getA(), o.getE(), o.getI(),
                 o.getRightAscensionOfAscendingNode(), o.getPerigeeArgument(),
-                o.getMeanAnomaly()));
+                o.getAnomaly(type)));
         addRecord(e);
     }
 
