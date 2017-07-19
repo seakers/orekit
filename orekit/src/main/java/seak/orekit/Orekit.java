@@ -105,15 +105,15 @@ public class Orekit {
         Instrument view1 = new Instrument("view1", fov, 100, 100);
         payload.add(view1);
 
-        Walker walker = new Walker("walker1", payload, a, i, 1, 1, 0, inertialFrame, startDate, mu);
+        Walker walker = new Walker("walker1", payload, a, i, 2, 2, 0, inertialFrame, startDate, mu);
 
         ArrayList<GeodeticPoint> pts = new ArrayList<>();
 //        pts.add(new GeodeticPoint(-0.1745329251994330, 6.0737457969402699, 0.0));
 //        pts.add(new GeodeticPoint(-0.8726646259971650,  0.209439510239320, 0.0));
 //        pts.add(new GeodeticPoint(1.5707963267949001, 0.0000000000000000, 0.0));
 //        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", pts, earthShape);
-//        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", 6, earthShape, UNIFORM);
-        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", STKGRID.getPoints20(), earthShape);
+        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", 10, earthShape, CoverageDefinition.GridStyle.UNIFORM);
+//        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", STKGRID.getPoints20(), earthShape);
 
         covDef1.assignConstellation(walker);
 
@@ -195,6 +195,7 @@ public class Orekit {
         System.out.println(String.format("90th gap time %s", gapStats.getPercentile(90)));
 
         ScenarioIO.saveGroundEventAnalysis(Paths.get(System.getProperty("results"), ""), filename + "_cva", scen, covDef1, fovEvent);
+        ScenarioIO.saveGroundEventAnalysisMetrics(Paths.get(System.getProperty("results"), ""), filename, scen, ea, AnalysisMetric.DURATION, false);
 //        ScenarioIO.saveGroundEventAnalysis(Paths.get(System.getProperty("results"), ""), filename + "_gsa", scen, covDef1, gndSunAngEvent);
 //        ScenarioIO.saveLinkBudget(Paths.get(System.getProperty("results"), ""), filename, scenComp, cdefToSave);
 //        ScenarioIO.saveReadMe(Paths.get(path, ""), filename, scenComp);
