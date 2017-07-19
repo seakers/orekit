@@ -158,7 +158,7 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
                 //Set stepsizes and threshold for detectors
                 double losStepSize = sat.getOrbit().getKeplerianPeriod() / 10.;
                 double fovStepSize = sat.getOrbit().getKeplerianPeriod() / 100.;
-                double threshold = 1e-1;
+                double threshold = 1e-3;
 
                 FieldOfViewSubRoutine subRoutine = new FieldOfViewSubRoutine(sat, prop, cdef, losStepSize, fovStepSize, threshold);
                 ecs.submit(subRoutine);

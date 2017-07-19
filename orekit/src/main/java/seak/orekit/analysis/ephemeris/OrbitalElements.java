@@ -39,9 +39,9 @@ public class OrbitalElements{
     private final double argPer;
     
     /**
-     * mean anomaly [rad]
+     * anomaly [rad]
      */
-    private final double ma;
+    private final double anom;
 
     /**
      * 
@@ -50,15 +50,15 @@ public class OrbitalElements{
      * @param inc Inclination[rad]
      * @param raan Right ascension of the ascending node[rad]
      * @param argPer argument of perigee [rad]
-     * @param ma mean anomaly [rad]
+     * @param anom anomaly [rad]
      */
-    public OrbitalElements(double sa, double ecc, double inc, double raan, double argPer, double ma) {
+    public OrbitalElements(double sa, double ecc, double inc, double raan, double argPer, double anom) {
         this.sa = sa;
         this.ecc = ecc;
         this.inc = inc;
         this.raan = raan;
         this.argPer = argPer;
-        this.ma = ma;
+        this.anom = anom;
     }
 
     /**
@@ -106,7 +106,7 @@ public class OrbitalElements{
      * @return 
      */
     public double getMa() {
-        return FastMath.toDegrees(ma);
+        return FastMath.toDegrees(anom);
     }
     
     @Override
