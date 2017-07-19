@@ -80,7 +80,7 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
     /**
      * the number of threads to use in parallel processing
      */
-    private final int numThreads;
+    protected final int numThreads;
 
     /**
      * Creates a new event analysis.
@@ -88,7 +88,8 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
      * @param startDate of analysis
      * @param endDate of analysis
      * @param inertialFrame the inertial frame used in the simulation
-     * @param propagatorFactory the factory to create propagtors for each satellite
+     * @param propagatorFactory the factory to create propagtors for each
+     * satellite
      * @param covDefs
      * @param saveAllAccesses true if user wants to maintain all the accesses
      * from each individual satellite. false if user would like to only get the
@@ -107,9 +108,12 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
         this.saveAllAccesses = saveAllAccesses;
         if (saveAllAccesses) {
             this.allAccesses = new HashMap();
+            for (CoverageDefinition cdef : covDefs) {
+                allAccesses.put(cdef, new HashMap());
+            }
         }
-        this.saveToDB = saveToDB;
 
+        this.saveToDB = saveToDB;
         this.numThreads = numThreads;
     }
 
@@ -135,9 +139,6 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
                     String.format("Simulation dates %s to %s (%.2f days)",
                             getStartDate(), getEndDate(),
                             getEndDate().durationFrom(getStartDate()) / 86400.));
-            if (saveAllAccesses) {
-                allAccesses.put(cdef, new HashMap());
-            }
 
             //propogate each satellite individually
             int nSubRoutines = 0;
@@ -157,7 +158,7 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
                 //Set stepsizes and threshold for detectors
                 double losStepSize = sat.getOrbit().getKeplerianPeriod() / 10.;
                 double fovStepSize = sat.getOrbit().getKeplerianPeriod() / 100.;
-                double threshold = 1e-3;
+                double threshold = 1e-1;
 
                 FieldOfViewSubRoutine subRoutine = new FieldOfViewSubRoutine(sat, prop, cdef, losStepSize, fovStepSize, threshold);
                 ecs.submit(subRoutine);
@@ -210,7 +211,7 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
      * @param satAccesses the accesses computed for the satellite to its
      * assigned coverage definition
      */
-    private void processAccesses(Satellite sat, CoverageDefinition cdef,
+    protected void processAccesses(Satellite sat, CoverageDefinition cdef,
             HashMap<TopocentricFrame, TimeIntervalArray> satAccesses) {
         //save the satellite accesses 
         if (saveAllAccesses) {
@@ -294,7 +295,7 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
     public boolean isSaveToDB() {
         return saveToDB;
     }
-    
+
     @Override
     public String getHeader() {
         StringBuilder sb = new StringBuilder();
@@ -393,9 +394,10 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
         //NOTE: this implementation of in the field of view is a bit fragile if propagating highly elliptical orbits (>0.75). Maybe need to use smaller time steps los and fov detectors
         @Override
         public FieldOfViewSubRoutine call() throws Exception {
+            Logger.getGlobal().finer(String.format("Propagating satellite %s...", sat));
             if (prop instanceof NumericalPropagator) {
                 singlePropagate();
-            }else{
+            } else {
                 multiPropogate();
             }
             return this;
@@ -410,7 +412,6 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
          */
         private void multiPropogate() throws OrekitException {
             SpacecraftState initialState = prop.getInitialState();
-            Logger.getGlobal().finer(String.format("Propagating satellite %s...", sat));
             for (Instrument inst : sat.getPayload()) {
                 for (CoveragePoint pt : cdef.getPoints()) {
                     prop.resetInitialState(initialState);
@@ -459,6 +460,7 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
                             }
 
                             //second propagation will find the end time when the point is in the field of view
+                            prop.resetInitialState(s);
                             prop.propagate(s.getDate(), getStartDate().shiftedBy(date1));
 
                             date1 = Double.NaN;
@@ -484,7 +486,6 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
          */
         private void singlePropagate() throws OrekitException {
             SpacecraftState initialState = prop.getInitialState();
-            Logger.getGlobal().finer(String.format("Propagating satellite %s...", sat));
             HashMap<CoveragePoint, FOVDetector> map = new HashMap<>();
             for (Instrument inst : sat.getPayload()) {
                 for (CoveragePoint pt : cdef.getPoints()) {
@@ -510,7 +511,7 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
         public Satellite getSat() {
             return sat;
         }
-        
+
         public HashMap<TopocentricFrame, TimeIntervalArray> getSatAccesses() {
             return satAccesses;
         }

@@ -16,6 +16,7 @@ import org.orekit.orbits.Orbit;
 import org.orekit.orbits.PositionAngle;
 import org.orekit.time.AbsoluteDate;
 import seak.orekit.object.Instrument;
+import seak.orekit.orbit.J2KeplerianOrbit;
 
 /**
  * A Walker constellation is defined by its parameters i:t/p/f. i is the
@@ -130,7 +131,7 @@ public class Walker extends Constellation {
         for (int planeNum = 0; planeNum < p; planeNum++) {
             for (int satNum = 0; satNum < s; satNum++) {
                 //since eccentricity = 0, doesn't matter if using true or mean anomaly
-                Orbit orb = new KeplerianOrbit(semimajoraxis, 0.0001, i, 0.0, 
+                Orbit orb = new J2KeplerianOrbit(semimajoraxis, 0.0001, i, 0.0, 
                         refRaan + planeNum * delRaan, 
                         refAnom + satNum * delAnom + phasing * planeNum, 
                         PositionAngle.TRUE, inertialFrame, startDate, mu);
