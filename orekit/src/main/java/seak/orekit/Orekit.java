@@ -54,6 +54,7 @@ import seak.orekit.event.EventAnalysisFactory;
 import seak.orekit.event.FieldOfViewEventAnalysis;
 import seak.orekit.object.Constellation;
 import seak.orekit.orbit.J2KeplerianOrbit;
+import seak.orekit.sensitivity.CoverageVersusOrbitalElements;
 
 /**
  *
@@ -87,7 +88,7 @@ public class Orekit {
 
         TimeScale utc = TimeScalesFactory.getUTC();
         AbsoluteDate startDate = new AbsoluteDate(2016, 1, 1, 00, 00, 00.000, utc);
-        AbsoluteDate endDate = new AbsoluteDate(2016, 2, 1, 00, 00, 00.000, utc);
+        AbsoluteDate endDate = new AbsoluteDate(2016, 1, 2, 00, 00, 00.000, utc);
         double mu = Constants.WGS84_EARTH_MU; // gravitation coefficient
 
         //must use IERS_2003 and EME2000 frames to be consistent with STK
@@ -115,8 +116,20 @@ public class Orekit {
 //        pts.add(new GeodeticPoint(-0.8726646259971650,  -2.72271363311116, 0.0));
 //        pts.add(new GeodeticPoint(1.5707963267949001, 0.0000000000000000, 0.0));
 //        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", pts, earthShape);
-        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", 10, earthShape, CoverageDefinition.GridStyle.UNIFORM);
+        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", 20, earthShape, CoverageDefinition.GridStyle.UNIFORM);
 //        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", STKGRID.getPoints20(), earthShape);
+
+        CoverageVersusOrbitalElements cvoe = 
+                new CoverageVersusOrbitalElements.
+                        Builder(100, startDate, endDate, covDef1.getPoints()).
+                        setAPParam(0, 3.14).
+                        setIParam(FastMath.toRadians(30), FastMath.toRadians(90)).setNThreads(3).build();
+        try {
+            cvoe.run();
+        } catch (Exception ex) {
+            Logger.getLogger(Orekit.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        System.exit(0);
 
         covDef1.assignConstellation(walker);
 
@@ -174,15 +187,15 @@ public class Orekit {
                 eventAnalysis(eventanalyses).analysis(analyses).
                 covDefs(covDefs).name("test1").properties(propertiesEventAnalysis).
                 propagatorFactory(pf).build();
-//        try {
-//            Logger.getGlobal().finer(String.format("Running Scenario %s", scen));
-//            Logger.getGlobal().finer(String.format("Number of points:     %d", covDef1.getNumberOfPoints()));
-//            Logger.getGlobal().finer(String.format("Number of satellites: %d", walker.getSatellites().size()));
-//            scen.call();
-//        } catch (Exception ex) {
-//            Logger.getLogger(Orekit.class.getName()).log(Level.SEVERE, null, ex);
-//            throw new IllegalStateException("scenario failed to complete.");
-//        }
+        try {
+            Logger.getGlobal().finer(String.format("Running Scenario %s", scen));
+            Logger.getGlobal().finer(String.format("Number of points:     %d", covDef1.getNumberOfPoints()));
+            Logger.getGlobal().finer(String.format("Number of satellites: %d", walker.getSatellites().size()));
+            scen.call();
+        } catch (Exception ex) {
+            Logger.getLogger(Orekit.class.getName()).log(Level.SEVERE, null, ex);
+            throw new IllegalStateException("scenario failed to complete.");
+        }
         
         GroundEventAnalyzer ea2 = new GroundEventAnalyzer(fca.getEvents(covDef1));
         DescriptiveStatistics accessStats2 = ea2.getStatistics(AnalysisMetric.DURATION, true);
@@ -211,7 +224,9 @@ public class Orekit {
         }
 
         ScenarioIO.saveGroundEventAnalysis(Paths.get(System.getProperty("results"), ""), filename + "_cva", scen, covDef1, fca);
-//        ScenarioIO.saveGroundEventAnalysis(Paths.get(System.getProperty("results"), ""), filename + "_fov", scen, covDef1, fovEvent);
+        ScenarioIO.saveGroundEventAnalysis(Paths.get(System.getProperty("results"), ""), filename + "_fov", scen, covDef1, fovEvent);
+        ScenarioIO.saveGroundEventAnalysisMetrics(Paths.get(System.getProperty("results"), ""), filename + "_fov_metrics", scen, ea, AnalysisMetric.DURATION, false);
+        ScenarioIO.saveGroundEventAnalysisMetrics(Paths.get(System.getProperty("results"), ""), filename + "_cva_metrics", scen, ea2, AnalysisMetric.DURATION, false);
 //        ScenarioIO.saveGroundEventAnalysis(Paths.get(System.getProperty("results"), ""), filename + "_gsa", scen, covDef1, gndSunAngEvent);
 //        ScenarioIO.saveLinkBudget(Paths.get(System.getProperty("results"), ""), filename, scenComp, cdefToSave);
 //        ScenarioIO.saveReadMe(Paths.get(path, ""), filename, scenComp);

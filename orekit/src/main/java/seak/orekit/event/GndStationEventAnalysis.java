@@ -216,7 +216,7 @@ public class GndStationEventAnalysis extends AbstractEventAnalysis {
                     if (combine) {
                         //check if the ground station was already added to results
                         if (timeArrays.containsKey(station.getBaseFrame())) {
-                            timeArrays.put(station.getBaseFrame(), new ArrayList<>());
+                            timeArrays.put(station.getBaseFrame(), new ArrayList());
                         }
                         timeArrays.get(station.getBaseFrame()).add(allAccesses.get(sat).get(station));
                     }
