@@ -23,6 +23,7 @@ import org.orekit.errors.OrekitException;
 import org.orekit.frames.Frame;
 import org.orekit.frames.TopocentricFrame;
 import org.orekit.orbits.KeplerianOrbit;
+import org.orekit.orbits.Orbit;
 import org.orekit.orbits.PositionAngle;
 import org.orekit.time.AbsoluteDate;
 import org.orekit.utils.Constants;
@@ -52,7 +53,7 @@ public class FastCoverageAnalysis extends FieldOfViewEventAnalysis {
      * The j2 term for the earth using the WGS84 model
      */
     private final double j2 = Constants.WGS84_EARTH_C20;
-    
+
     /**
      * The angular velocity of the Earth using the WGS84 model
      */
@@ -63,8 +64,22 @@ public class FastCoverageAnalysis extends FieldOfViewEventAnalysis {
      */
     private final double minRadius = Constants.WGS84_EARTH_EQUATORIAL_RADIUS * (1 - Constants.WGS84_EARTH_FLATTENING);
 
+    /**
+     * Half angle for a simple conical field of view sensor [rad]
+     */
     private final double halfAngle;
 
+    /**
+     *
+     * @param startDate the start date of this analysis
+     * @param endDate the end date of this analysis
+     * @param inertialFrame the inertial frame to use in this analysis
+     * @param covDefs the coverage definitions involved in this analysis
+     * @param halfAngle Half angle for a simple conical field of view sensor
+     * [rad]
+     * @param numThreads the number of threads to use to parallelize the
+     * analysis
+     */
     public FastCoverageAnalysis(AbsoluteDate startDate, AbsoluteDate endDate,
             Frame inertialFrame, Set<CoverageDefinition> covDefs,
             double halfAngle, int numThreads) {
@@ -258,6 +273,11 @@ public class FastCoverageAnalysis extends FieldOfViewEventAnalysis {
             Logger.getGlobal().finer(String.format("Propagating satellite %s...", sat));
             //identify accesses and create time interval array for each coverage point
             for (CoveragePoint pt : cdef.getPoints()) {
+                if (lineOfSightPotential(pt, orb, FastMath.toRadians(2.0))) {
+                    //if a point is not within 2 deg latitude of what is accessible to the satellite via line of sight, don't compute the accesses
+                    continue;
+                }
+
                 //compute line of sight first
                 TimeIntervalArray losTimeArray = new TimeIntervalArray(getStartDate(), getEndDate());
 
@@ -336,27 +356,50 @@ public class FastCoverageAnalysis extends FieldOfViewEventAnalysis {
         public HashMap<TopocentricFrame, TimeIntervalArray> getSatAccesses() {
             return satAccesses;
         }
-        
-        private Vector3D getPtPos(Vector3D ptPosECF, double epochTime){            
-                double theta = epochTime * rotRate;
-            
-                //create rotation matrix
-                //for rotation matrices, transpose equals inverse, which is why entry 0,1 is -sin(theta)
-                RealMatrix ecf2eci = MatrixUtils.createRealMatrix(3, 3);
-                double cosTheta = FastMath.cos(theta);
-                double sinTheta = FastMath.sin(theta);
-                ecf2eci.setEntry(0, 0, cosTheta);
-                ecf2eci.setEntry(0, 1, -sinTheta);
-                ecf2eci.setEntry(0, 2, 0);
-                ecf2eci.setEntry(1, 0, sinTheta);
-                ecf2eci.setEntry(1, 1, cosTheta);
-                ecf2eci.setEntry(1, 2, 0);
-                ecf2eci.setEntry(2, 0, 0);
-                ecf2eci.setEntry(2, 1, 0);
-                ecf2eci.setEntry(2, 2, 1);
-                
-                
-                return new Vector3D(ecf2eci.operate(ptPosECF.toArray()));
+
+        private Vector3D getPtPos(Vector3D ptPosECF, double epochTime) {
+            double theta = epochTime * rotRate;
+
+            //create rotation matrix
+            //for rotation matrices, transpose equals inverse, which is why entry 0,1 is -sin(theta)
+            RealMatrix ecf2eci = MatrixUtils.createRealMatrix(3, 3);
+            double cosTheta = FastMath.cos(theta);
+            double sinTheta = FastMath.sin(theta);
+            ecf2eci.setEntry(0, 0, cosTheta);
+            ecf2eci.setEntry(0, 1, -sinTheta);
+            ecf2eci.setEntry(0, 2, 0);
+            ecf2eci.setEntry(1, 0, sinTheta);
+            ecf2eci.setEntry(1, 1, cosTheta);
+            ecf2eci.setEntry(1, 2, 0);
+            ecf2eci.setEntry(2, 0, 0);
+            ecf2eci.setEntry(2, 1, 0);
+            ecf2eci.setEntry(2, 2, 1);
+
+            return new Vector3D(ecf2eci.operate(ptPosECF.toArray()));
+        }
+
+        /**
+         * checks to see if a point will ever be within the line of sight from a
+         * satellite's orbit assuming that the inclination remains constant and
+         * the point's altitude = 0. Some margin can be added to this
+         * computation since it is an approximate computation (neglects
+         * oblateness of Earth for example).
+         *
+         * @param pt the point being considered
+         * @param orbit orbit being considered.
+         * @param latitudeMargin the positive latitude margin [rad] within which
+         * a point can lie to be considered to be in the possible region for
+         * light of sight.
+         * @return true if the point may be within the line of sight to the
+         * satellite at any time in its flight. else false
+         */
+        private boolean lineOfSightPotential(CoveragePoint pt, Orbit orbit, double latitudeMargin) throws OrekitException {
+            //this computation assumes that the orbit frame is in ECE
+            double distance2Pt = pt.getPVCoordinates(orbit.getDate(), orbit.getFrame()).getPosition().getNorm();
+            double distance2Sat = orbit.getPVCoordinates().getPosition().getNorm();
+            double subtendedAngle = FastMath.acos(distance2Pt / distance2Sat);
+
+            return FastMath.abs(pt.getPoint().getLatitude()) - latitudeMargin < subtendedAngle + orbit.getI();
         }
 
     }

@@ -88,7 +88,7 @@ public class Orekit {
 
         TimeScale utc = TimeScalesFactory.getUTC();
         AbsoluteDate startDate = new AbsoluteDate(2016, 1, 1, 00, 00, 00.000, utc);
-        AbsoluteDate endDate = new AbsoluteDate(2016, 1, 2, 00, 00, 00.000, utc);
+        AbsoluteDate endDate = new AbsoluteDate(2016, 1, 15, 00, 00, 00.000, utc);
         double mu = Constants.WGS84_EARTH_MU; // gravitation coefficient
 
         //must use IERS_2003 and EME2000 frames to be consistent with STK
@@ -121,9 +121,11 @@ public class Orekit {
 
         CoverageVersusOrbitalElements cvoe = 
                 new CoverageVersusOrbitalElements.
-                        Builder(100, startDate, endDate, covDef1.getPoints()).
-                        setAPParam(0, 3.14).
-                        setIParam(FastMath.toRadians(30), FastMath.toRadians(90)).setNThreads(3).build();
+                        Builder(1000, startDate, endDate, covDef1.getPoints()).
+                        setSAParam(Constants.WGS84_EARTH_EQUATORIAL_RADIUS + 400000, Constants.WGS84_EARTH_EQUATORIAL_RADIUS + 800000).
+                        setIParam(FastMath.toRadians(30), FastMath.toRadians(90)).
+                        setSensorParam(FastMath.toRadians(30), FastMath.toRadians(90)).
+                        setNThreads(6).build();
         try {
             cvoe.run();
         } catch (Exception ex) {

@@ -23,9 +23,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.hipparchus.util.FastMath;
 import org.orekit.errors.OrekitException;
 import org.orekit.frames.Frame;
 import org.orekit.frames.TopocentricFrame;
+import org.orekit.orbits.Orbit;
 import org.orekit.propagation.Propagator;
 import org.orekit.propagation.SpacecraftState;
 import org.orekit.propagation.events.handlers.EventHandler;
@@ -414,6 +416,11 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
             SpacecraftState initialState = prop.getInitialState();
             for (Instrument inst : sat.getPayload()) {
                 for (CoveragePoint pt : cdef.getPoints()) {
+                    if (lineOfSightPotential(pt, initialState.getOrbit(), FastMath.toRadians(2.0))) {
+                        //if a point is not within 2 deg latitude of what is accessible to the satellite via line of sight, don't compute the accesses
+                        continue;
+                    }
+
                     prop.resetInitialState(initialState);
                     prop.clearEventsDetectors();
 
@@ -489,11 +496,15 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
             HashMap<CoveragePoint, FOVDetector> map = new HashMap<>();
             for (Instrument inst : sat.getPayload()) {
                 for (CoveragePoint pt : cdef.getPoints()) {
+                    if (lineOfSightPotential(pt, initialState.getOrbit(), FastMath.toRadians(2.0))) {
+                        //if a point is not within 2 deg latitude of what is accessible to the satellite via line of sight, don't compute the accesses
+                        continue;
+                    }
+
                     FOVDetector fovDetec = new FOVDetector(initialState, getStartDate(), getEndDate(),
                             pt, inst, fovStepSize, threshold, EventHandler.Action.CONTINUE);
                     prop.addEventDetector(fovDetec);
                     map.put(pt, fovDetec);
-
                 }
                 prop.propagate(getStartDate(), getEndDate());
                 for (CoveragePoint pt : map.keySet()) {
@@ -516,6 +527,29 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
             return satAccesses;
         }
 
-    }
+        /**
+         * checks to see if a point will ever be within the line of sight from a
+         * satellite's orbit assuming that the inclination remains constant and
+         * the point's altitude = 0. Some margin can be added to this
+         * computation since it is an approximate computation (neglects
+         * oblateness of Earth for example).
+         *
+         * @param pt the point being considered
+         * @param orbit orbit being considered.
+         * @param latitudeMargin the positive latitude margin [rad] within which
+         * a point can lie to be considered to be in the possible region for
+         * light of sight.
+         * @return true if the point may be within the line of sight to the
+         * satellite at any time in its flight. else false
+         */
+        private boolean lineOfSightPotential(CoveragePoint pt, Orbit orbit, double latitudeMargin) throws OrekitException {
+            //this computation assumes that the orbit frame is in ECE
+            double distance2Pt = pt.getPVCoordinates(orbit.getDate(), orbit.getFrame()).getPosition().getNorm();
+            double distance2Sat = orbit.getPVCoordinates().getPosition().getNorm();
+            double subtendedAngle = FastMath.acos(distance2Pt / distance2Sat);
 
+            return FastMath.abs(pt.getPoint().getLatitude()) - latitudeMargin < subtendedAngle + orbit.getI();
+        }
+
+    }
 }
