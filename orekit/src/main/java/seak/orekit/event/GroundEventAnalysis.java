@@ -6,9 +6,9 @@
 package seak.orekit.event;
 
 import java.util.Map;
+import org.orekit.frames.TopocentricFrame;
 import seak.orekit.coverage.access.TimeIntervalArray;
 import seak.orekit.object.CoverageDefinition;
-import seak.orekit.object.CoveragePoint;
 
 /**
  * Event analysis for the ground-based analyses (e.g. field-of-view access,
@@ -24,7 +24,7 @@ public interface GroundEventAnalysis extends EventAnalysis {
      *
      * @return
      */
-    public Map<CoverageDefinition, Map<CoveragePoint, TimeIntervalArray>> getEvents();
+    public Map<CoverageDefinition, Map<TopocentricFrame, TimeIntervalArray>> getEvents();
     
     /**
      * Gets the time intervals when events occurred for each coverage point for
@@ -33,5 +33,5 @@ public interface GroundEventAnalysis extends EventAnalysis {
      * @param covDef the coverage definition of interest
      * @return
      */
-    public Map<CoveragePoint, TimeIntervalArray> getEvents(CoverageDefinition covDef);
+    public Map<TopocentricFrame, TimeIntervalArray> getEvents(CoverageDefinition covDef);
 }

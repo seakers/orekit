@@ -11,9 +11,9 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import org.orekit.frames.TopocentricFrame;
 import seak.orekit.coverage.access.TimeIntervalArray;
 import seak.orekit.coverage.access.TimeIntervalMerger;
-import seak.orekit.object.CoveragePoint;
 
 /**
  * This class is used to merge event time series together (e.g. access times,
@@ -39,12 +39,12 @@ public class EventIntervalMerger implements Serializable {
      * (i.e. union)
      * @return the merged event time series
      */
-    public static Map<CoveragePoint, TimeIntervalArray> merge(
-            Map<CoveragePoint, TimeIntervalArray> events1,
-            Map<CoveragePoint, TimeIntervalArray> events2,
+    public static Map<TopocentricFrame, TimeIntervalArray> merge(
+            Map<TopocentricFrame, TimeIntervalArray> events1,
+            Map<TopocentricFrame, TimeIntervalArray> events2,
             boolean andCombine) throws IllegalArgumentException {
 
-        ArrayList<Map<CoveragePoint, TimeIntervalArray>> accessesCollection = new ArrayList<>(2);
+        ArrayList<Map<TopocentricFrame, TimeIntervalArray>> accessesCollection = new ArrayList<>(2);
         accessesCollection.add(events1);
         accessesCollection.add(events2);
         return EventIntervalMerger.merge(accessesCollection, andCombine);
@@ -62,23 +62,23 @@ public class EventIntervalMerger implements Serializable {
      * (i.e. union)
      * @return the merged event time series
      */
-    public static Map<CoveragePoint, TimeIntervalArray> merge(
-            Collection<Map<CoveragePoint, TimeIntervalArray>> eventCollection,
+    public static Map<TopocentricFrame, TimeIntervalArray> merge(
+            Collection<Map<TopocentricFrame, TimeIntervalArray>> eventCollection,
             boolean andCombine) throws IllegalArgumentException {
 
-        Set<CoveragePoint> ptKeys = eventCollection.iterator().next().keySet();
-        Map<CoveragePoint, TimeIntervalArray> out = new HashMap<>(ptKeys.size());
+        Set<TopocentricFrame> ptKeys = eventCollection.iterator().next().keySet();
+        Map<TopocentricFrame, TimeIntervalArray> out = new HashMap<>(ptKeys.size());
 
         //Check that all accesses sets have the same coverage grid definition
-        for (Map<CoveragePoint, TimeIntervalArray> accesses : eventCollection) {
+        for (Map<TopocentricFrame, TimeIntervalArray> accesses : eventCollection) {
             if (!accesses.keySet().equals(ptKeys)) {
                 throw new IllegalArgumentException("Failed to merge event time series. Expected grid points between sets to be equal. Found sets containing different points.");
             }
         }
 
-        for (CoveragePoint pt : ptKeys) {
+        for (TopocentricFrame pt : ptKeys) {
             ArrayList<TimeIntervalArray> accessArrays = new ArrayList<>();
-            for (Map<CoveragePoint, TimeIntervalArray> events : eventCollection) {
+            for (Map<TopocentricFrame, TimeIntervalArray> events : eventCollection) {
                 accessArrays.add(events.get(pt));
             }
             TimeIntervalMerger merger = new TimeIntervalMerger(accessArrays);

@@ -7,6 +7,8 @@ package seak.orekit.object;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -19,6 +21,10 @@ import org.orekit.orbits.OrbitType;
 import org.orekit.propagation.Propagator;
 import org.orekit.time.AbsoluteDate;
 import org.orekit.utils.TimeStampedPVCoordinates;
+import seak.orekit.object.communications.Receiver;
+import seak.orekit.object.communications.ReceiverAntenna;
+import seak.orekit.object.communications.Transmitter;
+import seak.orekit.object.communications.TransmitterAntenna;
 
 /**
  * A satellite is defined with an orbit and a payload Satellite +X axis is
@@ -53,6 +59,10 @@ public class Satellite implements OrekitObject, Serializable {
      */
     private final AttitudeProvider attProv;
 
+    private final Transmitter transmitter;
+
+    private final Receiver receiver;
+
     /**
      * Original wet mass of the satellite
      */
@@ -70,13 +80,17 @@ public class Satellite implements OrekitObject, Serializable {
 
     /**
      * Constructor for new satellite instance with no attitude control and
-     * default wet mass and default dry mass
+     * default wet mass and default dry mass. No instruments are assigned to
+     * this spacecraft
      *
      * @param name satellite name
      * @param orbit initial orbit to position satellite
      */
     public Satellite(String name, Orbit orbit) {
-        this(name, orbit, null, Propagator.DEFAULT_MASS, Propagator.DEFAULT_MASS);
+        this(name, orbit, null, new ArrayList(),
+                new ReceiverAntenna(1., new HashSet()),
+                new TransmitterAntenna(1, new HashSet()),
+                Propagator.DEFAULT_MASS, Propagator.DEFAULT_MASS);
     }
 
     /**
@@ -86,9 +100,13 @@ public class Satellite implements OrekitObject, Serializable {
      * @param name satellite name
      * @param orbit initial orbit to position satellite
      * @param attProv the attitude control law
+     * @param instruments the instrument in the satellite's payload
      */
-    public Satellite(String name, Orbit orbit, AttitudeProvider attProv) {
-        this(name, orbit, attProv, Propagator.DEFAULT_MASS, Propagator.DEFAULT_MASS);
+    public Satellite(String name, Orbit orbit, AttitudeProvider attProv, Collection<Instrument> instruments) {
+        this(name, orbit, attProv, instruments,
+                new ReceiverAntenna(1., new HashSet()),
+                new TransmitterAntenna(1, new HashSet()),
+                Propagator.DEFAULT_MASS, Propagator.DEFAULT_MASS);
     }
 
     /**
@@ -98,19 +116,23 @@ public class Satellite implements OrekitObject, Serializable {
      * @param name satellite name
      * @param orbit initial orbit to position satellite
      * @param attProv the attitude control law
+     * @param instruments the instrument in the satellite's payload
+     * @param transmitter the transmitting antenna
+     * @param receiver the receiving antenna
+     * @param dryMass the dry mass of the spacecraft
+     * @param wetMass the wet mass of the spacecraft
      */
-    public Satellite(String name, Orbit orbit, AttitudeProvider attProv, double wetMass, double dryMass) {
+    public Satellite(String name, Orbit orbit, AttitudeProvider attProv, Collection<Instrument> instruments,
+            Receiver receiver, Transmitter transmitter, double wetMass, double dryMass) {
         this.orbit = orbit;
         this.name = name;
-        this.payload = new ArrayList<>();
+        this.payload = new ArrayList<>(instruments);
         this.attProv = attProv;
+        this.transmitter = transmitter;
+        this.receiver = receiver;
         this.wetMass = wetMass;
         this.dryMass = dryMass;
         this.grossMass = wetMass + dryMass;
-    }
-
-    public void addInstrument(Instrument instrument) {
-        payload.add(instrument);
     }
 
     public ArrayList<Instrument> getPayload() {
@@ -141,9 +163,18 @@ public class Satellite implements OrekitObject, Serializable {
         return grossMass;
     }
 
+    public Transmitter getTransmitter() {
+        return transmitter;
+    }
+
+    public Receiver getReceiver() {
+        return receiver;
+    }
+
     /**
      * pretty print the orbit
-     * @return 
+     *
+     * @return
      */
     public String ppOrbit() {
         KeplerianOrbit kepOrb = (KeplerianOrbit) OrbitType.KEPLERIAN.convertType(this.orbit);
@@ -152,7 +183,8 @@ public class Satellite implements OrekitObject, Serializable {
 
     /**
      * Pretty prints the payload
-     * @return 
+     *
+     * @return
      */
     public String ppPayload() {
         String out = "{";
@@ -165,8 +197,8 @@ public class Satellite implements OrekitObject, Serializable {
 
     @Override
     public String toString() {
-        return "Satellite{" + "payload=" + payload + ", orbit=" + orbit +
-                ", name=" + name + ", attProv=" + attProv + ", wetMass=" + wetMass 
+        return "Satellite{" + "payload=" + payload + ", orbit=" + orbit
+                + ", name=" + name + ", attProv=" + attProv + ", wetMass=" + wetMass
                 + ", dryMass=" + dryMass + ", grossMass=" + grossMass + '}';
     }
 
@@ -189,6 +221,8 @@ public class Satellite implements OrekitObject, Serializable {
         } catch (OrekitException ex) {
             Logger.getLogger(Satellite.class.getName()).log(Level.SEVERE, null, ex);
         }
+        hash = 23 * hash + Objects.hashCode(this.transmitter);
+        hash = 23 * hash + Objects.hashCode(this.receiver);
         hash = 23 * hash + (int) (Double.doubleToLongBits(this.wetMass) ^ (Double.doubleToLongBits(this.wetMass) >>> 32));
         hash = 23 * hash + (int) (Double.doubleToLongBits(this.dryMass) ^ (Double.doubleToLongBits(this.dryMass) >>> 32));
         hash = 23 * hash + (int) (Double.doubleToLongBits(this.grossMass) ^ (Double.doubleToLongBits(this.grossMass) >>> 32));
@@ -230,7 +264,7 @@ public class Satellite implements OrekitObject, Serializable {
             if (this.getAttProv() != null && other.getAttProv() != null) {
                 double[][] rotMmatrixThis = attProv.getAttitude(orbit, AbsoluteDate.GPS_EPOCH, FramesFactory.getEME2000()).getRotation().getMatrix();
                 double[][] rotMmatrixOther = other.getAttProv().getAttitude(orbit, AbsoluteDate.GPS_EPOCH, FramesFactory.getEME2000()).getRotation().getMatrix();
-                if(!Objects.equals(rotMmatrixThis,rotMmatrixOther)){
+                if (!Objects.equals(rotMmatrixThis, rotMmatrixOther)) {
                     return false;
                 }
             }
@@ -238,6 +272,15 @@ public class Satellite implements OrekitObject, Serializable {
         } catch (OrekitException ex) {
             Logger.getLogger(Satellite.class.getName()).log(Level.SEVERE, null, ex);
         }
+
+        if (!Objects.equals(this.transmitter, other.transmitter)) {
+            return false;
+        }
+
+        if (!Objects.equals(this.receiver, other.receiver)) {
+            return false;
+        }
+
         if (Double.doubleToLongBits(this.wetMass) != Double.doubleToLongBits(other.wetMass)) {
             return false;
         }

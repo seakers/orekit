@@ -5,6 +5,7 @@
  */
 package seak.orekit.scenario;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileWriter;
@@ -19,7 +20,10 @@ import java.util.NoSuchElementException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.hipparchus.stat.descriptive.DescriptiveStatistics;
+import org.hipparchus.util.FastMath;
+import org.orekit.frames.TopocentricFrame;
 import seak.orekit.analysis.Analysis;
+import seak.orekit.analysis.CompoundSpacecraftAnalysis;
 import seak.orekit.analysis.Record;
 import seak.orekit.coverage.access.RiseSetTime;
 import seak.orekit.coverage.access.TimeIntervalArray;
@@ -50,10 +54,10 @@ public class ScenarioIO {
      * @param analysis the analysis to save
      * @return
      */
-    public static boolean saveGroundEventAnalysis(Path path, String filename, 
+    public static boolean saveGroundEventAnalysis(Path path, String filename,
             Scenario scenario, CoverageDefinition covdef, GroundEventAnalysis analysis) {
-        
-        Map<CoveragePoint,TimeIntervalArray> groundEvents = analysis.getEvents(covdef);
+
+        Map<TopocentricFrame, TimeIntervalArray> groundEvents = analysis.getEvents(covdef);
         File file = new File(path.toFile(),
                 String.format("%s_%s_%s.res", filename, scenario.getName(), covdef.getName()));
         try (FileWriter fw = new FileWriter(file)) {
@@ -74,9 +78,9 @@ public class ScenarioIO {
                 Iterator<RiseSetTime> iter = groundEvents.get(pt).getRiseSetTimes().iterator();
                 while (iter.hasNext()) {
                     fw.append(String.format("%.14e", iter.next().getTime()));
-                    try{
+                    try {
                         fw.append(String.format("   %.14e\n", iter.next().getTime()));
-                    }catch(NoSuchElementException ex){
+                    } catch (NoSuchElementException ex) {
                         Logger.getLogger(ScenarioIO.class.getName()).log(Level.SEVERE, "Expected all intervals to be closed. Found an open one", ex);
                     }
                 }
@@ -88,7 +92,7 @@ public class ScenarioIO {
             Logger.getLogger(ScenarioIO.class.getName()).log(Level.SEVERE, null, ex);
             return false;
         }
-         Logger.getGlobal().finest(String.format("Saved accesses in %s", file.toString()));
+        Logger.getGlobal().finest(String.format("Saved accesses in %s", file.toString()));
         return true;
     }
     
@@ -107,7 +111,7 @@ public class ScenarioIO {
     public static boolean saveGroundEventAnalysisMetrics(Path path, String filename, 
             Scenario scenario, CoverageDefinition covdef, GroundEventAnalysis analysis) {
         
-        Map<CoveragePoint,TimeIntervalArray> groundEvents = analysis.getEvents(covdef);
+        Map<TopocentricFrame,TimeIntervalArray> groundEvents = analysis.getEvents(covdef);
         GroundEventAnalyzer ea = new GroundEventAnalyzer(groundEvents);
         double[] latBounds=new double[]{Math.toRadians(-30), Math.toRadians(30)};
         double[] lonBounds=new double[]{-Math.PI, Math.PI};
@@ -186,7 +190,6 @@ public class ScenarioIO {
 //        System.out.println("Saved link Budget intervals in " + file.toString());
 //        return true;
 //    }
-    
     /**
      * Saves the recorded history from the given analysis
      *
@@ -196,6 +199,27 @@ public class ScenarioIO {
      * @return true if the analysis is successfully saved
      */
     public static boolean saveAnalysis(Path path, String fileName, Analysis analysis) {
+        if (analysis instanceof CompoundSpacecraftAnalysis) {
+            boolean out = true;
+            for (Analysis a : ((CompoundSpacecraftAnalysis) analysis).getAnalyses()) {
+                out = Boolean.logicalAnd(out, saveSingleAnalysis(path, fileName, a));
+            }
+            return out;
+        } else {
+            return saveSingleAnalysis(path, fileName, analysis);
+        }
+    }
+
+    /**
+     * Saves the recorded history from the given analysis that is not a compound
+     * analysis
+     *
+     * @param path path to save the results
+     * @param fileName name of the analysis file to save
+     * @param analysis analysis to save
+     * @return true if the analysis is successfully saved
+     */
+    private static boolean saveSingleAnalysis(Path path, String fileName, Analysis analysis) {
         File file = new File(path.toFile(), String.format("%s.%s", fileName, analysis.getExtension()));
         Iterator<Record> histIter = analysis.getHistory().iterator();
         try (FileWriter fw = new FileWriter(file)) {
@@ -211,7 +235,7 @@ public class ScenarioIO {
             Logger.getLogger(ScenarioIO.class.getName()).log(Level.SEVERE, null, ex);
             return false;
         }
-         Logger.getGlobal().finest(String.format("Saved %s in %s", analysis.getClass().getSimpleName(), file.toString()));
+        Logger.getGlobal().finest(String.format("Saved %s in %s", analysis.getClass().getSimpleName(), file.toString()));
 
         return true;
     }
@@ -233,7 +257,7 @@ public class ScenarioIO {
             System.err.println(ex);
             Logger.getLogger(ScenarioIO.class.getName()).log(Level.SEVERE, null, ex);
         }
-         Logger.getGlobal().finest(String.format("Successfully loaded scenario: %s", file.toString()));
+        Logger.getGlobal().finest(String.format("Successfully loaded scenario: %s", file.toString()));
         return scenario;
     }
 
@@ -262,7 +286,7 @@ public class ScenarioIO {
             Logger.getLogger(ScenarioIO.class.getName()).log(Level.SEVERE, null, ex);
             return false;
         }
-         Logger.getGlobal().finest(String.format("Saved readme in %s", file.toString()));
+        Logger.getGlobal().finest(String.format("Saved readme in %s", file.toString()));
         return true;
     }
 

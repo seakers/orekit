@@ -25,6 +25,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.orekit.errors.OrekitException;
 import org.orekit.frames.Frame;
+import org.orekit.frames.TopocentricFrame;
 import org.orekit.propagation.Propagator;
 import org.orekit.propagation.SpacecraftState;
 import org.orekit.propagation.events.handlers.EventHandler;
@@ -184,7 +185,7 @@ public class LinkBudgetEventAnalysis extends AbstractGroundEventAnalysis {
             }
 
             //Make all time intervals stored in finalAccesses immutable
-            for (CoveragePoint pt : getEvents().get(cdef).keySet()) {
+            for (TopocentricFrame pt : getEvents().get(cdef).keySet()) {
                 getEvents().get(cdef).put(pt, getEvents().get(cdef).get(pt).createImmutable());
             }
         }

@@ -69,11 +69,7 @@ public class Scenario extends AbstractScenario {
 
         super(name, startDate, endDate, timeScale, inertialFrame, propagatorFactory, covDefs, analyses);
         this.eventAnalyses = eventAnalyses;
-        if (analyses == null) {
-            this.analyses = new ArrayList<>();
-        } else {
-            this.analyses = analyses;
-        }
+        this.analyses = analyses;
     }
 
     @Override
@@ -93,7 +89,8 @@ public class Scenario extends AbstractScenario {
      * A flag that says if the simulation successfully completed. Resets every
      * time scenario is called
      *
-     * @return true if the scenario simulated completely without any errors. else false;
+     * @return true if the scenario simulated completely without any errors.
+     * else false;
      */
     public boolean isDone() {
         return done;
@@ -148,18 +145,18 @@ public class Scenario extends AbstractScenario {
          * A set event analyses allow time intervals to be recorded when events
          * occur during the simulation
          */
-        private Collection<EventAnalysis> eventAnalyses = null;
+        private Collection<EventAnalysis> eventAnalyses = new ArrayList();
 
         /**
          * A set of analyses in which values are recorded during the simulation
          * at fixed time steps
          */
-        private Collection<Analysis> analyses = null;
+        private Collection<Analysis> analyses = new ArrayList();
 
         /**
          * The set of coverage definitions to simulate.
          */
-        private HashSet<CoverageDefinition> covDefs = null;
+        private HashSet<CoverageDefinition> covDefs = new HashSet<>();
 
         /**
          * The constructor for the builder

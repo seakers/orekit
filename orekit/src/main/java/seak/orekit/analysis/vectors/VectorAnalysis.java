@@ -61,7 +61,7 @@ public abstract class VectorAnalysis extends AbstractSpacecraftAnalysis<String> 
     } 
 
     @Override
-    public void handleStep(SpacecraftState currentState) {
+    public void handleStep(SpacecraftState currentState, boolean isLast) throws OrekitException{
         Vector3D pos = null;
         try {
             pos = getVector(currentState, frame);

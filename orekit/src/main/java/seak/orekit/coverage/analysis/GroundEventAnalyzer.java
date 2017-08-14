@@ -14,6 +14,7 @@ import java.util.Map;
 import seak.orekit.coverage.access.TimeIntervalArray;
 import seak.orekit.object.CoveragePoint;
 import org.hipparchus.stat.descriptive.DescriptiveStatistics;
+import org.orekit.frames.TopocentricFrame;
 
 /**
  * This class computes several standard metrics regarding events (occurring and
@@ -28,7 +29,7 @@ public class GroundEventAnalyzer implements Serializable{
     /**
      * Collection of the CoveragePoints
      */
-    private final Map<CoveragePoint, TimeIntervalArray> events;
+    private final Map<TopocentricFrame, TimeIntervalArray> events;
 
     /**
      * Creates an analyzer from a set of coverage points and time interval array
@@ -36,7 +37,7 @@ public class GroundEventAnalyzer implements Serializable{
      *
      * @param events
      */
-    public GroundEventAnalyzer(Map<CoveragePoint, TimeIntervalArray> events) {
+    public GroundEventAnalyzer(Map<TopocentricFrame, TimeIntervalArray> events) {
         this.events = events;
     }
 
@@ -90,8 +91,8 @@ public class GroundEventAnalyzer implements Serializable{
             throw new IllegalArgumentException(
                     String.format("Expected longitude bounds to be within [-pi,pi]. Found [%f,%f]", lonBounds[0], lonBounds[1]));
         }
-        ArrayList<CoveragePoint> points = new ArrayList<>();
-        for (CoveragePoint pt : events.keySet()) {
+        ArrayList<TopocentricFrame> points = new ArrayList<>();
+        for (TopocentricFrame pt : events.keySet()) {
             if (pt.getPoint().getLatitude() >= latBounds[0]
                     && pt.getPoint().getLatitude() <= latBounds[1]
                     && pt.getPoint().getLongitude() >= lonBounds[0]
@@ -112,8 +113,8 @@ public class GroundEventAnalyzer implements Serializable{
      
      * @return statistics computed on the specified metric
      */
-    public DescriptiveStatistics getStatistics(AnalysisMetric metric, boolean occurrences, CoveragePoint point) {
-        ArrayList<CoveragePoint> list = new ArrayList<>();
+    public DescriptiveStatistics getStatistics(AnalysisMetric metric, boolean occurrences, TopocentricFrame point) {
+        ArrayList<TopocentricFrame> list = new ArrayList<>();
         list.add(point);
         return this.getStatistics(metric, occurrences, list);
     }
@@ -129,9 +130,9 @@ public class GroundEventAnalyzer implements Serializable{
      
      * @return statistics computed on the specified metric
      */
-    public DescriptiveStatistics getStatistics(AnalysisMetric metric, boolean occurrences, Collection<CoveragePoint> points) {
-        Map<CoveragePoint, TimeIntervalArray> data = new HashMap<>();
-        for (CoveragePoint cp : points) {
+    public DescriptiveStatistics getStatistics(AnalysisMetric metric, boolean occurrences, Collection<TopocentricFrame> points) {
+        Map<TopocentricFrame, TimeIntervalArray> data = new HashMap<>();
+        for (TopocentricFrame cp : points) {
             if (occurrences) {
                 data.put(cp, events.get(cp));
             } else {
@@ -143,14 +144,14 @@ public class GroundEventAnalyzer implements Serializable{
 
         switch (metric) {
             case DURATION:
-                for (CoveragePoint cp : data.keySet()) {
+                for (TopocentricFrame cp : data.keySet()) {
                     for (double duration : data.get(cp).getDurations()) {
                         ds.addValue(duration);
                     }
                 }
                 break;
             case MEAN_TIME_TO_T:
-                for (CoveragePoint cp : data.keySet()) {
+                for (TopocentricFrame cp : data.keySet()) {
                     DescriptiveStatistics responseTime = new DescriptiveStatistics();
                     for (double duration : data.get(cp).getDurations()) {
                         responseTime.addValue(duration);
@@ -162,7 +163,7 @@ public class GroundEventAnalyzer implements Serializable{
                 }
                 break;
             case TIME_AVERAGE:
-                for (CoveragePoint cp : data.keySet()) {
+                for (TopocentricFrame cp : data.keySet()) {
                     DescriptiveStatistics respTime = new DescriptiveStatistics();
                     for (double duration : data.get(cp).getDurations()) {
                         respTime.addValue(duration);
@@ -174,7 +175,7 @@ public class GroundEventAnalyzer implements Serializable{
                 }
                 break;
             case PERCENT_TIME:
-                for (CoveragePoint cp : data.keySet()) {
+                for (TopocentricFrame cp : data.keySet()) {
                     double sumDuration = 0;
                     for (double duration : data.get(cp).getDurations()) {
                         sumDuration += duration;

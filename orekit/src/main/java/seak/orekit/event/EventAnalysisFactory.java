@@ -5,8 +5,9 @@
  */
 package seak.orekit.event;
 
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.Properties;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.hipparchus.geometry.euclidean.threed.Vector3D;
@@ -16,6 +17,8 @@ import org.orekit.errors.OrekitException;
 import org.orekit.frames.Frame;
 import org.orekit.time.AbsoluteDate;
 import seak.orekit.object.CoverageDefinition;
+import seak.orekit.object.GndStation;
+import seak.orekit.object.Satellite;
 import seak.orekit.propagation.PropagatorFactory;
 
 /**
@@ -41,12 +44,6 @@ public class EventAnalysisFactory {
     private PropagatorFactory propagatorFactory;
 
     /**
-     * The coverage definitions that contains informations about the target
-     * regions and the constellations assigned to view/access those regions
-     */
-    private HashSet<CoverageDefinition> covDefs;
-
-    /**
      * Inertial frame
      */
     private final Frame inertialFrame;
@@ -57,21 +54,29 @@ public class EventAnalysisFactory {
      * @param startDate the start date of the analysis
      * @param endDate the end date of the analysis
      * @param inertialFrame the inertial frame of reference
-     * @param covDefs The coverage definitions to conduct analyses on
      * @param propagatorFactory the propagator factory to create the propagators
      * used in the analyses
      */
     public EventAnalysisFactory(AbsoluteDate startDate, AbsoluteDate endDate,
-            Frame inertialFrame, HashSet<CoverageDefinition> covDefs,
+            Frame inertialFrame,
             PropagatorFactory propagatorFactory) {
         this.startDate = startDate;
         this.endDate = endDate;
         this.propagatorFactory = propagatorFactory;
-        this.covDefs = covDefs;
         this.inertialFrame = inertialFrame;
     }
 
-    public EventAnalysis create(EventAnalysisEnum type, Properties prop) {
+    /**
+     * Creates event analyses pertaining to coverage or ground points
+     *
+     * @param type
+     * @param covDefs The coverage definitions that contains informations about
+     * the target regions and the constellations assigned to view/access those
+     * regions
+     * @param prop
+     * @return
+     */
+    public EventAnalysis createGroundPointAnalysis(EventAnalysisEnum type, Set<CoverageDefinition> covDefs, Properties prop) {
         EventAnalysis ea = null;
 
         switch (type) {
@@ -84,7 +89,7 @@ public class EventAnalysisFactory {
 
                 //Option to set the number of threads to use to run the scenario.
                 //By default it is set to 1.
-                String numThreadsStr = prop.getProperty("fov.numThreads", "1");
+                String numThreadsStr = prop.getProperty("numThreads", "1");
 
                 //Option to dictate whether the coverage accesses of individual 
                 //satellites should be saved to the coverage database. 
@@ -118,6 +123,34 @@ public class EventAnalysisFactory {
                     throw new UnsupportedOperationException(String.format("No known celestial body: %s", bodyStr));
                 }
 
+                break;
+            default:
+                throw new UnsupportedOperationException(
+                        String.format("Analysis type %s is unsupported.", type));
+        }
+
+        return ea;
+    }
+
+    /**
+     * Creates event analyses pertaining to ground stations
+     * @param type the type of analysis
+     * @param stationAssignment the assignment of satellites to ground stations
+     * @param prop the properties for the analysis
+     * @return 
+     */
+    public EventAnalysis createGroundStationAnalysis(EventAnalysisEnum type,
+            HashMap<Satellite, Set<GndStation>> stationAssignment, Properties prop) {
+        EventAnalysis ea = null;
+
+        //Option to set the number of threads to use to run the scenario.
+        //By default it is set to 1.
+        String numThreadsStr = prop.getProperty("numThreads", "1");
+
+        switch (type) {
+            case ACCESS:
+                ea = new GndStationEventAnalysis(startDate, endDate, inertialFrame,
+                        stationAssignment, propagatorFactory, Integer.parseInt(numThreadsStr));
                 break;
             default:
                 throw new UnsupportedOperationException(
