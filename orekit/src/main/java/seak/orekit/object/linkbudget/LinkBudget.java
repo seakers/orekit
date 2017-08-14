@@ -49,18 +49,18 @@ public class LinkBudget implements Serializable{
     }
     
     
-    public double getMargin(){
+    public double Margin(){
         double EbN0=(this.txPower*this.txGain*this.rxGain*java.lang.Math.pow((this.lambda),2))/(java.lang.Math.pow(4*java.lang.Math.PI*this.distance,2)*this.boltzmannConstant*this.noiseTemperature*this.dataRate);
         double EbN0_dB=java.lang.Math.log10(EbN0);
         return EbN0_dB-this.minEbN0_dB;
     }
     
-    public double getMaxDistance(){
+    public double MaxDistance(){
         double minEbN0=java.lang.Math.pow(10, this.minEbN0_dB/10);
         return java.lang.Math.sqrt((this.txPower*this.txGain*this.rxGain*java.lang.Math.pow((this.lambda),2))/(java.lang.Math.pow(4*java.lang.Math.PI,2)*this.boltzmannConstant*this.noiseTemperature*this.dataRate*minEbN0));
     }
    
-    public double getMaxDateRate(){
+    public double MaxDateRate(){
         double minEbN0=java.lang.Math.pow(10, this.minEbN0_dB/10);
         return (this.txPower*this.txGain*this.rxGain*java.lang.Math.pow((this.lambda),2))/(java.lang.Math.pow(4*java.lang.Math.PI*this.distance,2)*this.boltzmannConstant*this.noiseTemperature*minEbN0);
     }

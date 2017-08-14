@@ -18,10 +18,13 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.hipparchus.stat.descriptive.DescriptiveStatistics;
 import seak.orekit.analysis.Analysis;
 import seak.orekit.analysis.Record;
 import seak.orekit.coverage.access.RiseSetTime;
 import seak.orekit.coverage.access.TimeIntervalArray;
+import seak.orekit.coverage.analysis.AnalysisMetric;
+import seak.orekit.coverage.analysis.GroundEventAnalyzer;
 import seak.orekit.event.GroundEventAnalysis;
 import seak.orekit.object.Constellation;
 import seak.orekit.object.CoverageDefinition;
@@ -86,6 +89,52 @@ public class ScenarioIO {
             return false;
         }
          Logger.getGlobal().finest(String.format("Saved accesses in %s", file.toString()));
+        return true;
+    }
+    
+    /**
+     * Saves the coverage metrics of the coverage definition from the scenario in a
+     * desired directory. Searches the scenario for the computed metrics
+     * belonging to the specified coverage definition
+     *
+     * @param path to the directory to save the file
+     * @param filename name of the file without the extension
+     * @param scenario Scenario that was simulated
+     * @param covdef the coverage definition of interest
+     * @param analysis the analysis to save
+     * @return
+     */
+    public static boolean saveGroundEventAnalysisMetrics(Path path, String filename, 
+            Scenario scenario, CoverageDefinition covdef, GroundEventAnalysis analysis) {
+        
+        Map<CoveragePoint,TimeIntervalArray> groundEvents = analysis.getEvents(covdef);
+        GroundEventAnalyzer ea = new GroundEventAnalyzer(groundEvents);
+        double[] latBounds=new double[]{Math.toRadians(-30), Math.toRadians(30)};
+        double[] lonBounds=new double[]{-Math.PI, Math.PI};
+        DescriptiveStatistics accessStats = ea.getStatistics(AnalysisMetric.DURATION, true,latBounds,lonBounds);
+        DescriptiveStatistics gapStats = ea.getStatistics(AnalysisMetric.DURATION, false,latBounds,lonBounds);
+        DescriptiveStatistics meanTime = ea.getStatistics(AnalysisMetric.MEAN_TIME_TO_T, false,latBounds,lonBounds);
+        DescriptiveStatistics timeAverage = ea.getStatistics(AnalysisMetric.TIME_AVERAGE, false,latBounds,lonBounds);
+        DescriptiveStatistics percentTime = ea.getStatistics(AnalysisMetric.PERCENT_TIME, true,latBounds,lonBounds);
+  
+        File file = new File(path.toFile(),
+                String.format("%s_%s_%s.res", filename, scenario.getName(), covdef.getName()));
+        try (FileWriter fw = new FileWriter(file)) {
+            fw.append(String.format("Start Date: %s\n\n", scenario.getStartDate()));
+            fw.append(String.format("End Date: %s\n\n", scenario.getEndDate()));
+            fw.append(analysis.getHeader());
+            fw.flush();
+            //add all interesting metrics
+            fw.append(String.format("Worldwide Mean of Percent Coverages: %s\n\n", percentTime.getMean()));
+            fw.append(String.format("Worldwide Mean of Mean Response Times: %s\n\n", meanTime.getMean()));
+            fw.append(String.format("Worldwide Mean of Gap(Revisit) Times: %s\n\n", gapStats.getMean()));
+            fw.append(String.format("Worldwide Mean of Access Times: %s\n\n", accessStats.getMean()));
+
+        } catch (IOException ex) {
+            Logger.getLogger(ScenarioIO.class.getName()).log(Level.SEVERE, null, ex);
+            return false;
+        }
+         Logger.getGlobal().finest(String.format("Saved coverage metrics in %s", file.toString()));
         return true;
     }
 

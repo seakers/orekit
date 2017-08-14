@@ -18,7 +18,7 @@ import org.orekit.time.AbsoluteDate;
  *
  * @author paugarciabuzzi
  */
-public class LBDetector2 extends AbstractEventDetector<LBDetector2> {
+public class LBDetector extends AbstractEventDetector<LBDetector> {
 
     private static final long serialVersionUID = -6354518769897706495L;
 
@@ -40,7 +40,7 @@ public class LBDetector2 extends AbstractEventDetector<LBDetector2> {
      * @param pt ground point the satellite wants to comunciate with
      * @param lb link budget params provider
      */
-    public LBDetector2(final SpacecraftState initialState,
+    public LBDetector(final SpacecraftState initialState,
             final AbsoluteDate startDate, final AbsoluteDate endDate, CoveragePoint pt, LinkBudget lb) {
         super(initialState, startDate, endDate);
         this.pt = pt;
@@ -61,7 +61,7 @@ public class LBDetector2 extends AbstractEventDetector<LBDetector2> {
      * @param lb link budget params provider
      * @param action specifies action after event is detected.
      */
-    public LBDetector2(final SpacecraftState initialState,
+    public LBDetector(final SpacecraftState initialState,
             final AbsoluteDate startDate, final AbsoluteDate endDate, CoveragePoint pt, LinkBudget lb, double maxCheck, double threshold, EventHandler.Action action) {
         super(initialState, startDate, endDate, action, maxCheck, threshold, DEFAULT_MAX_ITER);
         this.pt = pt;
@@ -80,13 +80,13 @@ public class LBDetector2 extends AbstractEventDetector<LBDetector2> {
     @Override
     public double g(SpacecraftState s) throws OrekitException {
         double distance1 = s.getPVCoordinates().getPosition().distance1(pt.getPVCoordinates(s.getDate(), s.getFrame()).getPosition());
-        double maxdistance = this.lb.getMaxDistance();
+        double maxdistance = this.lb.MaxDistance();
         return maxdistance - distance1;
     }
 
     @Override
     protected EventDetector create(SpacecraftState initialState, AbsoluteDate startDate, AbsoluteDate endDate, EventHandler.Action action, double maxCheck, double threshold, int maxIter) {
-        return new LBDetector2(initialState, startDate, endDate, pt, lb, maxCheck, threshold, action);
+        return new LBDetector(initialState, startDate, endDate, pt, lb, maxCheck, threshold, action);
     }
 
 }

@@ -5,6 +5,7 @@
  */
 package seak.orekit.coverage.analysis;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -20,7 +21,9 @@ import org.hipparchus.stat.descriptive.DescriptiveStatistics;
  *
  * @author nozomihitomi
  */
-public class GroundEventAnalyzer {
+public class GroundEventAnalyzer implements Serializable{
+
+    private static final long serialVersionUID = -1289132465835079824L;
 
     /**
      * Collection of the CoveragePoints
@@ -147,8 +150,8 @@ public class GroundEventAnalyzer {
                 }
                 break;
             case MEAN_TIME_TO_T:
-                DescriptiveStatistics responseTime = new DescriptiveStatistics();
                 for (CoveragePoint cp : data.keySet()) {
+                    DescriptiveStatistics responseTime = new DescriptiveStatistics();
                     for (double duration : data.get(cp).getDurations()) {
                         responseTime.addValue(duration);
                     }
@@ -159,8 +162,8 @@ public class GroundEventAnalyzer {
                 }
                 break;
             case TIME_AVERAGE:
-                DescriptiveStatistics respTime = new DescriptiveStatistics();
                 for (CoveragePoint cp : data.keySet()) {
+                    DescriptiveStatistics respTime = new DescriptiveStatistics();
                     for (double duration : data.get(cp).getDurations()) {
                         respTime.addValue(duration);
                     }
@@ -171,8 +174,8 @@ public class GroundEventAnalyzer {
                 }
                 break;
             case PERCENT_TIME:
-                double sumDuration = 0;
                 for (CoveragePoint cp : data.keySet()) {
+                    double sumDuration = 0;
                     for (double duration : data.get(cp).getDurations()) {
                         sumDuration += duration;
                     }
