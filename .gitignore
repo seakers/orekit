@@ -1,7 +1,3 @@
-/orekit/build/
-/orekit/dist/
-/orekit/nbproject/
-
-/orekitSource/nbproject/private/
-/orekitSource/build/
-/orekitSource/dist/
+/orekit/target/
+/orekit/results/
+*.DS_Store

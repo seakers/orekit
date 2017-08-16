@@ -4,10 +4,10 @@ function results = compareAccessGaps()
 %assumes file input is a csv with the first column containing start times
 %and the second column containing end times
 
-path = 'C:\Users\SEAK1\Nozomi\OREKIT\Documentation\Comparing STK vs orekit\';
-% path = '/Users/nozomihitomi/Dropbox/OREKIT/Documentation/Comparing STK vs orekit/';
+% path = 'C:\Users\SEAK1\Nozomi\OREKIT\Documentation\Comparing STK vs orekit\';
+path = '/Users/nozomihitomi/Dropbox/OREKIT/Documentation/Comparing STK vs orekit/';
 
-filename = 'tropics_4sat';
+filename = '1x600km_45degINC_45degConical_Kepler_20160101-20160201';
 stkdata = read_accesses(strcat(path,filename,'.cvaa'));
 orekitdata = read_accesses(strcat(path,filename,'.cva'));
 
@@ -77,7 +77,7 @@ for i=1:length(orekit_points)
     lon = orekit_uniq_lon(orekit_points(i,2));
     ind = and(orekitdata(:,1)==lat,orekitdata(:,2)==lon);
     times = orekitdata(ind,3:4);
-    if(isempty(times))
+    if(size(times,1) < 2)
         continue
     end
     orekit_gaps(ngaps+1:ngaps+length(times)-1) = times(2:end,2)-times(1:end-1,1);

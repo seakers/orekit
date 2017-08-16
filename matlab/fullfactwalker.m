@@ -10,6 +10,7 @@ function constels = fullfactwalker(alts, incs, t)
 %t integer value
 %
 %the resulting constels matrix will be a matrix where the rows are
+
 %different walker constellation configurations with the columns ordered
 %left to right as altitude, inclination, total number of satellites, number
 %of planes, and phasing value.
@@ -26,7 +27,7 @@ if sum(t<0)>1
 end
 for i = 1:length(t)
     if rem(t(i),1) ~= 0
-        error('Expected an integer for divisors(n). Found %d.', t(i));
+         error('Expected an integer for divisors(n). Found %d.', t(i));
     end
 end
 

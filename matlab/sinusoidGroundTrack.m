@@ -21,25 +21,43 @@ end
 lon = linspace(0,360,1000);
 lons = repmat(lon,length(raans),1);
 
+colors = colormap(jet);
+colors = colors(1: ceil(length(colors)/length(raans)) : length(colors), :);
+labels = cell(length(raans),1);
+handles = zeros(length(raans),3);
+
 figure(1)
-cla
+clf
 hold on
 for i=1:length(raans)
     %check prograde or retrograde
-    if incs(i) < 90
+    isPrograde = true;
+    if incs(i) <= 90
         maxLat = incs(i);
-    elseif incs(i) > 90
-        maxLat = incs(i)/2;
+        handles(i,:) = plot(lons,maxLat*sin((lon-raans(i))*pi/180),'Color',colors(i,:));
+        xlocation = mod(anoms(i)+raans(i),360);
+        ylocation = maxLat*sin((xlocation-raans(i))*pi/180);
+        scatter(xlocation,ylocation,50,colors(i,:),'filled');
+        
+        slope = pi/180*maxLat*cos((xlocation-raans(i))*pi/180);
+        quiver(xlocation,ylocation,1/norm([1,slope]),slope/norm([1,slope]),20,'Color',colors(i,:),'LineWidth',3.0,'MaxHeadSize',5);
     else
-        maxLat = incs(i);
+        maxLat = 180-incs(i);
+        handles(i,:) = plot(lons,maxLat*cos((lon-raans(i))*pi/180),'Color',colors(i,:));
+        xlocation = mod(anoms(i)+raans(i),360);
+        ylocation = maxLat*cos((xlocation-raans(i))*pi/180);
+        scatter(xlocation,ylocation,50,colors(i,:),'filled');
+        
+        slope = -pi/180*maxLat*sin((xlocation-raans(i))*pi/180);
+        quiver(xlocation,ylocation,-1/norm([1,slope]),-slope/norm([1,slope]),20,'Color',colors(i,:),'LineWidth',3.0,'MaxHeadSize',5);
     end
     
-    plot(lons,maxLat*sin((lon-raans(i))*pi/180))
-    xlocation = mod(anoms(i)+raans(i),360);
-    ylocation = maxLat*sin((xlocation-raans(i))*pi/180);
-    scatter(xlocation,ylocation,50,'filled');
+    labels{i} = strcat('sat_',num2str(i));
 end
 hold off
 
 axis([0,360,-90,90])
-xlabel('RAAN [deg]')
+xlabel('longitude [deg]')
+ylabel('latitude [deg]')
+legend(handles(:,1),labels)
+

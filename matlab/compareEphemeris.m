@@ -1,9 +1,16 @@
 %Compares orbital elements from STK vs orekit. csv file is assumed to
 %contain data in the order of "Semi-major Axis (m)","Eccentricity","Inclination (deg)","RAAN (deg)","Arg of Perigee (deg)","Mean Anomaly (deg)"
 %assumes that the rows are taken at the same time during the simulation
+<<<<<<< HEAD
 path = 'C:\Users\SEAK1\Nozomi\OREKIT\Documentation\Comparing STK vs orekit\';
 stkdata = csvread(strcat(path,'1x600km_30degINC_HPOP_20160101-20160301.csv'),1,1);
 orekitdata = csvread(strcat(path,'1x600km_30degINC_J2_20160101-20160301.eph'),1,0);
+=======
+% path = 'C:\Users\SEAK1\Nozomi\OREKIT\Documentation\Comparing STK vs orekit\';
+path = '/Users/nozomihitomi/Dropbox/OREKIT/Documentation/Comparing STK vs orekit/';
+stkdata = csvread(strcat(path,'STK_j2_simpleconical45_orbital.csv'),1,0);
+orekitdata = csvread(strcat(path,'orekit_j2_simpleconical45_orbital.eph'),1,0);
+>>>>>>> 3b42fa3a7862364c48b32567dee4a522da20a705
 
 subplot(2,3,1)
 plot(orekitdata(:,1),orekitdata(:,2),orekitdata(:,1),stkdata(:,1)*1e3)
