@@ -36,16 +36,11 @@ import orekit.object.Instrument;
 import orekit.object.Satellite;
 import orekit.propagation.PropagatorFactory;
 import orekit.propagation.PropagatorType;
-import org.hipparchus.geometry.euclidean.threed.Vector3D;
-import org.hipparchus.linear.Array2DRowRealMatrix;
-import org.hipparchus.linear.MatrixUtils;
-import org.hipparchus.linear.RealMatrix;
 import org.hipparchus.util.FastMath;
 import org.orekit.bodies.GeodeticPoint;
 import org.orekit.errors.OrekitException;
 import org.orekit.frames.Frame;
 import org.orekit.frames.FramesFactory;
-import org.orekit.frames.Transform;
 import org.orekit.orbits.Orbit;
 import org.orekit.orbits.OrbitType;
 import org.orekit.propagation.Propagator;
@@ -740,7 +735,7 @@ public class Scenario implements Callable<Scenario>, Serializable {
      * @return　null if the scenario does not exist in the database. Otherwise,
      * the scenario that is stored in the database
      */
-    private Scenario checkDatabase(Satellite sat, CoverageDefinition coverageDefinition) {
+    protected Scenario checkDatabase(Satellite sat, CoverageDefinition coverageDefinition) {
         if (this instanceof SubScenario) {
             return null;
         }
@@ -761,7 +756,7 @@ public class Scenario implements Callable<Scenario>, Serializable {
      * @return　null if the scenario does not exist in the database. Otherwise,
      * the scenario that is stored in the database
      */
-    private void saveToDatabase(Satellite sat, CoverageDefinition coverageDefinition, HashMap<CoveragePoint, TimeIntervalArray> accesses) {
+    protected void saveToDatabase(Satellite sat, CoverageDefinition coverageDefinition, HashMap<CoveragePoint, TimeIntervalArray> accesses) {
         if (this instanceof SubScenario) {
             return;
         }

@@ -5,9 +5,19 @@
  */
 package orekit.coverage.access;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import orekit.object.CoveragePoint;
 import org.hipparchus.util.FastMath;
 import org.orekit.time.AbsoluteDate;
 
@@ -304,6 +314,26 @@ public class TimeIntervalArray implements Iterable<RiseSetTime>, Serializable {
      */
     public TimeIntervalArray createImmutable() {
         return new ImmutableTimeIntervalArray(this);
+    }
+    
+    public static void save(File file, HashMap<CoveragePoint,TimeIntervalArray> arrays){
+        try(ObjectOutputStream os = new ObjectOutputStream(new FileOutputStream(file))){
+            os.writeObject(arrays);
+        } catch (IOException ex) {
+            Logger.getLogger(TimeIntervalArray.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    public static HashMap<CoveragePoint,TimeIntervalArray> load(File file){
+        HashMap<CoveragePoint, TimeIntervalArray> out = null;
+        try(ObjectInputStream is = new ObjectInputStream(new FileInputStream(file))){
+            out = (HashMap<CoveragePoint, TimeIntervalArray> )is.readObject();
+        } catch (ClassNotFoundException ex) {
+            Logger.getLogger(TimeIntervalArray.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(TimeIntervalArray.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return out;
     }
 
     /**

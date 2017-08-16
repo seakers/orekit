@@ -72,16 +72,16 @@ public class Orekit {
             path = args[0];
             filename = args[1];
         } else {
-            path = "/Users/nozomihitomi/Desktop";
-//            path = "C:\\Users\\SEAK1\\Nozomi\\OREKIT\\";
+//            path = "/Users/nozomihitomi/Desktop";
+            path = "C:\\Users\\SEAK1\\Nozomi\\OREKIT\\";
             filename = "tropics_test";
         }
 
         OrekitConfig.init();
 
         TimeScale utc = TimeScalesFactory.getUTC();
-        AbsoluteDate startDate = new AbsoluteDate(2016, 1, 1, 00, 00, 00.000, utc);
-        AbsoluteDate endDate = new AbsoluteDate(2016, 3, 1, 00, 00, 00.000, utc);
+        AbsoluteDate startDate = new AbsoluteDate(2013, 1, 1, 00, 00, 00.000, utc);
+        AbsoluteDate endDate = new AbsoluteDate(2013, 1, 8, 00, 00, 00.000, utc);
         double mu = Constants.WGS84_EARTH_MU; // gravitation coefficient
 
         //must use IERS_2003 and EME2000 frames to be consistent with STK
@@ -106,20 +106,21 @@ public class Orekit {
             sat.addInstrument(view1);
         }
 
-        ArrayList<GeodeticPoint> pts = new ArrayList<>();
+//        ArrayList<GeodeticPoint> pts = new ArrayList<>();
 //        pts.add(new GeodeticPoint(-0.1745329251994330, 6.0737457969402699, 0.0));
 //        pts.add(new GeodeticPoint(-0.8726646259971650, 3.1415926535897900, 0.0));
-        pts.add(new GeodeticPoint(1.5707963267949001, 0.0000000000000000, 0.0));
-        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", pts, earthShape);
+//        pts.add(new GeodeticPoint(1.5707963267949001, 0.0000000000000000, 0.0));
+//        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", pts, earthShape);
 //        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", 6, 0, 20, 0, 20, earthShape);
-//        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", STKGRID.getPoints6(), earthShape);
+        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", STKGRID.getPoints6(), earthShape);
+//        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", USGrid.getPoints6(), earthShape);
 
         covDef1.assignConstellation(walker);
 
         HashSet<CoverageDefinition> covDefs = new HashSet<>();
         covDefs.add(covDef1);
 
-        PropagatorFactory pf = new PropagatorFactory(PropagatorType.KEPLERIAN, OrbitType.KEPLERIAN);
+        PropagatorFactory pf = new PropagatorFactory(PropagatorType.J2, OrbitType.KEPLERIAN);
 
         double analysisTimeStep = 60;
         ArrayList<Analysis> analysesList = new ArrayList<>();
@@ -133,13 +134,13 @@ public class Orekit {
 //                       Vector3D.PLUS_I, FastMath.toRadians(45),
 //                       Vector3D.PLUS_J, FastMath.toRadians(45),0),
 //                        inertialFrame, startDate));
-        analysesList.add(new VectorAnalysis(inertialFrame, 60) {
-            private static final long serialVersionUID = 4680062066885650976L;
-            @Override
-            public Vector3D getVector(SpacecraftState currentState, Frame frame) throws OrekitException {
-                return currentState.getPVCoordinates(frame).getPosition();
-            }
-        });
+//        analysesList.add(new VectorAnalysis(FramesFactory.getEME2000(), 60) {
+//            private static final long serialVersionUID = 4680062066885650976L;
+//            @Override
+//            public Vector3D getVector(SpacecraftState currentState, Frame frame) throws OrekitException {
+//                return currentState.getPVCoordinates(frame).getPosition();
+//            }
+//        });
 
         CompoundAnalysis analyses = new CompoundAnalysis(analysesList);
 
@@ -196,7 +197,8 @@ public class Orekit {
 
 //        ScenarioIO.save(Paths.get(path, ""), filename, scenComp);
 //        ScenarioIO.saveReadMe(Paths.get(path, ""), filename, scenComp);
-        ScenarioIO.saveAnalyses(Paths.get(path, ""), scenComp);
+//        ScenarioIO.saveAnalyses(Paths.get(path, ""), scenComp);
+
         long end = System.nanoTime();
         System.out.println("Took " + (end - start) / Math.pow(10, 9) + " sec");
     }

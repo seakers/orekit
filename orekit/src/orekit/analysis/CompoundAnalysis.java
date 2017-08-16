@@ -18,25 +18,32 @@ import org.orekit.propagation.SpacecraftState;
  * @author nozomihitomi
  */
 public class CompoundAnalysis implements Analysis, Serializable {
+
     private static final long serialVersionUID = 4096583420683752930L;
 
     private final Collection<Analysis> analyses;
-    
+
     /**
      * The time step that is common to all analyses
      */
     private final double tStep;
 
     public CompoundAnalysis(Collection<Analysis> analyses) {
-        //check that all analyses have the same time step
-        double refTime = analyses.iterator().next().getTimeStep();
-        for (Analysis a : analyses) {
-            if (a.getTimeStep() != refTime) {
-                throw new IllegalArgumentException("All analyses must have the same step size");
+        //check if analyses is empty
+        if (analyses.isEmpty()) {
+            this.analyses = new ArrayList();
+            this.tStep = Double.NaN;
+        } else {
+            //check that all analyses have the same time step
+            double refTime = analyses.iterator().next().getTimeStep();
+            for (Analysis a : analyses) {
+                if (a.getTimeStep() != refTime) {
+                    throw new IllegalArgumentException("All analyses must have the same step size");
+                }
             }
+            this.analyses = analyses;
+            this.tStep = refTime;
         }
-        this.analyses = analyses;
-        this.tStep = refTime;
     }
 
     /**
@@ -49,12 +56,12 @@ public class CompoundAnalysis implements Analysis, Serializable {
         ArrayList<Analysis> out = new ArrayList();
         for (Analysis a : analyses) {
             if (a instanceof CompoundAnalysis) {
-                out.addAll(((CompoundAnalysis)a).getAnalyses());
+                out.addAll(((CompoundAnalysis) a).getAnalyses());
             } else {
                 out.add(a);
             }
         }
-        return analyses;
+        return out;
     }
 
     @Override
@@ -73,8 +80,6 @@ public class CompoundAnalysis implements Analysis, Serializable {
     public double getTimeStep() {
         return tStep;
     }
-    
-    
 
     @Override
     public int hashCode() {
@@ -107,7 +112,5 @@ public class CompoundAnalysis implements Analysis, Serializable {
     public String getExtension() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
-    
-    
 
 }
