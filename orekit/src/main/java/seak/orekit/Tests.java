@@ -75,7 +75,7 @@ public class Tests {
 
         OrekitConfig.init();
         //setup logger
-        Level level = Level.OFF;
+        Level level = Level.ALL;
         Logger.getGlobal().setLevel(level);
         ConsoleHandler handler = new ConsoleHandler();
         handler.setLevel(level);
@@ -113,6 +113,7 @@ public class Tests {
         payload.add(view1);
         
         Properties propertiesPropagator = new Properties();
+        propertiesPropagator.setProperty("orekit.propagator.mass", "6");
         propertiesPropagator.setProperty("orekit.propagator.atmdrag", "true");
         propertiesPropagator.setProperty("orekit.propagator.dragarea", "0.13"); //worst case scenario 0.3x0.1*4+0.1x0.1
         propertiesPropagator.setProperty("orekit.propagator.dragcoeff", "2.2");
@@ -143,7 +144,7 @@ public class Tests {
 
 
             Properties propertiesEventAnalysis = new Properties();
-            //propertiesEventAnalysis.setProperty("fov.numThreads", "4");
+            propertiesEventAnalysis.setProperty("fov.numThreads", "12");
 
 
             //set the event analyses

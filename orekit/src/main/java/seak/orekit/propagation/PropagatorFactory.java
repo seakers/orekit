@@ -110,7 +110,7 @@ public class PropagatorFactory {
                 //DormandPrince853 is an implementation of some Runge Kutta method
                 AdaptiveStepsizeIntegrator integrator = new DormandPrince853Integrator(minStep, maxStep, absTolerance, relTolerance);
                 integrator.setInitialStepSize(initStep);
-                return createNumericalPropagator(orbit, mass, integrator, properties);
+                return createNumericalPropagator(orbit,integrator, properties);
             default:
                 throw new UnsupportedOperationException(String.format("Propagator of type %s is not supported by factory or by this constructor.", propType));
         }
@@ -162,7 +162,8 @@ public class PropagatorFactory {
      * @return
      * @throws OrekitException
      */
-    private Propagator createNumericalPropagator(Orbit orbit, double mass, ODEIntegrator integrator, Properties properties) throws OrekitException {
+    private Propagator createNumericalPropagator(Orbit orbit, ODEIntegrator integrator, Properties properties) throws OrekitException {
+        double mass = Double.parseDouble(properties.getProperty("orekit.propagator.mass", "10"));
         SpacecraftState s = new SpacecraftState(orbit, mass);
         NumericalPropagator prop = new NumericalPropagator(integrator);
         prop.resetInitialState(s);

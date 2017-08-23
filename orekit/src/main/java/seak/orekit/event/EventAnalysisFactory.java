@@ -89,7 +89,7 @@ public class EventAnalysisFactory {
 
                 //Option to set the number of threads to use to run the scenario.
                 //By default it is set to 1.
-                String numThreadsStr = prop.getProperty("numThreads", "1");
+                String numThreadsStr = prop.getProperty("fov.numThreads", "1");
 
                 //Option to dictate whether the coverage accesses of individual 
                 //satellites should be saved to the coverage database. 
