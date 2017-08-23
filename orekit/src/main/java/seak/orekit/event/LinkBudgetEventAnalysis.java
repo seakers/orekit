@@ -68,7 +68,7 @@ public class LinkBudgetEventAnalysis extends AbstractGroundEventAnalysis {
     /**
      * Stores all the link intervals of each satellite if saveAllLinkIntervals is true.
      */
-    private HashMap<CoverageDefinition, HashMap<Satellite, HashMap<CoveragePoint, TimeIntervalArray>>> allLinkIntervals;
+    private HashMap<CoverageDefinition, HashMap<Satellite, HashMap<TopocentricFrame, TimeIntervalArray>>> allLinkIntervals;
 
     /**
      * the number of threads to use in parallel processing
@@ -179,7 +179,7 @@ public class LinkBudgetEventAnalysis extends AbstractGroundEventAnalysis {
                 }
 
                 Satellite sat = subRoutine.getSat();
-                HashMap<CoveragePoint, TimeIntervalArray> satLinkBudgetIntervals = subRoutine.getSatLinkBudgetIntervals();
+                HashMap<TopocentricFrame, TimeIntervalArray> satLinkBudgetIntervals = subRoutine.getSatLinkBudgetIntervals();
                 processLinkBudgetIntervals(sat, cdef, satLinkBudgetIntervals);
 
             }
@@ -204,7 +204,7 @@ public class LinkBudgetEventAnalysis extends AbstractGroundEventAnalysis {
      * assigned coverage definition
      */
     private void processLinkBudgetIntervals(Satellite sat, CoverageDefinition cdef,
-            HashMap<CoveragePoint, TimeIntervalArray> satLinkBudgetIntervals) {
+            HashMap<TopocentricFrame, TimeIntervalArray> satLinkBudgetIntervals) {
         //save the satellite link intervals 
         if (saveAllLinkIntervals) {
             allLinkIntervals.get(cdef).put(sat, satLinkBudgetIntervals);
@@ -212,7 +212,7 @@ public class LinkBudgetEventAnalysis extends AbstractGroundEventAnalysis {
 
         //merge the link intervals across all satellite for each coverage definition
         if (getEvents().containsKey(cdef)) {
-            Map<CoveragePoint, TimeIntervalArray> mergedAccesses
+            Map<TopocentricFrame, TimeIntervalArray> mergedAccesses
                     = EventIntervalMerger.merge(getEvents().get(cdef), satLinkBudgetIntervals, false);
             getEvents().put(cdef, mergedAccesses);
         } else {
@@ -254,7 +254,7 @@ public class LinkBudgetEventAnalysis extends AbstractGroundEventAnalysis {
      * and the satellite is assigned to the coverage definition, a map of
      * coverage points and time interval array will be returned. else null
      */
-    public HashMap<CoveragePoint, TimeIntervalArray> getSatelliteLinkIntervals(CoverageDefinition covDef, Satellite sat) {
+    public HashMap<TopocentricFrame, TimeIntervalArray> getSatelliteLinkIntervals(CoverageDefinition covDef, Satellite sat) {
         return allLinkIntervals.get(covDef).get(sat);
     }
 
@@ -274,7 +274,7 @@ public class LinkBudgetEventAnalysis extends AbstractGroundEventAnalysis {
      *
      * @return
      */
-    public HashMap<CoverageDefinition, HashMap<Satellite, HashMap<CoveragePoint, TimeIntervalArray>>> getAllLinkIntervals() {
+    public HashMap<CoverageDefinition, HashMap<Satellite, HashMap<TopocentricFrame, TimeIntervalArray>>> getAllLinkIntervals() {
         return allLinkIntervals;
     }
 
@@ -352,7 +352,7 @@ public class LinkBudgetEventAnalysis extends AbstractGroundEventAnalysis {
          * The times, for each point, when the link budget is closed by the given
          * satellite and its payload.
          */
-        private final HashMap<CoveragePoint, TimeIntervalArray> satlinkBudgetIntervals;
+        private final HashMap<TopocentricFrame, TimeIntervalArray> satlinkBudgetIntervals;
         
         /**
          * Link budget parameters.
@@ -393,7 +393,7 @@ public class LinkBudgetEventAnalysis extends AbstractGroundEventAnalysis {
             this.lbStepSize = lbStepSize;
 
             this.satlinkBudgetIntervals = new HashMap<>(cdef.getNumberOfPoints());
-            for (CoveragePoint pt : cdef.getPoints()) {
+            for (TopocentricFrame pt : cdef.getPoints()) {
                 satlinkBudgetIntervals.put(pt, getEmptyTimeArray());
             }
         }
@@ -554,7 +554,7 @@ public class LinkBudgetEventAnalysis extends AbstractGroundEventAnalysis {
             return cdef;
         }
 
-        public HashMap<CoveragePoint, TimeIntervalArray> getSatLinkBudgetIntervals() {
+        public HashMap<TopocentricFrame, TimeIntervalArray> getSatLinkBudgetIntervals() {
             return satlinkBudgetIntervals;
         }
 

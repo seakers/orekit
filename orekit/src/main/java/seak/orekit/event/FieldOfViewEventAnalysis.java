@@ -416,7 +416,7 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
             SpacecraftState initialState = prop.getInitialState();
             for (Instrument inst : sat.getPayload()) {
                 for (CoveragePoint pt : cdef.getPoints()) {
-                    if (lineOfSightPotential(pt, initialState.getOrbit(), FastMath.toRadians(2.0))) {
+                    if (!lineOfSightPotential(pt, initialState.getOrbit(), FastMath.toRadians(2.0))) {
                         //if a point is not within 2 deg latitude of what is accessible to the satellite via line of sight, don't compute the accesses
                         continue;
                     }
@@ -496,7 +496,7 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
             HashMap<CoveragePoint, FOVDetector> map = new HashMap<>();
             for (Instrument inst : sat.getPayload()) {
                 for (CoveragePoint pt : cdef.getPoints()) {
-                    if (lineOfSightPotential(pt, initialState.getOrbit(), FastMath.toRadians(2.0))) {
+                    if (!lineOfSightPotential(pt, initialState.getOrbit(), FastMath.toRadians(2.0))) {
                         //if a point is not within 2 deg latitude of what is accessible to the satellite via line of sight, don't compute the accesses
                         continue;
                     }

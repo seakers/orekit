@@ -5,6 +5,7 @@
  */
 package seak.orekit.analysis.ephemeris;
 
+import org.orekit.errors.OrekitException;
 import org.orekit.orbits.KeplerianOrbit;
 import org.orekit.orbits.OrbitType;
 import org.orekit.propagation.Propagator;
@@ -57,7 +58,7 @@ public class HohmannTransferAnalysis extends AbstractSpacecraftAnalysis<OrbitalE
      * @param currentState
      */
     @Override
-    protected void handleStep(SpacecraftState currentState) {
+    public void handleStep(SpacecraftState currentState, boolean isLast) {
         KeplerianOrbit o = (KeplerianOrbit) OrbitType.KEPLERIAN.convertType(currentState.getOrbit());
         Record<OrbitalElements> e = new Record(currentState.getDate(), new OrbitalElements(o.getA(), o.getE(), o.getI(),
                 o.getRightAscensionOfAscendingNode(), o.getPerigeeArgument(),
@@ -80,10 +81,9 @@ public class HohmannTransferAnalysis extends AbstractSpacecraftAnalysis<OrbitalE
         for (AbsoluteDate extrapDate = getStartDate();
                 extrapDate.compareTo(getEndDate()) <= 0;
                 extrapDate = extrapDate.shiftedBy(getTimeStep())) {
-            handleStep(prop.propagate(extrapDate));
+            handleStep(prop.propagate(extrapDate),true);
         }
         
         return this;
     }
-
 }

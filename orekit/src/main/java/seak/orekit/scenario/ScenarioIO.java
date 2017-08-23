@@ -8,9 +8,11 @@ package seak.orekit.scenario;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -59,7 +61,7 @@ public class ScenarioIO {
 
         Map<TopocentricFrame, TimeIntervalArray> groundEvents = analysis.getEvents(covdef);
         File file = new File(path.toFile(),
-                String.format("%s_%s_%s.res", filename, scenario.getName(), covdef.getName()));
+                String.format("%s_%s.cvaa", filename, scenario.getName()));
         try (FileWriter fw = new FileWriter(file)) {
             fw.append(String.format("Start Date: %s\n\n", scenario.getStartDate()));
             fw.append(String.format("End Date: %s\n\n", scenario.getEndDate()));
@@ -97,6 +99,35 @@ public class ScenarioIO {
     }
     
     /**
+     * Saves the Ground Event Analyzer object in a
+     * desired directory.
+     *
+     * @param path to the directory to save the file
+     * @param filename name of the file without the extension
+     * @param scenario Scenario that was simulated
+     * @param covdef the coverage definition of interest
+     * @param analysis the analysis to save
+     * @return
+     */
+    public static boolean saveGroundEventAnalyzerObject(Path path, String filename, 
+            Scenario scenario,CoverageDefinition covdef, GroundEventAnalysis analysis) {
+        
+        Map<TopocentricFrame,TimeIntervalArray> groundEvents = analysis.getEvents(covdef);
+        GroundEventAnalyzer ea = new GroundEventAnalyzer(groundEvents);
+        File file = new File(path.toFile(),
+                String.format("%s_%s.obj", filename, scenario.getName()));
+        try (FileOutputStream fout = new FileOutputStream(file)) {
+            ObjectOutputStream oos = new ObjectOutputStream(fout);
+            oos.writeObject(ea);
+        } catch (IOException ex) {
+            Logger.getLogger(ScenarioIO.class.getName()).log(Level.SEVERE, null, ex);
+            return false;
+        }
+        Logger.getGlobal().finest(String.format("Saved Ground Event Analyzer in %s", file.toString()));
+        return true;
+    }
+    
+    /**
      * Saves the coverage metrics of the coverage definition from the scenario in a
      * desired directory. Searches the scenario for the computed metrics
      * belonging to the specified coverage definition
@@ -122,7 +153,7 @@ public class ScenarioIO {
         DescriptiveStatistics percentTime = ea.getStatistics(AnalysisMetric.PERCENT_TIME, true,latBounds,lonBounds);
   
         File file = new File(path.toFile(),
-                String.format("%s_%s_%s.res", filename, scenario.getName(), covdef.getName()));
+                String.format("%s_%s.met", filename, scenario.getName()));
         try (FileWriter fw = new FileWriter(file)) {
             fw.append(String.format("Start Date: %s\n\n", scenario.getStartDate()));
             fw.append(String.format("End Date: %s\n\n", scenario.getEndDate()));
@@ -259,6 +290,27 @@ public class ScenarioIO {
         }
         Logger.getGlobal().finest(String.format("Successfully loaded scenario: %s", file.toString()));
         return scenario;
+    }
+    
+        /**
+     * Loads the GroundEventAnalysis instance saved by using saveGroundEventAnalysisObject() 
+     * from the given filename.
+     *
+     * @param path to the directory to save the file
+     * @param filename the file name (extension included)
+     * @return the GroundEventAnalyzer instance saved by using saveGroundEventAnalyzerObject()
+     */
+    public static GroundEventAnalyzer loadGroundEventAnalyzerObject(Path path, String filename) {
+        GroundEventAnalyzer ea = null;
+        File file = new File(path.toFile(), filename);
+        try (ObjectInputStream is = new ObjectInputStream(new FileInputStream(file))) {
+            ea = (GroundEventAnalyzer) is.readObject();
+        } catch (IOException | ClassNotFoundException ex) {
+            System.err.println(ex);
+            Logger.getLogger(ScenarioIO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        Logger.getGlobal().finest(String.format("Successfully loaded Ground Event Analyzer: %s", file.toString()));
+        return ea;
     }
 
     /**
