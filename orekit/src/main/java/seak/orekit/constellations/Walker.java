@@ -28,7 +28,7 @@ import seak.orekit.orbit.J2KeplerianOrbit;
 public class Walker extends Constellation {
 
     private static final long serialVersionUID = 6994388604876873748L;
-
+    
     /**
      * Creates a walker delta-pattern constellation in the specified Walker
      * configuration at the specified semimajor axis. The satellites contained

@@ -73,12 +73,12 @@ public class Orekit_Pau {
         if (args.length > 0) {
             filename = args[0];
         } else {
-            filename = "tropics_test";
+            filename = "tropics";
         }
 
         OrekitConfig.init();
         //setup logger
-        Level level = Level.ALL;
+        Level level = Level.OFF;
         Logger.getGlobal().setLevel(level);
         ConsoleHandler handler = new ConsoleHandler();
         handler.setLevel(level);
@@ -97,20 +97,25 @@ public class Orekit_Pau {
                 Constants.WGS84_EARTH_FLATTENING, earthFrame);
 
         //Enter satellite orbital parameters
-        double a = Constants.WGS84_EARTH_EQUATORIAL_RADIUS+600000;
-        double i = FastMath.toRadians(30);
-
-        //Walker walker = new Walker( "walker1", a, i, 1, 1, 0, inertialFrame, startDate, mu);
-        Walker walker = new Walker( "walker1", a, i, 16, 4, 0, inertialFrame, startDate, mu);
-        
+        int h=600000;
+        double a = Constants.WGS84_EARTH_EQUATORIAL_RADIUS+h;
+        double ideg=30;
+        double i = FastMath.toRadians(ideg);
         //define instruments
         NadirSimpleConicalFOV fov = new NadirSimpleConicalFOV(FastMath.toRadians(45), earthShape);
 //        NadirRectangularFOV fov = new NadirRectangularFOV(FastMath.toRadians(57), FastMath.toRadians(2.5), 0, earthShape);
+        ArrayList<Instrument> payload = new ArrayList<>();
         Instrument view1 = new Instrument("view1", fov, 100, 100);
-        //assign instruments
-        for (Satellite sat : walker.getSatellites()) {
-            sat.addInstrument(view1);
-        }
+        payload.add(view1);
+        
+        //number of total satellites
+        int t=1;
+        //number of planes
+        int p=1;
+        //
+        int f=0;
+        
+        Walker walker = new Walker("walker1", payload, a, i, t, p, f, inertialFrame, startDate, mu);
 
         ArrayList<GeodeticPoint> pts = new ArrayList<>();
 //        pts.add(new GeodeticPoint(-0.1745329251994330, 6.0737457969402699, 0.0));
@@ -135,7 +140,8 @@ public class Orekit_Pau {
         propertiesPropagator.setProperty("orekit.propagator.solarpressure", "true");
         propertiesPropagator.setProperty("orekit.propagator.solararea", "10");
 
-//        PropagatorFactory pf = new PropagatorFactory(PropagatorType.J2,propertiesPropagator);
+        //PropagatorFactory pf = new PropagatorFactory(PropagatorType.KEPLERIAN,propertiesPropagator);
+        //PropagatorFactory pf = new PropagatorFactory(PropagatorType.J2,propertiesPropagator);
         PropagatorFactory pf = new PropagatorFactory(PropagatorType.NUMERICAL,propertiesPropagator);
         
                 //LINK BUDGET
@@ -150,13 +156,15 @@ public class Orekit_Pau {
         Properties propertiesEventAnalysis = new Properties();
         //propertiesEventAnalysis.setProperty("fov.numThreads", "4");
 
+        
         //set the event analyses
-        EventAnalysisFactory eaf = new EventAnalysisFactory(startDate, endDate, inertialFrame, covDefs, pf);
-        FieldOfViewEventAnalysis fovEvent = (FieldOfViewEventAnalysis) eaf.create(EventAnalysisEnum.FOV, propertiesEventAnalysis);
+        EventAnalysisFactory eaf = new EventAnalysisFactory(startDate, endDate, inertialFrame, pf);
+        ArrayList<EventAnalysis> eventanalyses = new ArrayList<>();
+        FieldOfViewEventAnalysis fovEvent = (FieldOfViewEventAnalysis) eaf.createGroundPointAnalysis(EventAnalysisEnum.FOV, covDefs, propertiesEventAnalysis);
+        eventanalyses.add(fovEvent);
+        //set the event analyses
         //GroundBodyAngleEventAnalysis gndSunAngEvent = (GroundBodyAngleEventAnalysis) eaf.create(EventAnalysisEnum.GND_BODY_ANGLE, properties);
         //LinkBudgetEventAnalysis lbEvent = (LinkBudgetEventAnalysis) eaf.create(EventAnalysisEnum.LB, propertiesEventAnalysis);
-        ArrayList<EventAnalysis> eventanalyses = new ArrayList<>();
-        eventanalyses.add(fovEvent);
         //eventanalyses.add(gndSunAngEvent);
 
         //set the analyses
@@ -170,7 +178,7 @@ public class Orekit_Pau {
         
         Scenario scen = new Scenario.Builder(startDate, endDate, utc).
                 eventAnalysis(eventanalyses).analysis(analyses).
-                covDefs(covDefs).name("test1").properties(propertiesEventAnalysis).
+                covDefs(covDefs).name(String.format("%s_%s_%s_%s_%s", h,ideg,t,p,f)).properties(propertiesEventAnalysis).
                 propagatorFactory(pf).build();
         try {
             Logger.getGlobal().finer(String.format("Running Scenario %s", scen));
@@ -202,8 +210,9 @@ public class Orekit_Pau {
 //        System.out.println(String.format("80th gap time %s", gapStats.getPercentile(80)));
 //        System.out.println(String.format("90th gap time %s", gapStats.getPercentile(90)));
 //
-        ScenarioIO.saveGroundEventAnalysis(Paths.get(System.getProperty("results"), ""), filename + "_cva", scen, covDef1, fovEvent);
-        ScenarioIO.saveGroundEventAnalysisMetrics(Paths.get(System.getProperty("results"), ""), filename + "_met", scen, covDef1, fovEvent);
+        ScenarioIO.saveGroundEventAnalysis(Paths.get(System.getProperty("results"), ""), filename, scen, covDef1, fovEvent);
+        ScenarioIO.saveGroundEventAnalysisMetrics(Paths.get(System.getProperty("results"), ""), filename, scen, covDef1, fovEvent);
+        ScenarioIO.saveGroundEventAnalyzerObject(Paths.get(System.getProperty("results"), ""), filename, scen,covDef1, fovEvent);
 //        ScenarioIO.saveGroundEventAnalysis(Paths.get(System.getProperty("results"), ""), filename + "_gsa", scen, covDef1, gndSunAngEvent);
 //        ScenarioIO.saveLinkBudget(Paths.get(System.getProperty("results"), ""), filename, scenComp, cdefToSave);
 //        ScenarioIO.saveReadMe(Paths.get(path, ""), filename, scenComp);
