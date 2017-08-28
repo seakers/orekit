@@ -273,7 +273,7 @@ public class FastCoverageAnalysis extends FieldOfViewEventAnalysis {
             Logger.getGlobal().finer(String.format("Propagating satellite %s...", sat));
             //identify accesses and create time interval array for each coverage point
             for (CoveragePoint pt : cdef.getPoints()) {
-                if (lineOfSightPotential(pt, orb, FastMath.toRadians(2.0))) {
+                if (!lineOfSightPotential(pt, orb, FastMath.toRadians(2.0))) {
                     //if a point is not within 2 deg latitude of what is accessible to the satellite via line of sight, don't compute the accesses
                     continue;
                 }

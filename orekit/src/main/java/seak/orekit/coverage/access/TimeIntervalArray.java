@@ -17,7 +17,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import orekit.object.CoveragePoint;
+import seak.orekit.object.CoveragePoint;
 import org.hipparchus.util.FastMath;
 import org.orekit.time.AbsoluteDate;
 
