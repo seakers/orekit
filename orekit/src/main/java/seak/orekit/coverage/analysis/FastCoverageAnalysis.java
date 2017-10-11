@@ -104,7 +104,7 @@ public class FastCoverageAnalysis extends FieldOfViewEventAnalysis {
             for (Satellite sat : getUniqueSatellites(cdef)) {
                 KeplerianOrbit orb = new KeplerianOrbit(sat.getOrbit());
                 double losTimeStep = orb.getKeplerianPeriod() / 10;
-                double fovTimeStep = orb.getKeplerianPeriod() / 500;
+                double fovTimeStep = orb.getKeplerianPeriod() / 1000;
 
                 SubRoutine subRoutine = new SubRoutine(sat, cdef, losTimeStep, fovTimeStep);
                 ecs.submit(subRoutine);
@@ -288,7 +288,7 @@ public class FastCoverageAnalysis extends FieldOfViewEventAnalysis {
                     Vector3D ptPos = getPtPos(initPtPos, currentT);
                     Vector3D satPos = getPosition(orb, currentT);
                     double cosThetas = satPos.dotProduct(ptPos) / (satPos.getNorm() * ptPos.getNorm());
-
+ 
                     //the mininum cos(theta) value required for line of sight
                     double minCosTheta = minRadius / orb.getA();
 
@@ -321,7 +321,6 @@ public class FastCoverageAnalysis extends FieldOfViewEventAnalysis {
                         while (currentT < date1) {
                             Vector3D satPos = getPosition(orb, currentT);
                             Vector3D negSatPos = satPos.negate();
-//                            Vector3D ptPos = pt.getPVCoordinates(getStartDate().shiftedBy(currentT), getInertialFrame()).getPosition();
                             Vector3D ptPos = getPtPos(initPtPos, currentT);
                             Vector3D sat2pt = ptPos.add(negSatPos);
                             double ang = Vector3D.angle(negSatPos, sat2pt);
@@ -340,6 +339,10 @@ public class FastCoverageAnalysis extends FieldOfViewEventAnalysis {
                             prevT = currentT;
                             currentT += fovStepSize;
                             prevVal = val;
+                        }
+                        //close access if loss of line of sight
+                        if(array.isAccessing()){
+                            array.addSetTime(date1);
                         }
                         date1 = Double.NaN;
                     }
