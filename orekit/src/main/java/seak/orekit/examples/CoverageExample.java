@@ -5,8 +5,10 @@
  */
 package seak.orekit.examples;
 
+import java.io.File;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Properties;
@@ -24,21 +26,27 @@ import seak.orekit.util.OrekitConfig;
 import org.hipparchus.stat.descriptive.DescriptiveStatistics;
 import org.hipparchus.util.FastMath;
 import org.orekit.bodies.BodyShape;
+import org.orekit.bodies.GeodeticPoint;
 import org.orekit.bodies.OneAxisEllipsoid;
 import org.orekit.errors.OrekitException;
 import org.orekit.frames.Frame;
 import org.orekit.frames.FramesFactory;
+import org.orekit.orbits.KeplerianOrbit;
+import org.orekit.orbits.PositionAngle;
 import org.orekit.time.AbsoluteDate;
 import org.orekit.time.TimeScale;
 import org.orekit.time.TimeScalesFactory;
 import org.orekit.utils.Constants;
 import org.orekit.utils.IERSConventions;
+import seak.orekit.STKGRID;
 import seak.orekit.coverage.analysis.AnalysisMetric;
 import seak.orekit.coverage.analysis.GroundEventAnalyzer;
 import seak.orekit.event.EventAnalysis;
 import seak.orekit.event.EventAnalysisEnum;
 import seak.orekit.event.EventAnalysisFactory;
 import seak.orekit.event.FieldOfViewEventAnalysis;
+import seak.orekit.object.Constellation;
+import seak.orekit.object.Satellite;
 
 /**
  * A minimal working example of how to set up a simulation to compute coverage
@@ -55,7 +63,7 @@ public class CoverageExample {
     public static void main(String[] args) throws OrekitException {
         //if running on a non-US machine, need the line below
         Locale.setDefault(new Locale("en", "US"));
-        
+
         long start = System.nanoTime();
 
         String filename;
@@ -93,9 +101,15 @@ public class CoverageExample {
 
         //Create a walker constellation
         Walker walker = new Walker("walker1", payload, a, i, 2, 2, 0, inertialFrame, startDate, mu);
+//        Satellite sat = new Satellite("sat", new KeplerianOrbit(a, 0, i, 0, 0, 0, PositionAngle.TRUE, inertialFrame, startDate, mu), null, payload);
+//        Constellation walker = new Constellation("a", Arrays.asList(new Satellite[]{sat}));
 
         //create a coverage definition
-        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", 10, earthShape, CoverageDefinition.GridStyle.UNIFORM);
+//        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", 10, earthShape, CoverageDefinition.GridStyle.UNIFORM);
+//        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", STKGRID.getPoints20(), earthShape);
+        ArrayList<GeodeticPoint> pts = new ArrayList<>();
+        pts.add(new GeodeticPoint(-0.1745329251994330, 1.88495559215388, 0.0));
+        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", pts, earthShape);
 
         //assign the walker constellation to the coverage definition
         covDef1.assignConstellation(walker);
@@ -104,7 +118,7 @@ public class CoverageExample {
         covDefs.add(covDef1);
 
         //set the type of propagation
-        PropagatorFactory pf = new PropagatorFactory(PropagatorType.KEPLERIAN, new Properties());
+        PropagatorFactory pf = new PropagatorFactory(PropagatorType.J2, new Properties());
 
         //can set the number of resources available for propagation
         Properties propertiesEventAnalysis = new Properties();
@@ -131,6 +145,7 @@ public class CoverageExample {
             Logger.getLogger(CoverageExample.class.getName()).log(Level.SEVERE, null, ex);
             throw new IllegalStateException("scenario failed to complete.");
         }
+        ScenarioIO.saveGroundEventAnalysis(new File(System.getProperty("user.dir")).toPath(), filename, scen, covDef1, fovEvent);
 
         //Extract the coverage and access metrics
         GroundEventAnalyzer ea = new GroundEventAnalyzer(fovEvent.getEvents(covDef1));
@@ -153,12 +168,14 @@ public class CoverageExample {
 
         //saves the start and stop time of each access at each ground point
         ScenarioIO.saveGroundEventAnalysis(Paths.get(System.getProperty("results"), ""), filename + "_fov", scen, covDef1, fovEvent);
-        
+
         //saves the gap metrics
         ScenarioIO.saveGroundEventAnalysisMetrics(Paths.get(System.getProperty("results"), ""), filename + "_fov_metrics", scen, covDef1, fovEvent);
 
         long end = System.nanoTime();
         Logger.getGlobal().finest(String.format("Took %.4f sec", (end - start) / Math.pow(10, 9)));
+
+        OrekitConfig.end();
     }
 
 }
