@@ -150,11 +150,10 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
                 //if no precomuted times available, then propagate
                 Propagator prop = propagatorFactory.createPropagator(sat.getOrbit(), sat.getGrossMass());
                 //Set stepsizes and threshold for detectors
-                double losStepSize = sat.getOrbit().getKeplerianPeriod() / 10.;
                 double fovStepSize = sat.getOrbit().getKeplerianPeriod() / 100.;
                 double threshold = 1e-3;
 
-                FieldOfViewSubRoutine subRoutine = new FieldOfViewSubRoutine(sat, prop, cdef, losStepSize, fovStepSize, threshold);
+                FieldOfViewSubRoutine subRoutine = new FieldOfViewSubRoutine(sat, prop, cdef, fovStepSize, threshold);
                 subRoutines.add(ParallelRoutine.submit(subRoutine));
             }
 
@@ -326,14 +325,7 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
          * The coverage definition to access
          */
         private final CoverageDefinition cdef;
-
-        /**
-         * The step size during propagation when computing the line of sight
-         * events. Generally, this can be a large step. It is used to speed up
-         * the simulation.
-         */
-        private final double losStepSize;
-
+        
         /**
          * The step size during propagation when computing the field of view
          * events. Generally, this should be a small step for accurate results.
@@ -357,9 +349,6 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
          * @param sat The satellite to propagate
          * @param prop The propagator
          * @param cdef The coverage definition to access
-         * @param losStepSize The step size during propagation when computing
-         * the line of sight events. Generally, this can be a large step. It is
-         * used to speed up the simulation.
          * @param fovStepSize The step size during propagation when computing
          * the field of view events. Generally, this should be a small step for
          * accurate results.
@@ -367,12 +356,11 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
          * finding to determine when an event occurred.
          */
         public FieldOfViewSubRoutine(Satellite sat, Propagator prop,
-                CoverageDefinition cdef, double losStepSize,
+                CoverageDefinition cdef,
                 double fovStepSize, double threshold) {
             this.sat = sat;
             this.prop = prop;
             this.cdef = cdef;
-            this.losStepSize = losStepSize;
             this.fovStepSize = fovStepSize;
             this.threshold = threshold;
 

@@ -5,10 +5,8 @@
  */
 package seak.orekit.examples;
 
-import java.io.File;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Properties;
@@ -31,22 +29,17 @@ import org.orekit.bodies.OneAxisEllipsoid;
 import org.orekit.errors.OrekitException;
 import org.orekit.frames.Frame;
 import org.orekit.frames.FramesFactory;
-import org.orekit.orbits.KeplerianOrbit;
-import org.orekit.orbits.PositionAngle;
 import org.orekit.time.AbsoluteDate;
 import org.orekit.time.TimeScale;
 import org.orekit.time.TimeScalesFactory;
 import org.orekit.utils.Constants;
 import org.orekit.utils.IERSConventions;
-import seak.orekit.STKGRID;
 import seak.orekit.coverage.analysis.AnalysisMetric;
 import seak.orekit.coverage.analysis.GroundEventAnalyzer;
 import seak.orekit.event.EventAnalysis;
 import seak.orekit.event.EventAnalysisEnum;
 import seak.orekit.event.EventAnalysisFactory;
 import seak.orekit.event.FieldOfViewEventAnalysis;
-import seak.orekit.object.Constellation;
-import seak.orekit.object.Satellite;
 
 /**
  * A minimal working example of how to set up a simulation to compute coverage
@@ -114,9 +107,9 @@ public class CoverageExample {
         //set the type of propagation
         PropagatorFactory pf = new PropagatorFactory(PropagatorType.KEPLERIAN, new Properties());
 
-        //can set the number of resources available for propagation
+        //can set the properties of the analyses
         Properties propertiesEventAnalysis = new Properties();
-        propertiesEventAnalysis.setProperty("numThreads", "6");
+        propertiesEventAnalysis.setProperty("fov.saveAccess", "false");
 
         //set the coverage event analyses
         EventAnalysisFactory eaf = new EventAnalysisFactory(startDate, endDate, inertialFrame, pf);
