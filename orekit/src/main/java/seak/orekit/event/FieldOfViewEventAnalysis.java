@@ -424,55 +424,15 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
                     prop.resetInitialState(initialState);
                     prop.clearEventsDetectors();
 
-                    //First find all intervals with line of sight.
-                    LOSDetector losDetec = new LOSDetector(
-                            initialState, getStartDate(), getEndDate(),
-                            pt, cdef.getPlanetShape(), getInertialFrame(),
-                            losStepSize, threshold, EventHandler.Action.CONTINUE);
-                    prop.addEventDetector(losDetec);
-                    prop.propagate(getStartDate(), getEndDate());
-                    TimeIntervalArray losTimeArray = losDetec.getTimeIntervalArray();
-                    if (losTimeArray == null || losTimeArray.isEmpty()) {
-                        continue;
-                    }
-
                     //need to reset initial state of the propagators or will progate from the last stop time
                     prop.resetInitialState(initialState);
                     prop.clearEventsDetectors();
                     //Next search through intervals with line of sight to compute when point is in field of view 
                     FOVDetector fovDetec = new FOVDetector(initialState, getStartDate(), getEndDate(),
-                            pt, inst, fovStepSize, threshold, EventHandler.Action.STOP);
+                            pt, inst, fovStepSize, threshold, EventHandler.Action.CONTINUE);
                     prop.addEventDetector(fovDetec);
+                    prop.propagate(getStartDate(), getEndDate());
 
-                    double date0 = 0;
-                    double date1 = Double.NaN;
-                    for (RiseSetTime interval : losTimeArray) {
-                        if (interval.isRise()) {
-                            date0 = interval.getTime();
-                        } else {
-                            date1 = interval.getTime();
-                        }
-
-                        if (!Double.isNaN(date1)) {
-                            //first propagation will find the start time when the point is in the field of view
-                            SpacecraftState s = prop.propagate(getStartDate().shiftedBy(date0), getStartDate().shiftedBy(date1));
-                            if (Math.abs(s.getDate().durationFrom(initialState.getDate()) - date1) < 1e-6) {
-                                //did not find an access
-                                continue;
-                            }
-
-                            //check to see if the first access was closing an access
-                            if (!fovDetec.isOpen()) {
-                                continue;
-                            }
-
-                            //second propagation will find the end time when the point is in the field of view
-                            prop.resetInitialState(s);
-                            prop.propagate(s.getDate(), getStartDate().shiftedBy(date1));
-
-                            date1 = Double.NaN;
-                        }
-                    }
                     TimeIntervalArray fovTimeArray = fovDetec.getTimeIntervalArray();
                     if (fovTimeArray == null || fovTimeArray.isEmpty()) {
                         continue;
