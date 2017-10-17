@@ -19,6 +19,7 @@ import org.orekit.time.AbsoluteDate;
 import seak.orekit.object.CoverageDefinition;
 import seak.orekit.object.GndStation;
 import seak.orekit.object.Satellite;
+import seak.orekit.parallel.ParallelRoutine;
 import seak.orekit.propagation.PropagatorFactory;
 
 /**
@@ -87,10 +88,6 @@ public class EventAnalysisFactory {
                 //the accesses of the individual satellites are not kept in memory to conserve memory space
                 String saveAllAccessesStr = prop.getProperty("fov.saveAccess", "false");
 
-                //Option to set the number of threads to use to run the scenario.
-                //By default it is set to 1.
-                String numThreadsStr = prop.getProperty("fov.numThreads", "1");
-
                 //Option to dictate whether the coverage accesses of individual 
                 //satellites should be saved to the coverage database. 
                 //By default the accesses are not stored to the database.
@@ -99,8 +96,7 @@ public class EventAnalysisFactory {
                 ea = new FieldOfViewEventAnalysis(startDate, endDate, inertialFrame,
                         covDefs, propagatorFactory,
                         Boolean.parseBoolean(saveAllAccessesStr),
-                        Boolean.parseBoolean(saveToDBStr),
-                        Integer.parseInt(numThreadsStr));
+                        Boolean.parseBoolean(saveToDBStr));
                 break;
             case GND_BODY_ANGLE:
                 //Option to set the angle threshold for the angle between a 

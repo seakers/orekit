@@ -5,8 +5,10 @@
  */
 package seak.orekit.examples;
 
+import java.io.File;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Properties;
@@ -24,21 +26,27 @@ import seak.orekit.util.OrekitConfig;
 import org.hipparchus.stat.descriptive.DescriptiveStatistics;
 import org.hipparchus.util.FastMath;
 import org.orekit.bodies.BodyShape;
+import org.orekit.bodies.GeodeticPoint;
 import org.orekit.bodies.OneAxisEllipsoid;
 import org.orekit.errors.OrekitException;
 import org.orekit.frames.Frame;
 import org.orekit.frames.FramesFactory;
+import org.orekit.orbits.KeplerianOrbit;
+import org.orekit.orbits.PositionAngle;
 import org.orekit.time.AbsoluteDate;
 import org.orekit.time.TimeScale;
 import org.orekit.time.TimeScalesFactory;
 import org.orekit.utils.Constants;
 import org.orekit.utils.IERSConventions;
+import seak.orekit.STKGRID;
 import seak.orekit.coverage.analysis.AnalysisMetric;
 import seak.orekit.coverage.analysis.GroundEventAnalyzer;
 import seak.orekit.event.EventAnalysis;
 import seak.orekit.event.EventAnalysisEnum;
 import seak.orekit.event.EventAnalysisFactory;
 import seak.orekit.event.FieldOfViewEventAnalysis;
+import seak.orekit.object.Constellation;
+import seak.orekit.object.Satellite;
 
 /**
  * A minimal working example of how to set up a simulation to compute coverage
@@ -55,7 +63,7 @@ public class CoverageExample {
     public static void main(String[] args) throws OrekitException {
         //if running on a non-US machine, need the line below
         Locale.setDefault(new Locale("en", "US"));
-        
+
         long start = System.nanoTime();
 
         String filename;
@@ -153,12 +161,14 @@ public class CoverageExample {
 
         //saves the start and stop time of each access at each ground point
         ScenarioIO.saveGroundEventAnalysis(Paths.get(System.getProperty("results"), ""), filename + "_fov", scen, covDef1, fovEvent);
-        
+
         //saves the gap metrics
         ScenarioIO.saveGroundEventAnalysisMetrics(Paths.get(System.getProperty("results"), ""), filename + "_fov_metrics", scen, covDef1, fovEvent);
 
         long end = System.nanoTime();
         Logger.getGlobal().finest(String.format("Took %.4f sec", (end - start) / Math.pow(10, 9)));
+
+        OrekitConfig.end();
     }
 
 }

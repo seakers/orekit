@@ -126,6 +126,8 @@ public class PositionVectorExample {
         }
         long end = System.nanoTime();
         System.out.println(String.format("Took %.4f sec", (end - start) / Math.pow(10, 9)));
+        
+        OrekitConfig.end();
     }
 
 }

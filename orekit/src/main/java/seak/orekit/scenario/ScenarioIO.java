@@ -61,7 +61,7 @@ public class ScenarioIO {
 
         Map<TopocentricFrame, TimeIntervalArray> groundEvents = analysis.getEvents(covdef);
         File file = new File(path.toFile(),
-                String.format("%s_%s.cvaa", filename, scenario.getName()));
+                String.format("%s_%s.cva", filename, scenario.getName()));
         try (FileWriter fw = new FileWriter(file)) {
             fw.append(String.format("Start Date: %s\n\n", scenario.getStartDate()));
             fw.append(String.format("End Date: %s\n\n", scenario.getEndDate()));

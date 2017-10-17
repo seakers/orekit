@@ -59,7 +59,7 @@ public class CoverageDefinition implements OrekitObject, Serializable {
      * @param style the style of the grid
      */
     public CoverageDefinition(String name, double granularity, BodyShape planet, GridStyle style) {
-        this(name, granularity, -90, 90, 0, 360, planet, style);
+        this(name, granularity, -90, 90, -180, 180, planet, style);
     }
 
     /**
@@ -71,8 +71,8 @@ public class CoverageDefinition implements OrekitObject, Serializable {
      * degrees
      * @param minLatitude Minimum latitude where coverage is defined [deg]
      * @param maxLatitude Maximum latitude where coverage is defined [deg]
-     * @param minLongitdue Maximum latitude where coverage is defined [deg]
-     * @param maxLongitude Maximum latitude where coverage is defined [deg]
+     * @param minLongitdue Maximum latitude where coverage is defined [deg]. Longitudes should be in interval of [-180,180] degrees
+     * @param maxLongitude Maximum latitude where coverage is defined [deg]. Longitudes should be in interval of [-180,180] degreesÏ
      * @param planet Body shape on which to project the CoveragePoints
      * @param style the style of the grid
      */

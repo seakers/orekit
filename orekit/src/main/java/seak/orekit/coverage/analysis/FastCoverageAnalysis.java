@@ -5,6 +5,7 @@
  */
 package seak.orekit.coverage.analysis;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -13,6 +14,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.hipparchus.geometry.euclidean.threed.Vector3D;
@@ -33,6 +35,8 @@ import seak.orekit.event.FieldOfViewEventAnalysis;
 import seak.orekit.object.CoverageDefinition;
 import seak.orekit.object.CoveragePoint;
 import seak.orekit.object.Satellite;
+import seak.orekit.parallel.ParallelRoutine;
+import seak.orekit.parallel.SubRoutine;
 
 /**
  * This is a method for an approximation of a coverage analysis. The satellite
@@ -83,16 +87,14 @@ public class FastCoverageAnalysis extends FieldOfViewEventAnalysis {
     public FastCoverageAnalysis(AbsoluteDate startDate, AbsoluteDate endDate,
             Frame inertialFrame, Set<CoverageDefinition> covDefs,
             double halfAngle, int numThreads) {
-        super(startDate, endDate, inertialFrame, covDefs, null, true, true, numThreads);
+        super(startDate, endDate, inertialFrame, covDefs, null, true, true);
         this.halfAngle = halfAngle;
     }
 
     @Override
     public FieldOfViewEventAnalysis call() throws OrekitException {
-        //set up resource pool
-        ExecutorService pool = Executors.newFixedThreadPool(numThreads);
-        CompletionService<SubRoutine> ecs = new ExecutorCompletionService(pool);
-
+        ArrayList<Future<SubRoutine>> subroutines = new ArrayList();
+        
         for (CoverageDefinition cdef : getCoverageDefinitions()) {
             Logger.getGlobal().finer(String.format("Acquiring access times for %s...", cdef));
             Logger.getGlobal().finer(
@@ -100,20 +102,18 @@ public class FastCoverageAnalysis extends FieldOfViewEventAnalysis {
                             getStartDate(), getEndDate(),
                             getEndDate().durationFrom(getStartDate()) / 86400.));
 
-            int nSubRoutines = 0;
             for (Satellite sat : getUniqueSatellites(cdef)) {
                 KeplerianOrbit orb = new KeplerianOrbit(sat.getOrbit());
                 double losTimeStep = orb.getKeplerianPeriod() / 10;
-                double fovTimeStep = orb.getKeplerianPeriod() / 1000;
+                double fovTimeStep = orb.getKeplerianPeriod() / 500;
 
-                SubRoutine subRoutine = new SubRoutine(sat, cdef, losTimeStep, fovTimeStep);
-                ecs.submit(subRoutine);
-                nSubRoutines++;
+                Task subRoutine = new Task(sat, cdef, losTimeStep, fovTimeStep);
+                subroutines.add(ParallelRoutine.submit(subRoutine));
             }
-            for (int i = 0; i < nSubRoutines; i++) {
-                SubRoutine subRoutine = null;
+            for (Future<SubRoutine> task : subroutines) {
+                Task subRoutine = null;
                 try {
-                    subRoutine = ecs.take().get();
+                    subRoutine = (Task)task.get();
                 } catch (InterruptedException ex) {
                     Logger.getLogger(FieldOfViewEventAnalysis.class.getName()).log(Level.SEVERE, null, ex);
                 } catch (ExecutionException ex) {
@@ -121,7 +121,6 @@ public class FastCoverageAnalysis extends FieldOfViewEventAnalysis {
                 }
 
                 if (subRoutine == null) {
-                    pool.shutdown();
                     throw new IllegalStateException("Subroutine failed in field of view event.");
                 }
 
@@ -130,7 +129,6 @@ public class FastCoverageAnalysis extends FieldOfViewEventAnalysis {
                 processAccesses(sat, cdef, satAccesses);
             }
         }
-        pool.shutdown();
         return this;
     }
 
@@ -211,7 +209,7 @@ public class FastCoverageAnalysis extends FieldOfViewEventAnalysis {
     /**
      * Creates a subroutine to run the field of view event analysis in parallel
      */
-    private class SubRoutine implements Callable<SubRoutine> {
+    private class Task implements SubRoutine {
 
         /**
          * The satellite to propagate
@@ -253,7 +251,7 @@ public class FastCoverageAnalysis extends FieldOfViewEventAnalysis {
          * the field of view events. Generally, this should be a small step for
          * accurate results.
          */
-        public SubRoutine(Satellite sat, CoverageDefinition cdef,
+        public Task(Satellite sat, CoverageDefinition cdef,
                 double losStepSize, double fovStepSize) {
             this.sat = sat;
             this.cdef = cdef;
@@ -268,7 +266,7 @@ public class FastCoverageAnalysis extends FieldOfViewEventAnalysis {
 
         //NOTE: this implementation of in the field of view is a bit fragile if propagating highly elliptical orbits (>0.75). Maybe need to use smaller time steps los and fov detectors
         @Override
-        public SubRoutine call() throws Exception {
+        public Task call() throws Exception {
             KeplerianOrbit orb = new KeplerianOrbit(sat.getOrbit());
             Logger.getGlobal().finer(String.format("Propagating satellite %s...", sat));
             //identify accesses and create time interval array for each coverage point
