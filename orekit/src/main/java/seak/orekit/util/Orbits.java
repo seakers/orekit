@@ -47,7 +47,7 @@ public class Orbits {
     public static double nodalPrecession(double sma, double ecc, double inc) {
         return -1.5 * meanMotion(sma) * J2 * (RE * RE) / (sma * sma) 
                 * FastMath.cos(inc)
-                * FastMath.pow(1 - ecc * ecc, -2);
+                /((1 - ecc * ecc)*(1 - ecc * ecc));
     }
     
     /**
@@ -95,7 +95,7 @@ public class Orbits {
      * @return the mean motion or average angular velocity [rad/s]
      */
     public static double meanMotion(double sma) {
-        return FastMath.sqrt(MU / FastMath.pow(sma, 3));
+        return FastMath.sqrt(MU / (sma * sma *sma));
     }
     
     /**
