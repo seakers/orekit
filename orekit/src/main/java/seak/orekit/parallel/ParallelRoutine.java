@@ -5,12 +5,10 @@
  */
 package seak.orekit.parallel;
 
-import java.util.concurrent.CompletionService;
-import java.util.concurrent.ExecutorCompletionService;
+import java.util.Collection;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import seak.orekit.coverage.analysis.FastCoverageAnalysis;
 
 /**
  * Integrated method to use a central thread pool
@@ -24,9 +22,7 @@ public class ParallelRoutine {
      */
     private static ParallelRoutine instance;
 
-    private static ExecutorService pool;
-
-    private static CompletionService<SubRoutine> ecs;
+    private static ExecutorService executor;
 
     /**
      * The number of threads in the thread pool
@@ -39,8 +35,7 @@ public class ParallelRoutine {
      * @param numThreads
      */
     private ParallelRoutine(int numThreads) {
-        ParallelRoutine.pool = Executors.newFixedThreadPool(numThreads);
-        ParallelRoutine.ecs = new ExecutorCompletionService(pool);
+        ParallelRoutine.executor = Executors.newFixedThreadPool(numThreads);
         ParallelRoutine.numThreads = numThreads;
         instance = this;
     }
@@ -59,7 +54,7 @@ public class ParallelRoutine {
         if (instance == null){
             return new ParallelRoutine(numThreads);
         }
-        if (ParallelRoutine.pool.isShutdown() || ParallelRoutine.pool.isTerminated()) {
+        if (ParallelRoutine.executor.isShutdown() || ParallelRoutine.executor.isTerminated()) {
             return new ParallelRoutine(numThreads);
         }
         if (numThreads != ParallelRoutine.numThreads) {
@@ -76,25 +71,25 @@ public class ParallelRoutine {
      * @return a Future representing pending completion of the task
      */
     public static Future<SubRoutine> submit(SubRoutine subroutine) {
-        return ParallelRoutine.ecs.submit(subroutine);
+        return ParallelRoutine.executor.submit(subroutine);
     }
-
+    
     /**
-     * Retrieves and removes the Future representing the next completed task,
-     * waiting if none are yet present.
+     * Submits a collection of subroutines to the thread pool
      *
-     * @return the Future representing the next completed task
+     * @param subroutines routine  to run or call
+     * @return a collection of Futures representing pending completion of the tasks
      * @throws java.lang.InterruptedException
      */
-    public static Future<SubRoutine> take() throws InterruptedException {
-        return ParallelRoutine.ecs.take();
+    public static Collection<Future<SubRoutine>> submit(Collection<SubRoutine> subroutines) throws InterruptedException {
+        return ParallelRoutine.executor.invokeAll(subroutines);
     }
-
+    
     /**
      * Shuts down the thread pool and will not wait for any running processes to
      * finish
      */
     public static void shutDown() {
-        ParallelRoutine.pool.shutdown();
+        ParallelRoutine.executor.shutdown();
     }
 }

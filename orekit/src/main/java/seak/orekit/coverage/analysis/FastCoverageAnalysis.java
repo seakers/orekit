@@ -81,12 +81,10 @@ public class FastCoverageAnalysis extends FieldOfViewEventAnalysis {
      * @param covDefs the coverage definitions involved in this analysis
      * @param halfAngle Half angle for a simple conical field of view sensor
      * [rad]
-     * @param numThreads the number of threads to use to parallelize the
-     * analysis
      */
     public FastCoverageAnalysis(AbsoluteDate startDate, AbsoluteDate endDate,
             Frame inertialFrame, Set<CoverageDefinition> covDefs,
-            double halfAngle, int numThreads) {
+            double halfAngle) {
         super(startDate, endDate, inertialFrame, covDefs, null, true, true);
         this.halfAngle = halfAngle;
     }

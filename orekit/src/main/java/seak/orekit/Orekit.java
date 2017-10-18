@@ -138,7 +138,7 @@ public class Orekit {
         HashSet<CoverageDefinition> covDefs = new HashSet<>();
         covDefs.add(covDef1);
 
-        FastCoverageAnalysis fca = new FastCoverageAnalysis(startDate, endDate, inertialFrame, covDefs, FastMath.toRadians(45), 6);
+        FastCoverageAnalysis fca = new FastCoverageAnalysis(startDate, endDate, inertialFrame, covDefs, FastMath.toRadians(45));
         start = System.nanoTime();
         fca.call();
 //        System.exit(0);

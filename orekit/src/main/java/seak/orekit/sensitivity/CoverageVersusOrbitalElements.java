@@ -742,7 +742,7 @@ public class CoverageVersusOrbitalElements extends SobolSensitivityAnalysis {
             Constellation constel = new Constellation("constel", new ArrayList(Arrays.asList(new Satellite[]{sat})));
             cdef.assignConstellation(constel);
             covDefs.add(cdef);
-            FastCoverageAnalysis fca = new FastCoverageAnalysis(startDate, endDate, inertialFrame, covDefs, conicalHalfAngle, 1);
+            FastCoverageAnalysis fca = new FastCoverageAnalysis(startDate, endDate, inertialFrame, covDefs, conicalHalfAngle);
             fca.call();
 
             GroundEventAnalyzer ea = new GroundEventAnalyzer(fca.getEvents(cdef));
