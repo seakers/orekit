@@ -135,8 +135,8 @@ public class CoverageExample {
 
         //Extract the coverage and access metrics
         GroundEventAnalyzer ea = new GroundEventAnalyzer(fovEvent.getEvents(covDef1));
-        DescriptiveStatistics accessStats = ea.getStatistics(AnalysisMetric.DURATION, true);
-        DescriptiveStatistics gapStats = ea.getStatistics(AnalysisMetric.DURATION, false);
+        DescriptiveStatistics accessStats = ea.getStatistics(AnalysisMetric.DURATION, true, new Properties());
+        DescriptiveStatistics gapStats = ea.getStatistics(AnalysisMetric.DURATION, false, new Properties());
 
         System.out.println(String.format("Max access time %s", accessStats.getMax()));
         System.out.println(String.format("Mean access time %s", accessStats.getMean()));

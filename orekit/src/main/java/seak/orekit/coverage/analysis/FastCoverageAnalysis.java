@@ -91,7 +91,7 @@ public class FastCoverageAnalysis extends FieldOfViewEventAnalysis {
 
     @Override
     public FieldOfViewEventAnalysis call() throws OrekitException {
-        ArrayList<Future<SubRoutine>> subroutines = new ArrayList();
+        ArrayList<SubRoutine> subroutines = new ArrayList();
         
         for (CoverageDefinition cdef : getCoverageDefinitions()) {
             Logger.getGlobal().finer(String.format("Acquiring access times for %s...", cdef));
@@ -106,25 +106,25 @@ public class FastCoverageAnalysis extends FieldOfViewEventAnalysis {
                 double fovTimeStep = orb.getKeplerianPeriod() / 500;
 
                 Task subRoutine = new Task(sat, cdef, losTimeStep, fovTimeStep);
-                subroutines.add(ParallelRoutine.submit(subRoutine));
+                subroutines.add(subRoutine);
             }
-            for (Future<SubRoutine> task : subroutines) {
-                Task subRoutine = null;
-                try {
-                    subRoutine = (Task)task.get();
-                } catch (InterruptedException ex) {
-                    Logger.getLogger(FieldOfViewEventAnalysis.class.getName()).log(Level.SEVERE, null, ex);
-                } catch (ExecutionException ex) {
-                    Logger.getLogger(FieldOfViewEventAnalysis.class.getName()).log(Level.SEVERE, null, ex);
+            
+            try {
+                for (SubRoutine sr : ParallelRoutine.submit(subroutines)) {
+                    if (sr == null) {
+                        throw new IllegalStateException("Subroutine failed in field of view event.");
+                    }
+                    
+                    Task subRoutine = (Task)sr;
+                    
+                    Satellite sat = subRoutine.getSat();
+                    HashMap<TopocentricFrame, TimeIntervalArray> satAccesses = subRoutine.getSatAccesses();
+                    processAccesses(sat, cdef, satAccesses);
                 }
-
-                if (subRoutine == null) {
-                    throw new IllegalStateException("Subroutine failed in field of view event.");
-                }
-
-                Satellite sat = subRoutine.getSat();
-                HashMap<TopocentricFrame, TimeIntervalArray> satAccesses = subRoutine.getSatAccesses();
-                processAccesses(sat, cdef, satAccesses);
+            } catch (InterruptedException ex) {
+                Logger.getLogger(FastCoverageAnalysis.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (ExecutionException ex) {
+                Logger.getLogger(FastCoverageAnalysis.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
         return this;

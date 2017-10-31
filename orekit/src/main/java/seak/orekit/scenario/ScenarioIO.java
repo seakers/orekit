@@ -5,7 +5,6 @@
  */
 package seak.orekit.scenario;
 
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -19,10 +18,10 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.hipparchus.stat.descriptive.DescriptiveStatistics;
-import org.hipparchus.util.FastMath;
 import org.orekit.frames.TopocentricFrame;
 import seak.orekit.analysis.Analysis;
 import seak.orekit.analysis.CompoundSpacecraftAnalysis;
@@ -32,10 +31,8 @@ import seak.orekit.coverage.access.TimeIntervalArray;
 import seak.orekit.coverage.analysis.AnalysisMetric;
 import seak.orekit.coverage.analysis.GroundEventAnalyzer;
 import seak.orekit.event.GroundEventAnalysis;
-import seak.orekit.object.Constellation;
 import seak.orekit.object.CoverageDefinition;
 import seak.orekit.object.CoveragePoint;
-import seak.orekit.object.Satellite;
 
 /**
  * Saves and loads scenarios
@@ -97,10 +94,9 @@ public class ScenarioIO {
         Logger.getGlobal().finest(String.format("Saved accesses in %s", file.toString()));
         return true;
     }
-    
+
     /**
-     * Saves the Ground Event Analyzer object in a
-     * desired directory.
+     * Saves the Ground Event Analyzer object in a desired directory.
      *
      * @param path to the directory to save the file
      * @param filename name of the file without the extension
@@ -109,10 +105,10 @@ public class ScenarioIO {
      * @param analysis the analysis to save
      * @return
      */
-    public static boolean saveGroundEventAnalyzerObject(Path path, String filename, 
-            Scenario scenario,CoverageDefinition covdef, GroundEventAnalysis analysis) {
-        
-        Map<TopocentricFrame,TimeIntervalArray> groundEvents = analysis.getEvents(covdef);
+    public static boolean saveGroundEventAnalyzerObject(Path path, String filename,
+            Scenario scenario, CoverageDefinition covdef, GroundEventAnalysis analysis) {
+
+        Map<TopocentricFrame, TimeIntervalArray> groundEvents = analysis.getEvents(covdef);
         GroundEventAnalyzer ea = new GroundEventAnalyzer(groundEvents);
         File file = new File(path.toFile(),
                 String.format("%s_%s.obj", filename, scenario.getName()));
@@ -126,10 +122,10 @@ public class ScenarioIO {
         Logger.getGlobal().finest(String.format("Saved Ground Event Analyzer in %s", file.toString()));
         return true;
     }
-    
+
     /**
-     * Saves the coverage metrics of the coverage definition from the scenario in a
-     * desired directory. Searches the scenario for the computed metrics
+     * Saves the coverage metrics of the coverage definition from the scenario
+     * in a desired directory. Searches the scenario for the computed metrics
      * belonging to the specified coverage definition
      *
      * @param path to the directory to save the file
@@ -139,19 +135,20 @@ public class ScenarioIO {
      * @param analysis the analysis to save
      * @return
      */
-    public static boolean saveGroundEventAnalysisMetrics(Path path, String filename, 
+    public static boolean saveGroundEventAnalysisMetrics(Path path, String filename,
             Scenario scenario, CoverageDefinition covdef, GroundEventAnalysis analysis) {
-        
-        Map<TopocentricFrame,TimeIntervalArray> groundEvents = analysis.getEvents(covdef);
+
+        Map<TopocentricFrame, TimeIntervalArray> groundEvents = analysis.getEvents(covdef);
         GroundEventAnalyzer ea = new GroundEventAnalyzer(groundEvents);
-        double[] latBounds=new double[]{Math.toRadians(-30), Math.toRadians(30)};
-        double[] lonBounds=new double[]{-Math.PI, Math.PI};
-        DescriptiveStatistics accessStats = ea.getStatistics(AnalysisMetric.DURATION, true,latBounds,lonBounds);
-        DescriptiveStatistics gapStats = ea.getStatistics(AnalysisMetric.DURATION, false,latBounds,lonBounds);
-        DescriptiveStatistics meanTime = ea.getStatistics(AnalysisMetric.MEAN_TIME_TO_T, false,latBounds,lonBounds);
-        DescriptiveStatistics timeAverage = ea.getStatistics(AnalysisMetric.TIME_AVERAGE, false,latBounds,lonBounds);
-        DescriptiveStatistics percentTime = ea.getStatistics(AnalysisMetric.PERCENT_TIME, true,latBounds,lonBounds);
-  
+        double[] latBounds = new double[]{Math.toRadians(-30), Math.toRadians(30)};
+        double[] lonBounds = new double[]{-Math.PI, Math.PI};
+        Properties properties = new Properties();
+        DescriptiveStatistics accessStats = ea.getStatistics(AnalysisMetric.DURATION, true, latBounds, lonBounds, properties);
+        DescriptiveStatistics gapStats = ea.getStatistics(AnalysisMetric.DURATION, false, latBounds, lonBounds, properties);
+        DescriptiveStatistics meanTime = ea.getStatistics(AnalysisMetric.MEAN_TIME_TO_T, false, latBounds, lonBounds, properties);
+        DescriptiveStatistics timeAverage = ea.getStatistics(AnalysisMetric.TIME_AVERAGE, false, latBounds, lonBounds, properties);
+        DescriptiveStatistics percentTime = ea.getStatistics(AnalysisMetric.PERCENT_TIME, true, latBounds, lonBounds, properties);
+
         File file = new File(path.toFile(),
                 String.format("%s_%s.met", filename, scenario.getName()));
         try (FileWriter fw = new FileWriter(file)) {
@@ -169,7 +166,7 @@ public class ScenarioIO {
             Logger.getLogger(ScenarioIO.class.getName()).log(Level.SEVERE, null, ex);
             return false;
         }
-         Logger.getGlobal().finest(String.format("Saved coverage metrics in %s", file.toString()));
+        Logger.getGlobal().finest(String.format("Saved coverage metrics in %s", file.toString()));
         return true;
     }
 
@@ -291,14 +288,15 @@ public class ScenarioIO {
         Logger.getGlobal().finest(String.format("Successfully loaded scenario: %s", file.toString()));
         return scenario;
     }
-    
-        /**
-     * Loads the GroundEventAnalysis instance saved by using saveGroundEventAnalysisObject() 
-     * from the given filename.
+
+    /**
+     * Loads the GroundEventAnalysis instance saved by using
+     * saveGroundEventAnalysisObject() from the given filename.
      *
      * @param path to the directory to save the file
      * @param filename the file name (extension included)
-     * @return the GroundEventAnalyzer instance saved by using saveGroundEventAnalyzerObject()
+     * @return the GroundEventAnalyzer instance saved by using
+     * saveGroundEventAnalyzerObject()
      */
     public static GroundEventAnalyzer loadGroundEventAnalyzerObject(Path path, String filename) {
         GroundEventAnalyzer ea = null;

@@ -16,13 +16,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Callable;
-import java.util.concurrent.CompletionService;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorCompletionService;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.hipparchus.util.FastMath;
@@ -35,11 +29,9 @@ import org.orekit.propagation.SpacecraftState;
 import org.orekit.propagation.events.handlers.EventHandler;
 import org.orekit.propagation.numerical.NumericalPropagator;
 import org.orekit.time.AbsoluteDate;
-import seak.orekit.coverage.access.RiseSetTime;
 import seak.orekit.coverage.access.TimeIntervalArray;
 import seak.orekit.coverage.access.TimeIntervalMerger;
 import seak.orekit.event.detector.FOVDetector;
-import seak.orekit.event.detector.LOSDetector;
 import seak.orekit.object.Constellation;
 import seak.orekit.object.CoverageDefinition;
 import seak.orekit.object.CoveragePoint;
@@ -135,7 +127,7 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
                             getEndDate().durationFrom(getStartDate()) / 86400.));
 
             //propogate each satellite individually
-            ArrayList<Future<SubRoutine>> subRoutines = new ArrayList<>();
+            ArrayList<SubRoutine> subRoutines = new ArrayList<>();
             for (Satellite sat : getUniqueSatellites(cdef)) {
                 //first check if the satellite accesses are already saved in the database
                 File file = new File(
@@ -154,33 +146,30 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
                 double threshold = 1e-3;
 
                 FieldOfViewSubRoutine subRoutine = new FieldOfViewSubRoutine(sat, prop, cdef, fovStepSize, threshold);
-                subRoutines.add(ParallelRoutine.submit(subRoutine));
+                subRoutines.add(subRoutine);
             }
 
-            for (Future<SubRoutine> future : subRoutines) {
-                FieldOfViewSubRoutine subRoutine = null;
-                try {
-                    subRoutine = (FieldOfViewSubRoutine) future.get();
-                } catch (InterruptedException ex) {
-                    Logger.getLogger(FieldOfViewEventAnalysis.class.getName()).log(Level.SEVERE, null, ex);
-                } catch (ExecutionException ex) {
-                    Logger.getLogger(FieldOfViewEventAnalysis.class.getName()).log(Level.SEVERE, null, ex);
+            try {
+                for (SubRoutine sr : ParallelRoutine.submit(subRoutines)) {
+                    if (sr == null) {
+                        throw new IllegalStateException("Subroutine failed in field of view event.");
+                    }
+                    FieldOfViewSubRoutine fovsr = (FieldOfViewSubRoutine)sr;
+                    Satellite sat = fovsr.getSat();
+                    HashMap<TopocentricFrame, TimeIntervalArray> satAccesses = fovsr.getSatAccesses();
+                    processAccesses(sat, cdef, satAccesses);
+                    
+                    if (saveToDB) {
+                        File file = new File(
+                                System.getProperty("orekit.coveragedatabase"),
+                                String.valueOf(sat.hashCode()));
+                        writeAccesses(file, satAccesses);
+                    }
                 }
-
-                if (subRoutine == null) {
-                    throw new IllegalStateException("Subroutine failed in field of view event.");
-                }
-
-                Satellite sat = subRoutine.getSat();
-                HashMap<TopocentricFrame, TimeIntervalArray> satAccesses = subRoutine.getSatAccesses();
-                processAccesses(sat, cdef, satAccesses);
-
-                if (saveToDB) {
-                    File file = new File(
-                            System.getProperty("orekit.coveragedatabase"),
-                            String.valueOf(sat.hashCode()));
-                    writeAccesses(file, satAccesses);
-                }
+            } catch (InterruptedException ex) {
+                Logger.getLogger(FieldOfViewEventAnalysis.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (ExecutionException ex) {
+                Logger.getLogger(FieldOfViewEventAnalysis.class.getName()).log(Level.SEVERE, null, ex);
             }
 
             //Make all time intervals stored in finalAccesses immutable

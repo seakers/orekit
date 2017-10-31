@@ -9,9 +9,11 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 import org.hipparchus.util.FastMath;
 import org.orekit.bodies.BodyShape;
 import org.orekit.bodies.GeodeticPoint;
+import org.orekit.frames.TopocentricFrame;
 
 /**
  * Stores information about a grid of points (each point is a TopocentricFrame)
@@ -71,8 +73,10 @@ public class CoverageDefinition implements OrekitObject, Serializable {
      * degrees
      * @param minLatitude Minimum latitude where coverage is defined [deg]
      * @param maxLatitude Maximum latitude where coverage is defined [deg]
-     * @param minLongitdue Maximum latitude where coverage is defined [deg]. Longitudes should be in interval of [-180,180] degrees
-     * @param maxLongitude Maximum latitude where coverage is defined [deg]. Longitudes should be in interval of [-180,180] degreesÏ
+     * @param minLongitdue Maximum latitude where coverage is defined [deg].
+     * Longitudes should be in interval of [-180,180] degrees
+     * @param maxLongitude Maximum latitude where coverage is defined [deg].
+     * Longitudes should be in interval of [-180,180] degreesÏ
      * @param planet Body shape on which to project the CoveragePoints
      * @param style the style of the grid
      */
@@ -129,7 +133,8 @@ public class CoverageDefinition implements OrekitObject, Serializable {
             }
         }
     }
-     /**
+
+    /**
      * Defines a coverage shape using the given points projected onto the
      * surface of a given BodyShape
      *
@@ -233,12 +238,82 @@ public class CoverageDefinition implements OrekitObject, Serializable {
     }
 
     /**
-     * returns a new Collection of points within the grid
+     * returns a new Set of points within the grid
      *
-     * @return
+     * @return a Collection of points
      */
     public HashSet<CoveragePoint> getPoints() {
         return new HashSet<>(grid);
+    }
+
+    /**
+     * returns a new SET of points within the grid that are also within
+     * the specified latitude and longitude bounds
+     *
+     * @param latBounds latitude bounds
+     * @param lonBounds longitude bounds
+     * @return a Collection of points
+     */
+    public Set<TopocentricFrame> getPoints(double[] latBounds, double[] lonBounds) {
+        if (latBounds[0] > latBounds[1] || latBounds[0] < -Math.PI / 2 || latBounds[0] > Math.PI / 2
+                || latBounds[1] < -Math.PI / 2 || latBounds[1] > Math.PI / 2) {
+            throw new IllegalArgumentException(
+                    String.format("Expected latitude bounds to be within [-pi/2,pi/2]. Found [%f,%f]", latBounds[0], latBounds[1]));
+        }
+        if (lonBounds[0] > lonBounds[1] || lonBounds[0] < -Math.PI || lonBounds[0] > Math.PI
+                || lonBounds[1] < -Math.PI || lonBounds[1] > Math.PI) {
+            throw new IllegalArgumentException(
+                    String.format("Expected longitude bounds to be within [-pi,pi]. Found [%f,%f]", lonBounds[0], lonBounds[1]));
+        }
+        HashSet<TopocentricFrame> points = new HashSet<>();
+        for (CoveragePoint pt : grid) {
+            if (pt.getPoint().getLatitude() >= latBounds[0]
+                    && pt.getPoint().getLatitude() <= latBounds[1]
+                    && pt.getPoint().getLongitude() >= lonBounds[0]
+                    && pt.getPoint().getLongitude() <= lonBounds[1]) {
+                points.add(pt);
+            }
+        }
+        return points;
+    }
+
+    /**
+     * returns a Set of latitudes occupied by points within the grid
+     *
+     * @return
+     */
+    public Set<Double> getLatitudes() {
+        HashSet<Double> latitudes = new HashSet<>();
+        for(CoveragePoint pt : grid){
+            latitudes.add(pt.getPoint().getLatitude());
+        }
+        return latitudes;
+    }
+    
+    /**
+     * returns a Set of longitudes occupied by points within the grid
+     *
+     * @return
+     */
+    public Set<Double> getLongitudes() {
+        HashSet<Double> latitudes = new HashSet<>();
+        for(CoveragePoint pt : grid){
+            latitudes.add(pt.getPoint().getLongitude());
+        }
+        return latitudes;
+    }
+    
+    /**
+     * returns a Set of altitude occupied by points within the grid
+     *
+     * @return
+     */
+    public Set<Double> getAltitudes() {
+        HashSet<Double> latitudes = new HashSet<>();
+        for(CoveragePoint pt : grid){
+            latitudes.add(pt.getPoint().getAltitude());
+        }
+        return latitudes;
     }
 
     /**

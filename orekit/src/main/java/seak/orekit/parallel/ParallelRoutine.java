@@ -5,10 +5,12 @@
  */
 package seak.orekit.parallel;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 
 /**
  * Integrated method to use a central thread pool
@@ -24,6 +26,13 @@ public class ParallelRoutine {
 
     private static ExecutorService executor;
 
+    private static ExecutorCompletionService<SubRoutine> ecs;
+
+    /**
+     * Used to prevent new task submissions when running routines
+     */
+    private static boolean locked;
+
     /**
      * The number of threads in the thread pool
      */
@@ -36,6 +45,7 @@ public class ParallelRoutine {
      */
     private ParallelRoutine(int numThreads) {
         ParallelRoutine.executor = Executors.newFixedThreadPool(numThreads);
+        ParallelRoutine.ecs = new ExecutorCompletionService<>(ParallelRoutine.executor);
         ParallelRoutine.numThreads = numThreads;
         instance = this;
     }
@@ -51,7 +61,7 @@ public class ParallelRoutine {
      * @return an instance of ParallelRoutine
      */
     public static ParallelRoutine getInstance(int numThreads) {
-        if (instance == null){
+        if (instance == null) {
             return new ParallelRoutine(numThreads);
         }
         if (ParallelRoutine.executor.isShutdown() || ParallelRoutine.executor.isTerminated()) {
@@ -65,31 +75,73 @@ public class ParallelRoutine {
     }
 
     /**
-     * Submits a subroutine to the thread pool
+     * Submits a subroutine to the thread pool. New tasks cannot be submitted
+     * when subroutines are running. If a subroutine is currently running a new
+     * task is submitted, this method will return null and not run the newly
+     * submitted task.
      *
      * @param subroutine routine to run or call
-     * @return a Future representing pending completion of the task
-     */
-    public static Future<SubRoutine> submit(SubRoutine subroutine) {
-        return ParallelRoutine.executor.submit(subroutine);
-    }
-    
-    /**
-     * Submits a collection of subroutines to the thread pool
-     *
-     * @param subroutines routine  to run or call
-     * @return a collection of Futures representing pending completion of the tasks
+     * @return the completed subroutine
      * @throws java.lang.InterruptedException
+     * @throws java.util.concurrent.ExecutionException
      */
-    public static Collection<Future<SubRoutine>> submit(Collection<SubRoutine> subroutines) throws InterruptedException {
-        return ParallelRoutine.executor.invokeAll(subroutines);
+    public static SubRoutine submit(SubRoutine subroutine) throws InterruptedException, ExecutionException {
+        if (ParallelRoutine.locked) {
+            return null;
+        }
+
+        ParallelRoutine.locked = true;
+        ParallelRoutine.ecs.submit(subroutine);
+        SubRoutine out = ParallelRoutine.ecs.take().get();
+        ParallelRoutine.locked = false;
+        return out;
     }
-    
+
+    /**
+     * Submits a collection of subroutines to the thread pool. New tasks cannot
+     * be submitted when subroutines are running. If a subroutine is currently
+     * running a new task is submitted, this method will return null and not run
+     * the newly submitted task.
+     *
+     * @param subroutines routine to run or call
+     * @return a collection of Futures representing pending completion of the
+     * tasks
+     * @throws java.lang.InterruptedException
+     * @throws java.util.concurrent.ExecutionException
+     */
+    public static Collection<SubRoutine> submit(Collection<SubRoutine> subroutines) throws InterruptedException, ExecutionException {
+        if (ParallelRoutine.locked) {
+            return null;
+        }
+        ParallelRoutine.locked = true;
+        int i = 0;
+        for (SubRoutine sr : subroutines) {
+            ParallelRoutine.ecs.submit(sr);
+            i++;
+        }
+        ArrayList<SubRoutine> completedTasks = new ArrayList<>(i);
+        for (int j = 0; j < i; j++) {
+            completedTasks.add(ParallelRoutine.ecs.take().get());
+        }
+        ParallelRoutine.locked = false;
+        return completedTasks;
+    }
+
     /**
      * Shuts down the thread pool and will not wait for any running processes to
      * finish
      */
     public static void shutDown() {
         ParallelRoutine.executor.shutdown();
+    }
+
+    /**
+     * Checks to see if the pool is locked due to running tasks. While locked,
+     * no new tasks can be submitted
+     *
+     * @return true if locked. Else false.
+     */
+    public static boolean isLocked() {
+        return ParallelRoutine.locked;
     }
 }
