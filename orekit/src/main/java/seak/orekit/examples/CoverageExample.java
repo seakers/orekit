@@ -155,7 +155,7 @@ public class CoverageExample {
         ScenarioIO.saveGroundEventAnalysis(Paths.get(System.getProperty("results"), ""), filename + "_fov", scen, covDef1, fovEvent);
         
         //saves the gap metrics in a csv file for each ground point
-        ScenarioIO.saveGroundEventAnalysisMetrics(Paths.get(System.getProperty("results"), ""), filename + "_fov_metrics", scen, ea, AnalysisMetric.DURATION, false);
+        //ScenarioIO.saveGroundEventAnalysisMetrics(Paths.get(System.getProperty("results"), ""), filename + "_fov_metrics", scen, ea, AnalysisMetric.DURATION, false);
 
         long end = System.nanoTime();
         Logger.getGlobal().finest(String.format("Took %.4f sec", (end - start) / Math.pow(10, 9)));

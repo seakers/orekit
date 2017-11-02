@@ -227,8 +227,8 @@ public class Orekit {
 
         ScenarioIO.saveGroundEventAnalysis(Paths.get(System.getProperty("results"), ""), filename + "_cva", scen, covDef1, fca);
         ScenarioIO.saveGroundEventAnalysis(Paths.get(System.getProperty("results"), ""), filename + "_fov", scen, covDef1, fovEvent);
-        ScenarioIO.saveGroundEventAnalysisMetrics(Paths.get(System.getProperty("results"), ""), filename + "_fov_metrics", scen, ea, AnalysisMetric.DURATION, false);
-        ScenarioIO.saveGroundEventAnalysisMetrics(Paths.get(System.getProperty("results"), ""), filename + "_cva_metrics", scen, ea2, AnalysisMetric.DURATION, false);
+        //ScenarioIO.saveGroundEventAnalysisMetrics(Paths.get(System.getProperty("results"), ""), filename + "_fov_metrics", scen, ea, AnalysisMetric.DURATION, false);
+        //ScenarioIO.saveGroundEventAnalysisMetrics(Paths.get(System.getProperty("results"), ""), filename + "_cva_metrics", scen, ea2, AnalysisMetric.DURATION, false);
 //        ScenarioIO.saveGroundEventAnalysis(Paths.get(System.getProperty("results"), ""), filename + "_gsa", scen, covDef1, gndSunAngEvent);
 //        ScenarioIO.saveLinkBudget(Paths.get(System.getProperty("results"), ""), filename, scenComp, cdefToSave);
 //        ScenarioIO.saveReadMe(Paths.get(path, ""), filename, scenComp);

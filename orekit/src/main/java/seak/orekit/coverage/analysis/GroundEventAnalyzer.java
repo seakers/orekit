@@ -185,6 +185,13 @@ public class GroundEventAnalyzer implements Serializable{
                     ds.addValue(sumDuration / totalTime);
                 }
                 break;
+            case LIST_RISE_SET_TIMES:
+                for (TopocentricFrame cp : data.keySet()) {
+                    for (double event : data.get(cp).getRiseAndSetTimesList()) {
+                        ds.addValue(event);
+                    }
+                }
+                break;
             default:
                 throw new UnsupportedOperationException(String.format("Unsupported metric %s.", metric));
         }

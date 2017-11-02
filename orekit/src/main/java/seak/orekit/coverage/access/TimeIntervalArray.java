@@ -17,7 +17,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import orekit.object.CoveragePoint;
+import seak.orekit.object.CoveragePoint;
 import org.hipparchus.util.FastMath;
 import org.orekit.time.AbsoluteDate;
 
@@ -240,6 +240,28 @@ public class TimeIntervalArray implements Iterable<RiseSetTime>, Serializable {
         return durations;
     }
 
+    /**
+     * Returns an array of the rise and set times of each interval stored in the array.
+     * The returned array will contain the rise and set times in chronological order of
+     * the time intervals
+     *
+     * @return
+     */
+    public double[] getRiseAndSetTimesList() {
+        int nIntervals = numIntervals();
+        double[] eventsList = new double[2*nIntervals];
+        int eventIndex = 0;
+
+        int endInd = timeArray.size();
+
+        for (int i = 0; i < endInd; i += 1) {
+            eventsList[eventIndex] = timeArray.get(i).getTime();
+            eventIndex++;
+        }
+
+        return eventsList;
+    }
+    
     /**
      * Returns a time interval array that contains the gaps between the time
      * intervals stored in this array. For example, if this array was a time

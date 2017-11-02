@@ -54,7 +54,7 @@ import seak.orekit.scenario.Scenario;
 
 /**
  *
- * @author nozomihitomi
+ * @author paugarciabuzzi
  */
 public class Tests {
 
@@ -91,7 +91,7 @@ public class Tests {
         
         TimeScale utc = TimeScalesFactory.getUTC();
         AbsoluteDate startDate = new AbsoluteDate(2016, 1, 1, 00, 00, 00.000, utc);
-        AbsoluteDate endDate = new AbsoluteDate(2016, 1, 7, 00, 00, 00.000, utc);
+        AbsoluteDate endDate = new AbsoluteDate(2016, 1, 14, 00, 00, 00.000, utc);
         double mu = Constants.WGS84_EARTH_MU; // gravitation coefficient
 
         //must use IERS_2003 and EME2000 frames to be consistent with STK
@@ -120,7 +120,7 @@ public class Tests {
         propertiesPropagator.setProperty("orekit.propagator.thirdbody.sun", "true");
         propertiesPropagator.setProperty("orekit.propagator.thirdbody.moon", "true");
         propertiesPropagator.setProperty("orekit.propagator.solarpressure", "true");
-        propertiesPropagator.setProperty("orekit.propagator.solararea", "10");
+        propertiesPropagator.setProperty("orekit.propagator.solararea", "0.058");
         
         //PropagatorFactory pf = new PropagatorFactory(PropagatorType.KEPLERIAN,propertiesPropagator);
         //PropagatorFactory pf = new PropagatorFactory(PropagatorType.J2,propertiesPropagator);

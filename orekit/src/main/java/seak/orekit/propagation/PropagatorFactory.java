@@ -173,7 +173,7 @@ public class PropagatorFactory {
         //Frames and Bodies creation (must use IERS_2003 and EME2000 frames to be consistent with STK)
         final Frame earthFrame = FramesFactory.getITRF(IERSConventions.IERS_2003, true);
         final OneAxisEllipsoid earth = new OneAxisEllipsoid(Constants.WGS84_EARTH_EQUATORIAL_RADIUS, Constants.WGS84_EARTH_FLATTENING, earthFrame);
-
+        
         //Add the gravity model with Harmonics
         GravityFieldFactory.clearPotentialCoefficientsReaders();
         ICGEMFormatReader reader = new ICGEMFormatReader(ICGEM_FILENAME, false);
