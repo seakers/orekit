@@ -9,6 +9,7 @@ import java.io.File;
 import java.net.URISyntaxException;
 import java.net.URL;
 import org.orekit.data.DataProvidersManager;
+import seak.orekit.parallel.ParallelRoutine;
 
 /**
  * This class configures the paths required for orekit when loading data (e.g.
@@ -23,13 +24,22 @@ public class OrekitConfig {
      */
     private OrekitConfig() {
     }
-
+    
     /**
      * Initial configuration that configures the libraries from the development
      * environment Loads in default datasets
      */
     public static void init() {
-        OrekitConfig.init(System.getProperty("user.dir"));
+        OrekitConfig.init(1, System.getProperty("user.dir"));
+    }
+
+    /**
+     * Initial configuration that configures the libraries from the development
+     * environment Loads in default datasets
+     * @param numThreads the number of threads to initiate for analyses
+     */
+    public static void init(int numThreads) {
+        OrekitConfig.init(numThreads, System.getProperty("user.dir"));
     }
 
     /**
@@ -37,8 +47,11 @@ public class OrekitConfig {
      * environment Loads in default datasets
      *
      * @param currentDirectory string of the current directory
+     * @param numThreads the number of threads to initiate for analyses
      */
-    public static void init(String currentDirectory) throws IllegalArgumentException {
+    public static void init(int numThreads, String currentDirectory) throws IllegalArgumentException {
+        ParallelRoutine.getInstance(numThreads);
+        
         StringBuffer pathBuffer = new StringBuffer();
         final File currrentDir = new File(currentDirectory);
         appendIfExists(pathBuffer, new File(currrentDir, "resources"));
@@ -62,6 +75,13 @@ public class OrekitConfig {
             }
         }
         System.setProperty("results", res.getAbsolutePath());
+    }
+    
+    /**
+     * Releases any open resources
+     */
+    public static void end(){
+        ParallelRoutine.shutDown();
     }
 
     /**

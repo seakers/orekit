@@ -5,13 +5,6 @@
  */
 package seak.orekit.event;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -60,13 +53,14 @@ public class LinkBudgetEventAnalysis extends AbstractGroundEventAnalysis {
     private final PropagatorFactory propagatorFactory;
 
     /**
-     * a flag set by the user to toggle whether to save the link budget intervals of each
-     * individual satellite or to release them from memory.
+     * a flag set by the user to toggle whether to save the link budget
+     * intervals of each individual satellite or to release them from memory.
      */
     private final boolean saveAllLinkIntervals;
 
     /**
-     * Stores all the link intervals of each satellite if saveAllLinkIntervals is true.
+     * Stores all the link intervals of each satellite if saveAllLinkIntervals
+     * is true.
      */
     private HashMap<CoverageDefinition, HashMap<Satellite, HashMap<TopocentricFrame, TimeIntervalArray>>> allLinkIntervals;
 
@@ -74,12 +68,12 @@ public class LinkBudgetEventAnalysis extends AbstractGroundEventAnalysis {
      * the number of threads to use in parallel processing
      */
     private final int numThreads;
-            
+
     /**
      * Link budget object containing all communications parameters
      */
-
     private final LinkBudget lb;
+
     /**
      * Creates a new scenario.
      *
@@ -88,9 +82,10 @@ public class LinkBudgetEventAnalysis extends AbstractGroundEventAnalysis {
      * @param inertialFrame
      * @param propagatorFactory
      * @param covDefs
-     * @param saveAllLinkIntervals true if user wants to maintain all the link intervals
-     * from each individual satellite. false if user would like to only get the
-     * merged link intervals between all satellites (this saves memory).
+     * @param saveAllLinkIntervals true if user wants to maintain all the link
+     * intervals from each individual satellite. false if user would like to
+     * only get the merged link intervals between all satellites (this saves
+     * memory).
      * @param numThreads number of threads to uses in parallelization of the
      * scenario by dividing up the coverage grid points across multiple threads
      * @param lb object containing all the communications parameters
@@ -107,16 +102,16 @@ public class LinkBudgetEventAnalysis extends AbstractGroundEventAnalysis {
         }
 
         this.numThreads = numThreads;
-        
-        this.lb=lb;
+
+        this.lb = lb;
     }
 
     /**
      * Runs the scenario from the start date to the end date. Running the
      * scenario propagates the orbits of each satellite in the constellation and
      * computes the intervals between the satellites and the ground stations or
-     * grid points in which the link budget is closed. The intervals are stored and 
-     * are accessible after the simulation is run.
+     * grid points in which the link budget is closed. The intervals are stored
+     * and are accessible after the simulation is run.
      *
      * @return
      * @throws org.orekit.errors.OrekitException
@@ -156,9 +151,9 @@ public class LinkBudgetEventAnalysis extends AbstractGroundEventAnalysis {
                 double losStepSize = sat.getOrbit().getKeplerianPeriod() / 10.;
                 double fovStepSize = sat.getOrbit().getKeplerianPeriod() / 100.;
                 double threshold = 1e-3;
-                double lbStepSize = fovStepSize/10.;
+                double lbStepSize = fovStepSize / 10.;
 
-                LinkBudgetSubRoutine subRoutine = new LinkBudgetSubRoutine(sat, prop, cdef, losStepSize, fovStepSize, threshold,lb,lbStepSize);
+                LinkBudgetSubRoutine subRoutine = new LinkBudgetSubRoutine(sat, prop, cdef, losStepSize, fovStepSize, threshold, lb, lbStepSize);
                 ecs.submit(subRoutine);
                 nSubRoutines++;
             }
@@ -195,8 +190,8 @@ public class LinkBudgetEventAnalysis extends AbstractGroundEventAnalysis {
     }
 
     /**
-     * Saves the computed link intervals from the satellite assigned to the coverage
-     * definition.
+     * Saves the computed link intervals from the satellite assigned to the
+     * coverage definition.
      *
      * @param sat the satellite
      * @param cdef the coverage definition that the satellite is assigned to
@@ -243,24 +238,23 @@ public class LinkBudgetEventAnalysis extends AbstractGroundEventAnalysis {
 //        }
 //        return out;
 //    }
-
     /**
-     * Returns the individual link intervals of a given satellite on a given coverage
-     * definition after the scenario is finished running.
+     * Returns the individual link intervals of a given satellite on a given
+     * coverage definition after the scenario is finished running.
      *
      * @param covDef the coverage definition of interest
      * @param sat a satellite that is assigned to the coverage definition
-     * @return If the scenario is set to save the individual satellite link intervals
-     * and the satellite is assigned to the coverage definition, a map of
-     * coverage points and time interval array will be returned. else null
+     * @return If the scenario is set to save the individual satellite link
+     * intervals and the satellite is assigned to the coverage definition, a map
+     * of coverage points and time interval array will be returned. else null
      */
     public HashMap<TopocentricFrame, TimeIntervalArray> getSatelliteLinkIntervals(CoverageDefinition covDef, Satellite sat) {
         return allLinkIntervals.get(covDef).get(sat);
     }
 
     /**
-     * Returns the flag that marks whether each satellite's link interval should be
-     * saved.
+     * Returns the flag that marks whether each satellite's link interval should
+     * be saved.
      *
      * @return
      */
@@ -269,15 +263,14 @@ public class LinkBudgetEventAnalysis extends AbstractGroundEventAnalysis {
     }
 
     /**
-     * Returns the computed link interval for each coverage definition by each of the
-     * satellites assigned to that coverage definition
+     * Returns the computed link interval for each coverage definition by each
+     * of the satellites assigned to that coverage definition
      *
      * @return
      */
     public HashMap<CoverageDefinition, HashMap<Satellite, HashMap<TopocentricFrame, TimeIntervalArray>>> getAllLinkIntervals() {
         return allLinkIntervals;
     }
-
 
     /**
      * Gets the propagator factory used to create new propagators for this
@@ -349,17 +342,16 @@ public class LinkBudgetEventAnalysis extends AbstractGroundEventAnalysis {
         private final double threshold;
 
         /**
-         * The times, for each point, when the link budget is closed by the given
-         * satellite and its payload.
+         * The times, for each point, when the link budget is closed by the
+         * given satellite and its payload.
          */
         private final HashMap<TopocentricFrame, TimeIntervalArray> satlinkBudgetIntervals;
-        
+
         /**
          * Link budget parameters.
          */
-        
         private final LinkBudget lb;
-        
+
         /**
          * The threshold, in seconds, when conducting root finding to determine
          * when an event occurred.
@@ -403,7 +395,7 @@ public class LinkBudgetEventAnalysis extends AbstractGroundEventAnalysis {
         public LinkBudgetSubRoutine call() throws Exception {
             if (prop instanceof NumericalPropagator) {
                 singlePropagate();
-            }else{
+            } else {
                 multiPropogate();
             }
             return this;
@@ -479,7 +471,7 @@ public class LinkBudgetEventAnalysis extends AbstractGroundEventAnalysis {
                     //TimeIntervalMerger merger = new TimeIntervalMerger(satAccesses.get(pt), fovTimeArray);
                     //satAccesses.put(pt, merger.orCombine());
                     prop.clearEventsDetectors();
-                    
+
                     //link budget
                     prop.resetInitialState(initialState);
 
@@ -494,7 +486,7 @@ public class LinkBudgetEventAnalysis extends AbstractGroundEventAnalysis {
                     TimeIntervalMerger mergerlb = new TimeIntervalMerger(fovTimeArray, lbTimeArray);
                     satlinkBudgetIntervals.put(pt, mergerlb.andCombine());
                     prop.clearEventsDetectors();
-        }
+                }
             }
         }
 
@@ -524,12 +516,12 @@ public class LinkBudgetEventAnalysis extends AbstractGroundEventAnalysis {
                 prop.resetInitialState(initialState);
                 for (CoveragePoint pt : cdef.getPoints()) {
                     LBDetector lbDetec = new LBDetector(initialState, getStartDate(), getEndDate(), pt, lb, lbStepSize, threshold, EventHandler.Action.CONTINUE);
-                                    prop.addEventDetector(lbDetec);
+                    prop.addEventDetector(lbDetec);
                     prop.addEventDetector(lbDetec);
                     map2.put(pt, lbDetec);
                 }
                 prop.propagate(getStartDate(), getEndDate());
-                    
+
                 for (CoveragePoint pt : map.keySet()) {
                     TimeIntervalArray fovTimeArray = map.get(pt).getTimeIntervalArray();
                     TimeIntervalArray lbTimeArray = map2.get(pt).getTimeIntervalArray();

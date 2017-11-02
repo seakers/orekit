@@ -11,6 +11,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 import seak.orekit.coverage.access.TimeIntervalArray;
 import seak.orekit.object.CoveragePoint;
 import org.hipparchus.stat.descriptive.DescriptiveStatistics;
@@ -22,7 +23,7 @@ import org.orekit.frames.TopocentricFrame;
  *
  * @author nozomihitomi
  */
-public class GroundEventAnalyzer implements Serializable{
+public class GroundEventAnalyzer implements Serializable {
 
     private static final long serialVersionUID = -1289132465835079824L;
 
@@ -61,12 +62,15 @@ public class GroundEventAnalyzer implements Serializable{
      * @param metric the metric to compute
      * @param occurrences flag to declare whether to use the saved time
      * intervals [true] or its complement [false].
+     * @param properties properties that declare the input arguments of the
+     * metrics
      * @return statistics computed on the specified metric
      */
-    public DescriptiveStatistics getStatistics(AnalysisMetric metric, boolean occurrences) {
+    public DescriptiveStatistics getStatistics(AnalysisMetric metric, boolean occurrences, Properties properties) {
         return this.getStatistics(metric, occurrences,
                 new double[]{-Math.PI / 2, Math.PI / 2},
-                new double[]{-Math.PI, Math.PI});
+                new double[]{-Math.PI, Math.PI},
+                properties);
     }
 
     /**
@@ -78,9 +82,11 @@ public class GroundEventAnalyzer implements Serializable{
      * intervals [true] or its complement [false].
      * @param latBounds latitude bounds
      * @param lonBounds longitude bounds
+     * @param properties properties that declare the input arguments of the
+     * metrics
      * @return statistics computed on the specified metric
      */
-    public DescriptiveStatistics getStatistics(AnalysisMetric metric, boolean occurrences, double[] latBounds, double[] lonBounds) {
+    public DescriptiveStatistics getStatistics(AnalysisMetric metric, boolean occurrences, double[] latBounds, double[] lonBounds, Properties properties) {
         if (latBounds[0] > latBounds[1] || latBounds[0] < -Math.PI / 2 || latBounds[0] > Math.PI / 2
                 || latBounds[1] < -Math.PI / 2 || latBounds[1] > Math.PI / 2) {
             throw new IllegalArgumentException(
@@ -100,9 +106,9 @@ public class GroundEventAnalyzer implements Serializable{
                 points.add(pt);
             }
         }
-        return this.getStatistics(metric, occurrences, points);
+        return this.getStatistics(metric, occurrences, points, properties);
     }
-    
+
     /**
      * Computes the statistics for a specified metric on the specified point
      *
@@ -110,13 +116,15 @@ public class GroundEventAnalyzer implements Serializable{
      * @param occurrences flag to declare whether to use the saved time
      * intervals [true] or its complement [false].
      * @param point the specific point to compute the metrics on
-     
+     * @param properties properties that declare the input arguments of the
+     * metrics
+     *
      * @return statistics computed on the specified metric
      */
-    public DescriptiveStatistics getStatistics(AnalysisMetric metric, boolean occurrences, TopocentricFrame point) {
+    public DescriptiveStatistics getStatistics(AnalysisMetric metric, boolean occurrences, TopocentricFrame point, Properties properties) {
         ArrayList<TopocentricFrame> list = new ArrayList<>();
         list.add(point);
-        return this.getStatistics(metric, occurrences, list);
+        return this.getStatistics(metric, occurrences, list, properties);
     }
 
     /**
@@ -127,10 +135,11 @@ public class GroundEventAnalyzer implements Serializable{
      * @param occurrences flag to declare whether to use the saved time
      * intervals [true] or its complement [false].
      * @param points the subset of points to compute the metrics on
-     
+     * @param properties properties that declare the input arguments of the
+     * metrics
      * @return statistics computed on the specified metric
      */
-    public DescriptiveStatistics getStatistics(AnalysisMetric metric, boolean occurrences, Collection<TopocentricFrame> points) {
+    public DescriptiveStatistics getStatistics(AnalysisMetric metric, boolean occurrences, Collection<TopocentricFrame> points, Properties properties) {
         Map<TopocentricFrame, TimeIntervalArray> data = new HashMap<>();
         for (TopocentricFrame cp : points) {
             if (occurrences) {
@@ -147,6 +156,26 @@ public class GroundEventAnalyzer implements Serializable{
                 for (TopocentricFrame cp : data.keySet()) {
                     for (double duration : data.get(cp).getDurations()) {
                         ds.addValue(duration);
+                    }
+                }
+                break;
+            case DURATION_GEQ:
+                double thresholdGEQ = Double.parseDouble(properties.getProperty("threshold"));
+                for (TopocentricFrame cp : data.keySet()) {
+                    for (double duration : data.get(cp).getDurations()) {
+                        if (duration > thresholdGEQ) {
+                            ds.addValue(duration);
+                        }
+                    }
+                }
+                break;
+            case DURATION_LEQ:
+                double thresholdLEQ = Double.parseDouble(properties.getProperty("threshold"));
+                for (TopocentricFrame cp : data.keySet()) {
+                    for (double duration : data.get(cp).getDurations()) {
+                        if (duration < thresholdLEQ) {
+                            ds.addValue(duration);
+                        }
                     }
                 }
                 break;

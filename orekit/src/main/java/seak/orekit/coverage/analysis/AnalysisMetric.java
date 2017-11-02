@@ -17,6 +17,16 @@ public enum AnalysisMetric {
      */
     DURATION,
     /**
+     * Used when obtaining the duration of the event occurrences or
+     * non-occurrences that exceed a certain duration. Takes in input parameter "threshold".
+     */
+    DURATION_GEQ,
+    /**
+     * Used when obtaining the duration of the event occurrences or
+     * non-occurrences that are less than a certain duration. Takes in input parameter "threshold".
+     */
+    DURATION_LEQ,
+    /**
      * used for mean time to access or mean response time
      */
     MEAN_TIME_TO_T,

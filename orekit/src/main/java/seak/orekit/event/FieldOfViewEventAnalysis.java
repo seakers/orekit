@@ -12,15 +12,11 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Callable;
-import java.util.concurrent.CompletionService;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorCompletionService;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.hipparchus.util.FastMath;
@@ -33,16 +29,16 @@ import org.orekit.propagation.SpacecraftState;
 import org.orekit.propagation.events.handlers.EventHandler;
 import org.orekit.propagation.numerical.NumericalPropagator;
 import org.orekit.time.AbsoluteDate;
-import seak.orekit.coverage.access.RiseSetTime;
 import seak.orekit.coverage.access.TimeIntervalArray;
 import seak.orekit.coverage.access.TimeIntervalMerger;
 import seak.orekit.event.detector.FOVDetector;
-import seak.orekit.event.detector.LOSDetector;
 import seak.orekit.object.Constellation;
 import seak.orekit.object.CoverageDefinition;
 import seak.orekit.object.CoveragePoint;
 import seak.orekit.object.Instrument;
 import seak.orekit.object.Satellite;
+import seak.orekit.parallel.ParallelRoutine;
+import seak.orekit.parallel.SubRoutine;
 import seak.orekit.propagation.PropagatorFactory;
 
 /**
@@ -80,11 +76,6 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
     private HashMap<CoverageDefinition, HashMap<Satellite, HashMap<TopocentricFrame, TimeIntervalArray>>> allAccesses;
 
     /**
-     * the number of threads to use in parallel processing
-     */
-    protected final int numThreads;
-
-    /**
      * Creates a new event analysis.
      *
      * @param startDate of analysis
@@ -98,13 +89,11 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
      * merged accesses between all satellites (this saves memory).
      * @param saveToDB flag to dictate whether the coverage accesses of
      * individual satellites should be saved to the coverage database
-     * @param numThreads number of threads to uses in parallelization of the
-     * scenario by dividing up the propagation across multiple threads
      */
     public FieldOfViewEventAnalysis(AbsoluteDate startDate, AbsoluteDate endDate,
             Frame inertialFrame, Set<CoverageDefinition> covDefs,
             PropagatorFactory propagatorFactory, boolean saveAllAccesses,
-            boolean saveToDB, int numThreads) {
+            boolean saveToDB) {
         super(startDate, endDate, inertialFrame, covDefs);
         this.propagatorFactory = propagatorFactory;
         this.saveAllAccesses = saveAllAccesses;
@@ -116,7 +105,6 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
         }
 
         this.saveToDB = saveToDB;
-        this.numThreads = numThreads;
     }
 
     /**
@@ -131,10 +119,6 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
      */
     @Override
     public FieldOfViewEventAnalysis call() throws OrekitException {
-        //set up resource pool
-        ExecutorService pool = Executors.newFixedThreadPool(numThreads);
-        CompletionService<FieldOfViewSubRoutine> ecs = new ExecutorCompletionService(pool);
-
         for (CoverageDefinition cdef : getCoverageDefinitions()) {
             Logger.getGlobal().finer(String.format("Acquiring access times for %s...", cdef));
             Logger.getGlobal().finer(
@@ -143,7 +127,7 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
                             getEndDate().durationFrom(getStartDate()) / 86400.));
 
             //propogate each satellite individually
-            int nSubRoutines = 0;
+            ArrayList<SubRoutine> subRoutines = new ArrayList<>();
             for (Satellite sat : getUniqueSatellites(cdef)) {
                 //first check if the satellite accesses are already saved in the database
                 File file = new File(
@@ -158,40 +142,34 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
                 //if no precomuted times available, then propagate
                 Propagator prop = propagatorFactory.createPropagator(sat.getOrbit(), sat.getGrossMass());
                 //Set stepsizes and threshold for detectors
-                double losStepSize = sat.getOrbit().getKeplerianPeriod() / 10.;
                 double fovStepSize = sat.getOrbit().getKeplerianPeriod() / 100.;
                 double threshold = 1e-3;
 
-                FieldOfViewSubRoutine subRoutine = new FieldOfViewSubRoutine(sat, prop, cdef, losStepSize, fovStepSize, threshold);
-                ecs.submit(subRoutine);
-                nSubRoutines++;
+                FieldOfViewSubRoutine subRoutine = new FieldOfViewSubRoutine(sat, prop, cdef, fovStepSize, threshold);
+                subRoutines.add(subRoutine);
             }
 
-            for (int i = 0; i < nSubRoutines; i++) {
-                FieldOfViewSubRoutine subRoutine = null;
-                try {
-                    subRoutine = ecs.take().get();
-                } catch (InterruptedException ex) {
-                    Logger.getLogger(FieldOfViewEventAnalysis.class.getName()).log(Level.SEVERE, null, ex);
-                } catch (ExecutionException ex) {
-                    Logger.getLogger(FieldOfViewEventAnalysis.class.getName()).log(Level.SEVERE, null, ex);
+            try {
+                for (SubRoutine sr : ParallelRoutine.submit(subRoutines)) {
+                    if (sr == null) {
+                        throw new IllegalStateException("Subroutine failed in field of view event.");
+                    }
+                    FieldOfViewSubRoutine fovsr = (FieldOfViewSubRoutine)sr;
+                    Satellite sat = fovsr.getSat();
+                    HashMap<TopocentricFrame, TimeIntervalArray> satAccesses = fovsr.getSatAccesses();
+                    processAccesses(sat, cdef, satAccesses);
+                    
+                    if (saveToDB) {
+                        File file = new File(
+                                System.getProperty("orekit.coveragedatabase"),
+                                String.valueOf(sat.hashCode()));
+                        writeAccesses(file, satAccesses);
+                    }
                 }
-
-                if (subRoutine == null) {
-                    pool.shutdown();
-                    throw new IllegalStateException("Subroutine failed in field of view event.");
-                }
-
-                Satellite sat = subRoutine.getSat();
-                HashMap<TopocentricFrame, TimeIntervalArray> satAccesses = subRoutine.getSatAccesses();
-                processAccesses(sat, cdef, satAccesses);
-
-                if (saveToDB) {
-                    File file = new File(
-                            System.getProperty("orekit.coveragedatabase"),
-                            String.valueOf(sat.hashCode()));
-                    writeAccesses(file, satAccesses);
-                }
+            } catch (InterruptedException ex) {
+                Logger.getLogger(FieldOfViewEventAnalysis.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (ExecutionException ex) {
+                Logger.getLogger(FieldOfViewEventAnalysis.class.getName()).log(Level.SEVERE, null, ex);
             }
 
             //Make all time intervals stored in finalAccesses immutable
@@ -200,7 +178,6 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
             }
         }
 
-        pool.shutdown();
         return this;
     }
 
@@ -321,7 +298,7 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
     /**
      * Creates a subroutine to run the field of view event analysis in parallel
      */
-    private class FieldOfViewSubRoutine implements Callable<FieldOfViewSubRoutine> {
+    private class FieldOfViewSubRoutine implements SubRoutine {
 
         /**
          * The satellite to propagate
@@ -337,14 +314,7 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
          * The coverage definition to access
          */
         private final CoverageDefinition cdef;
-
-        /**
-         * The step size during propagation when computing the line of sight
-         * events. Generally, this can be a large step. It is used to speed up
-         * the simulation.
-         */
-        private final double losStepSize;
-
+        
         /**
          * The step size during propagation when computing the field of view
          * events. Generally, this should be a small step for accurate results.
@@ -368,9 +338,6 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
          * @param sat The satellite to propagate
          * @param prop The propagator
          * @param cdef The coverage definition to access
-         * @param losStepSize The step size during propagation when computing
-         * the line of sight events. Generally, this can be a large step. It is
-         * used to speed up the simulation.
          * @param fovStepSize The step size during propagation when computing
          * the field of view events. Generally, this should be a small step for
          * accurate results.
@@ -378,12 +345,11 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
          * finding to determine when an event occurred.
          */
         public FieldOfViewSubRoutine(Satellite sat, Propagator prop,
-                CoverageDefinition cdef, double losStepSize,
+                CoverageDefinition cdef,
                 double fovStepSize, double threshold) {
             this.sat = sat;
             this.prop = prop;
             this.cdef = cdef;
-            this.losStepSize = losStepSize;
             this.fovStepSize = fovStepSize;
             this.threshold = threshold;
 
@@ -424,55 +390,15 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
                     prop.resetInitialState(initialState);
                     prop.clearEventsDetectors();
 
-                    //First find all intervals with line of sight.
-                    LOSDetector losDetec = new LOSDetector(
-                            initialState, getStartDate(), getEndDate(),
-                            pt, cdef.getPlanetShape(), getInertialFrame(),
-                            losStepSize, threshold, EventHandler.Action.CONTINUE);
-                    prop.addEventDetector(losDetec);
-                    prop.propagate(getStartDate(), getEndDate());
-                    TimeIntervalArray losTimeArray = losDetec.getTimeIntervalArray();
-                    if (losTimeArray == null || losTimeArray.isEmpty()) {
-                        continue;
-                    }
-
                     //need to reset initial state of the propagators or will progate from the last stop time
                     prop.resetInitialState(initialState);
                     prop.clearEventsDetectors();
                     //Next search through intervals with line of sight to compute when point is in field of view 
                     FOVDetector fovDetec = new FOVDetector(initialState, getStartDate(), getEndDate(),
-                            pt, inst, fovStepSize, threshold, EventHandler.Action.STOP);
+                            pt, inst, fovStepSize, threshold, EventHandler.Action.CONTINUE);
                     prop.addEventDetector(fovDetec);
+                    prop.propagate(getStartDate(), getEndDate());
 
-                    double date0 = 0;
-                    double date1 = Double.NaN;
-                    for (RiseSetTime interval : losTimeArray) {
-                        if (interval.isRise()) {
-                            date0 = interval.getTime();
-                        } else {
-                            date1 = interval.getTime();
-                        }
-
-                        if (!Double.isNaN(date1)) {
-                            //first propagation will find the start time when the point is in the field of view
-                            SpacecraftState s = prop.propagate(getStartDate().shiftedBy(date0), getStartDate().shiftedBy(date1));
-                            if (Math.abs(s.getDate().durationFrom(initialState.getDate()) - date1) < 1e-6) {
-                                //did not find an access
-                                continue;
-                            }
-
-                            //check to see if the first access was closing an access
-                            if (!fovDetec.isOpen()) {
-                                continue;
-                            }
-
-                            //second propagation will find the end time when the point is in the field of view
-                            prop.resetInitialState(s);
-                            prop.propagate(s.getDate(), getStartDate().shiftedBy(date1));
-
-                            date1 = Double.NaN;
-                        }
-                    }
                     TimeIntervalArray fovTimeArray = fovDetec.getTimeIntervalArray();
                     if (fovTimeArray == null || fovTimeArray.isEmpty()) {
                         continue;

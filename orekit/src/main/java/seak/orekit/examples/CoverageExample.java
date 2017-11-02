@@ -24,6 +24,7 @@ import seak.orekit.util.OrekitConfig;
 import org.hipparchus.stat.descriptive.DescriptiveStatistics;
 import org.hipparchus.util.FastMath;
 import org.orekit.bodies.BodyShape;
+import org.orekit.bodies.GeodeticPoint;
 import org.orekit.bodies.OneAxisEllipsoid;
 import org.orekit.errors.OrekitException;
 import org.orekit.frames.Frame;
@@ -55,7 +56,7 @@ public class CoverageExample {
     public static void main(String[] args) throws OrekitException {
         //if running on a non-US machine, need the line below
         Locale.setDefault(new Locale("en", "US"));
-        
+
         long start = System.nanoTime();
 
         String filename;
@@ -106,9 +107,9 @@ public class CoverageExample {
         //set the type of propagation
         PropagatorFactory pf = new PropagatorFactory(PropagatorType.KEPLERIAN, new Properties());
 
-        //can set the number of resources available for propagation
+        //can set the properties of the analyses
         Properties propertiesEventAnalysis = new Properties();
-        propertiesEventAnalysis.setProperty("numThreads", "6");
+        propertiesEventAnalysis.setProperty("fov.saveAccess", "false");
 
         //set the coverage event analyses
         EventAnalysisFactory eaf = new EventAnalysisFactory(startDate, endDate, inertialFrame, pf);
@@ -134,8 +135,8 @@ public class CoverageExample {
 
         //Extract the coverage and access metrics
         GroundEventAnalyzer ea = new GroundEventAnalyzer(fovEvent.getEvents(covDef1));
-        DescriptiveStatistics accessStats = ea.getStatistics(AnalysisMetric.DURATION, true);
-        DescriptiveStatistics gapStats = ea.getStatistics(AnalysisMetric.DURATION, false);
+        DescriptiveStatistics accessStats = ea.getStatistics(AnalysisMetric.DURATION, true, new Properties());
+        DescriptiveStatistics gapStats = ea.getStatistics(AnalysisMetric.DURATION, false, new Properties());
 
         System.out.println(String.format("Max access time %s", accessStats.getMax()));
         System.out.println(String.format("Mean access time %s", accessStats.getMean()));
@@ -159,6 +160,8 @@ public class CoverageExample {
 
         long end = System.nanoTime();
         Logger.getGlobal().finest(String.format("Took %.4f sec", (end - start) / Math.pow(10, 9)));
+
+        OrekitConfig.end();
     }
 
 }

@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletionService;
@@ -26,6 +27,7 @@ import org.hipparchus.stat.descriptive.DescriptiveStatistics;
 import org.moeaframework.analysis.sensitivity.Parameter;
 import org.orekit.frames.Frame;
 import org.orekit.frames.FramesFactory;
+import org.orekit.frames.TopocentricFrame;
 import org.orekit.orbits.KeplerianOrbit;
 import org.orekit.orbits.Orbit;
 import org.orekit.orbits.PositionAngle;
@@ -742,11 +744,11 @@ public class CoverageVersusOrbitalElements extends SobolSensitivityAnalysis {
             Constellation constel = new Constellation("constel", new ArrayList(Arrays.asList(new Satellite[]{sat})));
             cdef.assignConstellation(constel);
             covDefs.add(cdef);
-            FastCoverageAnalysis fca = new FastCoverageAnalysis(startDate, endDate, inertialFrame, covDefs, conicalHalfAngle, 1);
+            FastCoverageAnalysis fca = new FastCoverageAnalysis(startDate, endDate, inertialFrame, covDefs, conicalHalfAngle);
             fca.call();
 
             GroundEventAnalyzer ea = new GroundEventAnalyzer(fca.getEvents(cdef));
-            this.stats = ea.getStatistics(AnalysisMetric.DURATION, false);
+            this.stats = ea.getStatistics(AnalysisMetric.DURATION, false, new Properties());
             return this;
         }
 

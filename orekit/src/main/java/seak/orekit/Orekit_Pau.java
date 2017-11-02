@@ -226,6 +226,8 @@ public class Orekit_Pau {
         }
         long end = System.nanoTime();
         Logger.getGlobal().finest(String.format("Took %.4f sec", (end - start) / Math.pow(10, 9)));
+        
+        OrekitConfig.end();
     }
     
 }

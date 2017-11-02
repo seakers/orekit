@@ -126,11 +126,12 @@ public class TimeIntervalArray implements Iterable<RiseSetTime>, Serializable {
      */
     private boolean addRise(double riseTime) {
         if (accessing) {
-            throw new IllegalArgumentException(String.format("Cannot add rise time %s since interval is not closed yet.", riseTime));
+            throw new IllegalArgumentException(String.format("Cannot add rise time %f since interval is not closed yet.\nLast rise time = %f",
+                                riseTime, this.timeArray.get(this.timeArray.size()-1).getTime()));
         }
 
         if (riseTime < 0) {
-            throw new IllegalArgumentException(String.format("Cannot add rise time %s before the head of the timeline.", riseTime));
+            throw new IllegalArgumentException(String.format("Cannot add rise time %f before the head of the timeline.", riseTime));
         }
 
         timeArray.add(new RiseSetTime(riseTime, true));
@@ -166,7 +167,9 @@ public class TimeIntervalArray implements Iterable<RiseSetTime>, Serializable {
         } else {
 
             if (!accessing) {
-                throw new IllegalArgumentException(String.format("Cannot add set time %s since interval is not open yet.", setTime));
+                throw new IllegalArgumentException(
+                        String.format("Cannot add set time %f since interval is not open yet.\nLast set time = %f",
+                                setTime, this.timeArray.get(this.timeArray.size()-1).getTime()));
             }
 
             if (setTime > simulationLength) {
