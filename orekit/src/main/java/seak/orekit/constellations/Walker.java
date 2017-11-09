@@ -132,7 +132,7 @@ public class Walker extends Constellation {
             for (int satNum = 0; satNum < s; satNum++) {
                 double anom = refAnom + satNum * delAnom + phasing * planeNum % (2.*FastMath.PI);
                 //since eccentricity = 0, doesn't matter if using true or mean anomaly
-                Orbit orb = new J2KeplerianOrbit(semimajoraxis, 0.00001, i, 0.0, 
+                Orbit orb = new J2KeplerianOrbit(semimajoraxis, 0, i, 0.0, 
                         refRaan + planeNum * delRaan, 
                         anom,
                         PositionAngle.TRUE, inertialFrame, startDate, mu);
