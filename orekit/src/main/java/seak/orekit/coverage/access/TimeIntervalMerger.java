@@ -180,7 +180,9 @@ public class TimeIntervalMerger {
                 currentTime = event.getTime();
                 overlap.add(currentOverlap);
             } else {
-                riseSetTimes.remove(i); //remove duplicate rise set times
+                overlap.remove(overlap.size()-1); //remove duplicate rise set times
+                overlap.add(currentOverlap);
+                riseSetTimes.remove(i);
                 i--;
             }
         }

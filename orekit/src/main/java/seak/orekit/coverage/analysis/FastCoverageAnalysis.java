@@ -168,7 +168,10 @@ public class FastCoverageAnalysis extends FieldOfViewEventAnalysis {
 
         //compute raan and ta for each time step
         double raan = raan_dot * time + orb.getRightAscensionOfAscendingNode();
-        double ta = ta_dot * time + orb.getAnomaly(PositionAngle.TRUE);
+        
+        //sometimes when ecc = 0.0 the KeplerianOrbit defines argument of perigee as the same as true anomaly. 
+        //Here since only ecc = 0.0 is allowed, we take the sum of argument of perigee and true anomaly as the anomaly
+        double ta = ta_dot * time + orb.getAnomaly(PositionAngle.TRUE) + orb.getPerigeeArgument();
 
         return orbitalElem2xyz(sa, inc, raan, ta);
     }
