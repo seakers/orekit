@@ -7,6 +7,7 @@ package seak.orekit;
 
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
@@ -37,6 +38,9 @@ import org.orekit.bodies.OneAxisEllipsoid;
 import org.orekit.errors.OrekitException;
 import org.orekit.frames.Frame;
 import org.orekit.frames.FramesFactory;
+import org.orekit.orbits.KeplerianOrbit;
+import org.orekit.orbits.Orbit;
+import org.orekit.orbits.PositionAngle;
 import org.orekit.time.AbsoluteDate;
 import org.orekit.time.TimeScale;
 import org.orekit.time.TimeScalesFactory;
@@ -51,12 +55,14 @@ import seak.orekit.event.EventAnalysisEnum;
 import seak.orekit.event.EventAnalysisFactory;
 import seak.orekit.event.FieldOfViewEventAnalysis;
 import seak.orekit.event.GroundBodyAngleEventAnalysis;
+import seak.orekit.object.Constellation;
 import static seak.orekit.object.CoverageDefinition.GridStyle.EQUAL_AREA;
 import static seak.orekit.object.CoverageDefinition.GridStyle.UNIFORM;
+import seak.orekit.object.fieldofview.NadirRectangularFOV;
 
 /**
  *
- * @author nozomihitomi
+ * @author paugarciabuzzi
  */
 public class Orekit_Pau {
 
@@ -78,15 +84,15 @@ public class Orekit_Pau {
 
         OrekitConfig.init();
         //setup logger
-        Level level = Level.OFF;
+        Level level = Level.ALL;
         Logger.getGlobal().setLevel(level);
         ConsoleHandler handler = new ConsoleHandler();
         handler.setLevel(level);
         Logger.getGlobal().addHandler(handler);
 
         TimeScale utc = TimeScalesFactory.getUTC();
-        AbsoluteDate startDate = new AbsoluteDate(2016, 1, 1, 00, 00, 00.000, utc);
-        AbsoluteDate endDate = new AbsoluteDate(2016, 1, 7, 00, 00, 00.000, utc);
+        AbsoluteDate startDate = new AbsoluteDate(2020, 1, 1, 00, 00, 00.000, utc);
+        AbsoluteDate endDate = new AbsoluteDate(2020, 1, 8, 00, 00, 00.000, utc);
         double mu = Constants.WGS84_EARTH_MU; // gravitation coefficient
 
         //must use IERS_2003 and EME2000 frames to be consistent with STK
@@ -102,59 +108,60 @@ public class Orekit_Pau {
         double ideg=30;
         double i = FastMath.toRadians(ideg);
         //define instruments
-        NadirSimpleConicalFOV fov = new NadirSimpleConicalFOV(FastMath.toRadians(45), earthShape);
-//        NadirRectangularFOV fov = new NadirRectangularFOV(FastMath.toRadians(57), FastMath.toRadians(2.5), 0, earthShape);
+        //NadirSimpleConicalFOV fov = new NadirSimpleConicalFOV(FastMath.toRadians(45), earthShape);
+        NadirRectangularFOV fov = new NadirRectangularFOV(FastMath.toRadians(57), FastMath.toRadians(20), 0, earthShape);
         ArrayList<Instrument> payload = new ArrayList<>();
         Instrument view1 = new Instrument("view1", fov, 100, 100);
         payload.add(view1);
         
         //number of total satellites
-        int t=1;
+        int t=4;
         //number of planes
-        int p=1;
+        int p=2;
         //
         int f=0;
         
         Walker walker = new Walker("walker1", payload, a, i, t, p, f, inertialFrame, startDate, mu);
-
-        ArrayList<GeodeticPoint> pts = new ArrayList<>();
+        
+//        ArrayList<GeodeticPoint> pts = new ArrayList<>();
 //        pts.add(new GeodeticPoint(-0.1745329251994330, 6.0737457969402699, 0.0));
 //        pts.add(new GeodeticPoint(-0.8726646259971650,  0.209439510239320, 0.0));
 //        pts.add(new GeodeticPoint(1.5707963267949001, 0.0000000000000000, 0.0));
 //        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", pts, earthShape);
 //        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", 6, earthShape, UNIFORM);
-        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", 20, earthShape, EQUAL_AREA);
+        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", 9, earthShape, EQUAL_AREA);
 //        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", STKGRID.getPoints20(), earthShape);
 
         covDef1.assignConstellation(walker);
-
+        
         HashSet<CoverageDefinition> covDefs = new HashSet<>();
         covDefs.add(covDef1);
         
         Properties propertiesPropagator = new Properties();
+        propertiesPropagator.setProperty("orekit.propagator.mass", "6");
         propertiesPropagator.setProperty("orekit.propagator.atmdrag", "true");
-        propertiesPropagator.setProperty("orekit.propagator.dragarea", "10");
+        propertiesPropagator.setProperty("orekit.propagator.dragarea", "0.075");
         propertiesPropagator.setProperty("orekit.propagator.dragcoeff", "2.2");
         propertiesPropagator.setProperty("orekit.propagator.thirdbody.sun", "true");
         propertiesPropagator.setProperty("orekit.propagator.thirdbody.moon", "true");
         propertiesPropagator.setProperty("orekit.propagator.solarpressure", "true");
-        propertiesPropagator.setProperty("orekit.propagator.solararea", "10");
+        propertiesPropagator.setProperty("orekit.propagator.solararea", "0.058");
 
         //PropagatorFactory pf = new PropagatorFactory(PropagatorType.KEPLERIAN,propertiesPropagator);
         //PropagatorFactory pf = new PropagatorFactory(PropagatorType.J2,propertiesPropagator);
         PropagatorFactory pf = new PropagatorFactory(PropagatorType.NUMERICAL,propertiesPropagator);
         
-                //LINK BUDGET
-        double txPower = 0.05;
-        double txGain = 1;
-        double rxGain = 31622.8;
-        double lambda = 0.15;
-        double noiseTemperature = 165;
-        double dataRate = 50e6;
-        LinkBudget lb = new LinkBudget(txPower, txGain, rxGain, lambda, noiseTemperature, dataRate);
+        //LINK BUDGET
+//        double txPower = 0.05;
+//        double txGain = 1;
+//        double rxGain = 31622.8;
+//        double lambda = 0.15;
+//        double noiseTemperature = 165;
+//        double dataRate = 50e6;
+//        LinkBudget lb = new LinkBudget(txPower, txGain, rxGain, lambda, noiseTemperature, dataRate);
 
         Properties propertiesEventAnalysis = new Properties();
-        //propertiesEventAnalysis.setProperty("fov.numThreads", "4");
+        propertiesEventAnalysis.setProperty("fov.numThreads", "4");
 
         
         //set the event analyses
@@ -162,10 +169,6 @@ public class Orekit_Pau {
         ArrayList<EventAnalysis> eventanalyses = new ArrayList<>();
         FieldOfViewEventAnalysis fovEvent = (FieldOfViewEventAnalysis) eaf.createGroundPointAnalysis(EventAnalysisEnum.FOV, covDefs, propertiesEventAnalysis);
         eventanalyses.add(fovEvent);
-        //set the event analyses
-        //GroundBodyAngleEventAnalysis gndSunAngEvent = (GroundBodyAngleEventAnalysis) eaf.create(EventAnalysisEnum.GND_BODY_ANGLE, properties);
-        //LinkBudgetEventAnalysis lbEvent = (LinkBudgetEventAnalysis) eaf.create(EventAnalysisEnum.LB, propertiesEventAnalysis);
-        //eventanalyses.add(gndSunAngEvent);
 
         //set the analyses
         double analysisTimeStep = 60;
@@ -211,7 +214,7 @@ public class Orekit_Pau {
 //        System.out.println(String.format("90th gap time %s", gapStats.getPercentile(90)));
 //
         ScenarioIO.saveGroundEventAnalysis(Paths.get(System.getProperty("results"), ""), filename, scen, covDef1, fovEvent);
-        ScenarioIO.saveGroundEventAnalysisMetrics(Paths.get(System.getProperty("results"), ""), filename, scen, covDef1, fovEvent);
+        //ScenarioIO.saveGroundEventAnalysisMetrics(Paths.get(System.getProperty("results"), ""), filename, scen, covDef1, fovEvent);
         ScenarioIO.saveGroundEventAnalyzerObject(Paths.get(System.getProperty("results"), ""), filename, scen,covDef1, fovEvent);
 //        ScenarioIO.saveGroundEventAnalysis(Paths.get(System.getProperty("results"), ""), filename + "_gsa", scen, covDef1, gndSunAngEvent);
 //        ScenarioIO.saveLinkBudget(Paths.get(System.getProperty("results"), ""), filename, scenComp, cdefToSave);

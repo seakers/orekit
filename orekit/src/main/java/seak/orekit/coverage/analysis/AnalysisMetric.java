@@ -39,5 +39,8 @@ public enum AnalysisMetric {
      * and the total simulation time
      */
     PERCENT_TIME,
-
+    /**
+     * used when obtaining the rise and set times of event ocurrences (start and end times of accesses or gaps)
+     */
+    LIST_RISE_SET_TIMES,
 }

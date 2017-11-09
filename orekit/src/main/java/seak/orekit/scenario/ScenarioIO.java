@@ -161,7 +161,7 @@ public class ScenarioIO {
             fw.append(String.format("Worldwide Mean of Mean Response Times: %s\n\n", meanTime.getMean()));
             fw.append(String.format("Worldwide Mean of Gap(Revisit) Times: %s\n\n", gapStats.getMean()));
             fw.append(String.format("Worldwide Mean of Access Times: %s\n\n", accessStats.getMean()));
-
+            
         } catch (IOException ex) {
             Logger.getLogger(ScenarioIO.class.getName()).log(Level.SEVERE, null, ex);
             return false;
