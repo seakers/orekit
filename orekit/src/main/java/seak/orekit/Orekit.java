@@ -109,8 +109,8 @@ public class Orekit {
                 Constants.WGS84_EARTH_FLATTENING, earthFrame);
 
         //Enter satellite orbital parameters
-        double a = Constants.WGS84_EARTH_EQUATORIAL_RADIUS + 800000;
-        double i = FastMath.toRadians(30);
+        double a = Constants.WGS84_EARTH_EQUATORIAL_RADIUS + 1000000.;
+        double i = FastMath.toRadians(30.);
 
         //define instruments
         NadirSimpleConicalFOV fov = new NadirSimpleConicalFOV(FastMath.toRadians(51), earthShape);
@@ -119,14 +119,14 @@ public class Orekit {
         Instrument view1 = new Instrument("view1", fov, 100, 100);
         payload.add(view1);
 
-        Walker constellation = new Walker("walker1", payload, a, i, 10, 10, 3, inertialFrame, startDate, mu);
+        Walker constellation = new Walker("walker1", payload, a, i, 10, 10, 1, inertialFrame, startDate, mu);
 //        Collection<Satellite> constel = new ArrayList<>();
-//        Satellite sat1 = new Satellite("sat1", new KeplerianOrbit(a, 0.0001, i, 0, 0, 0, PositionAngle.MEAN, inertialFrame, startDate, mu), null, payload);
-//        Satellite sat2 = new Satellite("sat2", new KeplerianOrbit(a, 0.0001, i, 0, 0, FastMath.toRadians(90.), PositionAngle.MEAN, inertialFrame, startDate, mu), null, payload);
-//        Satellite sat3 = new Satellite("sat3", new KeplerianOrbit(a, 0.0001, i, 0, FastMath.toRadians(360. / 3.), FastMath.toRadians(0), PositionAngle.MEAN, inertialFrame, startDate, mu), null, payload);
-//        Satellite sat4 = new Satellite("sat4", new KeplerianOrbit(a, 0.0001, i, 0, FastMath.toRadians(360. / 3.), FastMath.toRadians(90), PositionAngle.MEAN, inertialFrame, startDate, mu), null, payload);
-//        Satellite sat5 = new Satellite("sat5", new KeplerianOrbit(a, 0.0001, i, 0, FastMath.toRadians(2.* 360. / 3.), FastMath.toRadians(0), PositionAngle.MEAN, inertialFrame, startDate, mu), null, payload);
-//        Satellite sat6 = new Satellite("sat6", new KeplerianOrbit(a, 0.0001, i, 0, FastMath.toRadians(2.* 360. / 3.), FastMath.toRadians(90), PositionAngle.MEAN, inertialFrame, startDate, mu), null, payload);
+//        Satellite sat1 = new Satellite("sat1", new KeplerianOrbit(a, 0., i, 0., 0., 0, PositionAngle.TRUE, inertialFrame, startDate, mu), null, payload);
+//        Satellite sat2 = new Satellite("sat2", new KeplerianOrbit(a, 0., i, 0., 0., FastMath.PI, PositionAngle.TRUE, inertialFrame, startDate, mu), null, payload);
+//        Satellite sat3 = new Satellite("sat3", new KeplerianOrbit(7374726.303523837, 0, FastMath.toRadians(80.52642265614948), 0, FastMath.toRadians(74.10481094668702), FastMath.toRadians(173.13240991233943), PositionAngle.MEAN, inertialFrame, startDate, mu), null, payload);
+//        Satellite sat4 = new Satellite("sat4", new KeplerianOrbit(a, 0, i, 0, FastMath.toRadians(180.), FastMath.toRadians(0.), PositionAngle.MEAN, inertialFrame, startDate, mu), null, payload);
+//        Satellite sat5 = new Satellite("sat5", new KeplerianOrbit(a, 0, i, 0, FastMath.toRadians(240.), FastMath.toRadians(240.), PositionAngle.MEAN, inertialFrame, startDate, mu), null, payload);
+//        Satellite sat6 = new Satellite("sat6", new KeplerianOrbit(a, 0, i, 0, FastMath.toRadians(300), FastMath.toRadians(120), PositionAngle.MEAN, inertialFrame, startDate, mu), null, payload);
 //        constel.add(sat1);
 //        constel.add(sat2);
 //        constel.add(sat3);
@@ -142,7 +142,7 @@ public class Orekit {
 //        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", pts, earthShape);
 //        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", 2, -FastMath.PI/2, FastMath.PI/2,-.1, .1, earthShape, CoverageDefinition.GridStyle.EQUAL_AREA);
 //        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", 6, earthShape, CoverageDefinition.GridStyle.EQUAL_AREA);
-        CoverageDefinition covDef1 = new CoverageDefinition("cdef", 20.0, -30, 30, -180, 180, earthShape, CoverageDefinition.GridStyle.EQUAL_AREA);
+        CoverageDefinition covDef1 = new CoverageDefinition("cdef", 5.0, -30, 30, -180, 180, earthShape, CoverageDefinition.GridStyle.UNIFORM);
 //        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", STKGRID.getPoints20(), earthShape);
 
 //        CoverageVersusOrbitalElements cvoe
@@ -162,9 +162,10 @@ public class Orekit {
         HashSet<CoverageDefinition> covDefs = new HashSet<>();
         covDefs.add(covDef1);
 
-        FastCoverageAnalysis fca = new FastCoverageAnalysis(startDate, endDate, inertialFrame, covDefs, FastMath.toRadians(45));
+        FastCoverageAnalysis fca = new FastCoverageAnalysis(startDate, endDate, inertialFrame, covDefs, FastMath.toRadians(51.));
         start = System.nanoTime();
         fca.call();
+        System.out.println(new GroundEventAnalyzer(fca.getEvents(covDef1)).getStatistics(AnalysisMetric.MEAN_TIME_TO_T, false, new Properties()).getMean());
 //        System.exit(0);
         long end1 = System.nanoTime();
         Logger.getGlobal().finest(String.format("Took %.4f sec", (end1 - start) / Math.pow(10, 9)));
@@ -183,7 +184,6 @@ public class Orekit {
 //        PropagatorFactory pf = new PropagatorFactory(PropagatorType.NUMERICAL, propertiesPropagator);
 
         Properties propertiesEventAnalysis = new Properties();
-        propertiesEventAnalysis.setProperty("numThreads", "6");
 
         //set the event analyses
         EventAnalysisFactory eaf = new EventAnalysisFactory(startDate, endDate, inertialFrame, pf);
@@ -229,8 +229,8 @@ public class Orekit {
         properties.setProperty("threshold", "7200.0");
         DescriptiveStatistics accessStats2 = ea2.getStatistics(AnalysisMetric.DURATION, true, properties);
         DescriptiveStatistics gapStats2 = ea2.getStatistics(AnalysisMetric.DURATION, false, properties);
-        System.out.println(ea2.getStatistics(AnalysisMetric.MEAN_TIME_TO_T, false, properties).getMean());
-        System.exit(0);
+//        ScenarioIO.saveGroundEventAnalysis(Paths.get(System.getProperty("results"), ""), filename + "_cva", scen, covDef1, fca);
+//        System.exit(0);
 
         GroundEventAnalyzer ea = new GroundEventAnalyzer(fovEvent.getEvents(covDef1));
         DescriptiveStatistics accessStats = ea.getStatistics(AnalysisMetric.DURATION, true, properties);
@@ -263,28 +263,17 @@ public class Orekit {
         } catch (IOException ex) {
             Logger.getLogger(Orekit.class.getName()).log(Level.SEVERE, null, ex);
         }
-
-        double wtCHRC = 0;
-        double simTime = endDate.durationFrom(startDate);
-        for (double lat : covDef1.getLatitudes()) {
-            double[] latBounds = new double[]{FastMath.max(lat - 0.05,-FastMath.PI/2), FastMath.min(lat + 0.05,FastMath.PI/2)};
-            double[] lonBounds = new double[]{-FastMath.PI, FastMath.PI};
-            Collection<TopocentricFrame> ptsAtLat = covDef1.getPoints(latBounds, lonBounds);
-            DescriptiveStatistics stats = ea.getStatistics(AnalysisMetric.DURATION_GEQ, false, ptsAtLat, properties);
-            System.out.println(lat+","+stats.getSum()+","+ptsAtLat.size());
-            if(stats.getSum() == Double.NaN){
-                continue;
-            }
-            try{
-            wtCHRC += wts.get(lat) * (1 - stats.getSum() / (ptsAtLat.size() * simTime));
-            }catch(NullPointerException ec){
-//                System.out.println("");
-            }
+        
+        for (CoveragePoint pt : covDef1.getPoints()) {
+            DescriptiveStatistics stats = ea2.getStatistics(AnalysisMetric.MEAN_TIME_TO_T, false, pt, properties);
+            System.out.println(FastMath.toDegrees(pt.getPoint().getLatitude())+","
+                    +FastMath.toDegrees(pt.getPoint().getLongitude())+","+stats.getMean());
         }
 
 //        System.out.println(wtCHRC);
 
         ScenarioIO.saveGroundEventAnalysis(Paths.get(System.getProperty("results"), ""), filename + "_cva", scen, covDef1, fca);
+        ScenarioIO.saveGroundEventAnalysisMetrics(Paths.get(System.getProperty("results"), ""), filename + "_cva", scen, covDef1, fca);
         ScenarioIO.saveGroundEventAnalysis(Paths.get(System.getProperty("results"), ""), filename + "_fov", scen, covDef1, fovEvent);
 //        ScenarioIO.saveGroundEventAnalysis(Paths.get(System.getProperty("results"), ""), filename + "_gsa", scen, covDef1, gndSunAngEvent);
 //        ScenarioIO.saveLinkBudget(Paths.get(System.getProperty("results"), ""), filename, scenComp, cdefToSave);

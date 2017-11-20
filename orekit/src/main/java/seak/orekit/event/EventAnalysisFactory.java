@@ -139,14 +139,10 @@ public class EventAnalysisFactory {
             HashMap<Satellite, Set<GndStation>> stationAssignment, Properties prop) {
         EventAnalysis ea = null;
 
-        //Option to set the number of threads to use to run the scenario.
-        //By default it is set to 1.
-        String numThreadsStr = prop.getProperty("numThreads", "1");
-
         switch (type) {
             case ACCESS:
                 ea = new GndStationEventAnalysis(startDate, endDate, inertialFrame,
-                        stationAssignment, propagatorFactory, Integer.parseInt(numThreadsStr));
+                        stationAssignment, propagatorFactory);
                 break;
             default:
                 throw new UnsupportedOperationException(
