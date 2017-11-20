@@ -209,6 +209,33 @@ public class GndStationEventAnalysis extends AbstractEventAnalysis {
         return out;
     }
 
+    /**
+     * Returns the computed accesses for each ground station by a given
+     * satellite. If more than one ground station is assigned to the same
+     * Topocentric Frame, their accesses will be merged into the same time
+     * interval array.
+     *
+     * @return The access times to each ground station
+     */
+    public Map<TopocentricFrame, TimeIntervalArray> getEvents(Satellite satellite) {
+        Map<TopocentricFrame, TimeIntervalArray> out = new HashMap<>();
+        Map<TopocentricFrame, Collection<TimeIntervalArray>> timeArrays = new HashMap<>();
+        for (GndStation station : allAccesses.get(satellite).keySet()) {
+
+            //check if the ground station was already added to results
+            if (!timeArrays.containsKey(station.getBaseFrame())) {
+                timeArrays.put(station.getBaseFrame(), new ArrayList());
+            }
+            timeArrays.get(station.getBaseFrame()).add(allAccesses.get(satellite).get(station));
+        }
+
+        for (TopocentricFrame pt : timeArrays.keySet()) {
+            TimeIntervalMerger merger = new TimeIntervalMerger(timeArrays.get(pt));
+            out.put(pt, merger.orCombine());
+        }
+        return out;
+    }
+
     @Override
     public String getHeader() {
         StringBuilder sb = new StringBuilder();
