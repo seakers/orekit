@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Properties;
+import java.util.logging.Logger;
 import seak.orekit.analysis.Analysis;
 import seak.orekit.object.CoverageDefinition;
 import seak.orekit.propagation.PropagatorFactory;
@@ -19,6 +20,8 @@ import org.orekit.frames.FramesFactory;
 import org.orekit.time.AbsoluteDate;
 import org.orekit.time.TimeScale;
 import seak.orekit.event.EventAnalysis;
+import seak.orekit.parallel.ParallelRoutine;
+import seak.orekit.parallel.SubRoutine;
 
 /**
  * Stores information about the scenario or simulation including information of
@@ -78,9 +81,12 @@ public class Scenario extends AbstractScenario {
         for (EventAnalysis eventAnalysis : eventAnalyses) {
             eventAnalysis.call();
         }
+        ArrayList<SubRoutine> subRoutines = new ArrayList<>();
         for (Analysis analysis : analyses) {
-            analysis.call();
+            AnalysisSubRoutine subRoutine = new AnalysisSubRoutine(analysis);
+            subRoutines.add(subRoutine);
         }
+        ParallelRoutine.submit(subRoutines);
         done = true;
         return this;
     }
@@ -283,6 +289,30 @@ public class Scenario extends AbstractScenario {
      */
     public Collection<EventAnalysis> getEventAnalyses() {
         return eventAnalyses;
+    }
+    
+    /**
+     * Creates a subroutine to run the field of view event analysis in parallel
+     */
+    private class AnalysisSubRoutine implements SubRoutine {
+        /**
+         * The anaylisis to complete
+         */
+        private final Analysis anal;
+        
+        public AnalysisSubRoutine(Analysis anal){
+            this.anal=anal;
+        }
+        @Override
+        public AnalysisSubRoutine call() throws Exception {
+            Logger.getGlobal().finer(String.format("Running analysis %s...", anal.getName()));
+            anal.call();
+            return this;
+        }
+        
+       public Analysis getAnalysis(){
+           return anal;
+       }
     }
 
 }

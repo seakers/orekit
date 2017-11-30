@@ -99,7 +99,7 @@ public class PropagatorFactory {
 
                 //set integrator steps and tolerances
                 final double dP = 0.001;
-                final double minStep = 0.00001;
+                final double minStep = 0.00000001;
                 final double maxStep = 1000;
                 final double initStep = 60;
                 final double[][] tolerance = NumericalPropagator.tolerances(dP, orbit, OrbitType.EQUINOCTIAL);
