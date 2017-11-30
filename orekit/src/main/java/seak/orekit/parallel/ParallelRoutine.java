@@ -86,6 +86,10 @@ public class ParallelRoutine {
      * @throws java.util.concurrent.ExecutionException
      */
     public static SubRoutine submit(SubRoutine subroutine) throws InterruptedException, ExecutionException {
+        if(ParallelRoutine.executor.isShutdown()){
+            throw new IllegalStateException("Executor has already been shutdown and cannot accept any futher tasks until it is reset.");
+        }
+        
         if (ParallelRoutine.locked) {
             return null;
         }
@@ -110,6 +114,10 @@ public class ParallelRoutine {
      * @throws java.util.concurrent.ExecutionException
      */
     public static Collection<SubRoutine> submit(Collection<SubRoutine> subroutines) throws InterruptedException, ExecutionException {
+        if(ParallelRoutine.executor.isShutdown()){
+            throw new IllegalStateException("Executor has already been shutdown and cannot accept any futher tasks until it is reset.");
+        }
+        
         if (ParallelRoutine.locked) {
             return null;
         }

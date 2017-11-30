@@ -13,11 +13,6 @@
     <name>orekit</name>
     <dependencies>
         <dependency>
-            <groupId>org.orekit</groupId>
-            <artifactId>orekit</artifactId>
-            <version>8.0</version>
-        </dependency>
-        <dependency>
             <groupId>org.hipparchus</groupId>
             <artifactId>hipparchus-core</artifactId>
             <version>1.0</version>
@@ -31,6 +26,11 @@
             <groupId>org.moeaframework</groupId>
             <artifactId>moeaframework</artifactId>
             <version>2.12</version>
+        </dependency>
+        <dependency>
+            <groupId>org.orekit</groupId>
+            <artifactId>orekit</artifactId>
+            <version>8.0</version>
         </dependency>
     </dependencies>
 </project>

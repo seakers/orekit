@@ -30,6 +30,8 @@ import seak.orekit.coverage.access.TimeIntervalMerger;
 import seak.orekit.event.detector.GroundStationDetector;
 import seak.orekit.object.GndStation;
 import seak.orekit.object.Satellite;
+import seak.orekit.parallel.ParallelRoutine;
+import seak.orekit.parallel.SubRoutine;
 import seak.orekit.propagation.PropagatorFactory;
 
 /**
@@ -60,11 +62,6 @@ public class GndStationEventAnalysis extends AbstractEventAnalysis {
     private HashMap<Satellite, HashMap<GndStation, TimeIntervalArray>> allAccesses;
 
     /**
-     * the number of threads to use in parallel processing
-     */
-    private final int numThreads;
-
-    /**
      * Creates a new event analysis.
      *
      * @param startDate of scenario
@@ -75,17 +72,13 @@ public class GndStationEventAnalysis extends AbstractEventAnalysis {
      * @param stationAssignment the assignment of satellites to ground stations.
      * A satellite can be assigned to one or more ground stations and ground
      * stations can be assigned to more than one satellite.
-     * @param numThreads number of threads to uses in parallelization of the
-     * scenario by dividing up the propagation across multiple threads
      */
     public GndStationEventAnalysis(AbsoluteDate startDate, AbsoluteDate endDate,
             Frame inertialFrame, Map<Satellite, Set<GndStation>> stationAssignment,
-            PropagatorFactory propagatorFactory, int numThreads) {
+            PropagatorFactory propagatorFactory) {
         super(startDate, endDate, inertialFrame);
         this.propagatorFactory = propagatorFactory;
         this.allAccesses = new HashMap();
-
-        this.numThreads = numThreads;
         this.stationAssignment = stationAssignment;
     }
 
@@ -101,11 +94,9 @@ public class GndStationEventAnalysis extends AbstractEventAnalysis {
      */
     @Override
     public GndStationEventAnalysis call() throws OrekitException {
-        //set up resource pool
-        ExecutorService pool = Executors.newFixedThreadPool(numThreads);
-        CompletionService<GndStationSubRoutine> ecs = new ExecutorCompletionService(pool);
+        //propogate each satellite individually
+        ArrayList<SubRoutine> subRoutines = new ArrayList<>();
 
-        int nSubRoutines = 0;
         for (Satellite sat : stationAssignment.keySet()) {
             Logger.getGlobal().finer(String.format("Acquiring ground station accesses for %s...", sat));
             Logger.getGlobal().finer(
@@ -123,28 +114,23 @@ public class GndStationEventAnalysis extends AbstractEventAnalysis {
 
             GndStationSubRoutine subRoutine
                     = new GndStationSubRoutine(sat, prop, stationAssignment.get(sat), losStepSize, threshold);
-            ecs.submit(subRoutine);
-            nSubRoutines++;
+            subRoutines.add(subRoutine);
         }
 
-        for (int i = 0; i < nSubRoutines; i++) {
-            GndStationSubRoutine subRoutine = null;
-            try {
-                subRoutine = ecs.take().get();
-            } catch (InterruptedException ex) {
-                Logger.getLogger(GndStationEventAnalysis.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (ExecutionException ex) {
-                Logger.getLogger(GndStationEventAnalysis.class.getName()).log(Level.SEVERE, null, ex);
+        try {
+            for (SubRoutine sr : ParallelRoutine.submit(subRoutines)) {
+                if (sr == null) {
+                    throw new IllegalStateException("Subroutine failed in field of view event.");
+                }
+                GndStationSubRoutine gndsta = (GndStationSubRoutine) sr;
+                Satellite sat = gndsta.getSat();
+                HashMap<GndStation, TimeIntervalArray> satAccesses = gndsta.getSatAccesses();
+                processAccesses(sat, satAccesses);
             }
-
-            if (subRoutine == null) {
-                pool.shutdown();
-                throw new IllegalStateException("Subroutine failed in field of view event.");
-            }
-
-            Satellite sat = subRoutine.getSat();
-            HashMap<GndStation, TimeIntervalArray> satAccesses = subRoutine.getSatAccesses();
-            processAccesses(sat, satAccesses);
+        } catch (InterruptedException ex) {
+            Logger.getLogger(FieldOfViewEventAnalysis.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (ExecutionException ex) {
+            Logger.getLogger(FieldOfViewEventAnalysis.class.getName()).log(Level.SEVERE, null, ex);
         }
 
         //Make all time intervals stored in accesses immutable
@@ -156,7 +142,6 @@ public class GndStationEventAnalysis extends AbstractEventAnalysis {
             }
         }
 
-        pool.shutdown();
         return this;
     }
 
@@ -197,45 +182,56 @@ public class GndStationEventAnalysis extends AbstractEventAnalysis {
     }
 
     /**
-     * Returns the computed accesses for each ground station by their assigned
-     * satellites. The user can chose to combine all accesses of one ground
-     * station into one time interval array or keep them separate.
+     * Returns the computed accesses for each ground station by any of their
+     * assigned satellites.
      *
-     * @param combine flag chose to combine all accesses of one ground station
-     * into one time interval array or keep them separate. Keeping them separate
-     * can provide an accurate metric on the contact times by individual
-     * satellites
      * @return The access times to each ground station
      */
-    public Map<TopocentricFrame, TimeIntervalArray> getAllAccesses(boolean combine) {
+    public Map<TopocentricFrame, TimeIntervalArray> getEvents() {
         Map<TopocentricFrame, TimeIntervalArray> out = new HashMap<>();
-        if (combine) {
-            Map<TopocentricFrame, Collection<TimeIntervalArray>> timeArrays = new HashMap<>();
-            for (Satellite sat : allAccesses.keySet()) {
-                for (GndStation station : allAccesses.get(sat).keySet()) {
-                    if (combine) {
-                        //check if the ground station was already added to results
-                        if (timeArrays.containsKey(station.getBaseFrame())) {
-                            timeArrays.put(station.getBaseFrame(), new ArrayList());
-                        }
-                        timeArrays.get(station.getBaseFrame()).add(allAccesses.get(sat).get(station));
-                    }
+
+        Map<TopocentricFrame, Collection<TimeIntervalArray>> timeArrays = new HashMap<>();
+        for (Satellite sat : allAccesses.keySet()) {
+            for (GndStation station : allAccesses.get(sat).keySet()) {
+
+                //check if the ground station was already added to results
+                if (!timeArrays.containsKey(station.getBaseFrame())) {
+                    timeArrays.put(station.getBaseFrame(), new ArrayList());
                 }
+                timeArrays.get(station.getBaseFrame()).add(allAccesses.get(sat).get(station));
+
             }
-            for (TopocentricFrame pt : timeArrays.keySet()) {
-                TimeIntervalMerger merger = new TimeIntervalMerger(timeArrays.get(pt));
-                out.put(pt, merger.orCombine());
+        }
+        for (TopocentricFrame pt : timeArrays.keySet()) {
+            TimeIntervalMerger merger = new TimeIntervalMerger(timeArrays.get(pt));
+            out.put(pt, merger.orCombine());
+        }
+        return out;
+    }
+
+    /**
+     * Returns the computed accesses for each ground station by a given
+     * satellite. If more than one ground station is assigned to the same
+     * Topocentric Frame, their accesses will be merged into the same time
+     * interval array.
+     *
+     * @return The access times to each ground station
+     */
+    public Map<TopocentricFrame, TimeIntervalArray> getEvents(Satellite satellite) {
+        Map<TopocentricFrame, TimeIntervalArray> out = new HashMap<>();
+        Map<TopocentricFrame, Collection<TimeIntervalArray>> timeArrays = new HashMap<>();
+        for (GndStation station : allAccesses.get(satellite).keySet()) {
+
+            //check if the ground station was already added to results
+            if (!timeArrays.containsKey(station.getBaseFrame())) {
+                timeArrays.put(station.getBaseFrame(), new ArrayList());
             }
-        } else {
-            for (Satellite sat : allAccesses.keySet()) {
-                for (GndStation station : allAccesses.get(sat).keySet()) {
-                    TopocentricFrame tpt = new TopocentricFrame(
-                            station.getBaseFrame().getParentShape(),
-                            station.getBaseFrame().getPoint(),
-                            String.format("%s_%s", station, sat));
-                    out.put(tpt, allAccesses.get(sat).get(station));
-                }
-            }
+            timeArrays.get(station.getBaseFrame()).add(allAccesses.get(satellite).get(station));
+        }
+
+        for (TopocentricFrame pt : timeArrays.keySet()) {
+            TimeIntervalMerger merger = new TimeIntervalMerger(timeArrays.get(pt));
+            out.put(pt, merger.orCombine());
         }
         return out;
     }
@@ -261,7 +257,7 @@ public class GndStationEventAnalysis extends AbstractEventAnalysis {
     /**
      * Creates a subroutine to run the field of view event analysis in parallel
      */
-    private class GndStationSubRoutine implements Callable<GndStationSubRoutine> {
+    private class GndStationSubRoutine implements SubRoutine {
 
         /**
          * The satellite to propagate
