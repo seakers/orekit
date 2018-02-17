@@ -83,8 +83,7 @@ public class Orekit_Pau2 {
         } else {
             filename = "tropics";
         }
-
-        OrekitConfig.init();
+        OrekitConfig.init(4);
         //setup logger
         Level level = Level.ALL;
         Logger.getGlobal().setLevel(level);
@@ -96,7 +95,7 @@ public class Orekit_Pau2 {
         //AbsoluteDate startDate = new AbsoluteDate(2020, 1, 1, 00, 00, 00.000, utc);
         AbsoluteDate startDate = new AbsoluteDate(2020, 1, 1, 10, 30, 00.000, utc);
         //AbsoluteDate endDate = new AbsoluteDate(2020, 1, 8, 00, 00, 00.000, utc);
-        AbsoluteDate endDate = new AbsoluteDate(2020, 1, 8, 10, 30, 00.000, utc);
+        AbsoluteDate endDate = new AbsoluteDate(2020, 1, 2, 10, 30, 00.000, utc);
         double mu = Constants.WGS84_EARTH_MU; // gravitation coefficient
 
         //must use IERS_2003 and EME2000 frames to be consistent with STK
@@ -125,8 +124,8 @@ public class Orekit_Pau2 {
         propertiesPropagator.setProperty("orekit.propagator.solararea", "0.058");
 
         //PropagatorFactory pf = new PropagatorFactory(PropagatorType.KEPLERIAN,propertiesPropagator);
-        //PropagatorFactory pf = new PropagatorFactory(PropagatorType.J2,propertiesPropagator);
-        PropagatorFactory pf = new PropagatorFactory(PropagatorType.NUMERICAL,propertiesPropagator);
+        PropagatorFactory pf = new PropagatorFactory(PropagatorType.J2,propertiesPropagator);
+        //PropagatorFactory pf = new PropagatorFactory(PropagatorType.NUMERICAL,propertiesPropagator);
         //double[] spacings = {0,10,20,30,40,50,60,70,80,90,100,110,120,130,140,150,160,170,180};
         double[] spacings = {180};
         int h=825000;
@@ -170,9 +169,9 @@ public class Orekit_Pau2 {
             Satellite sat1 = new Satellite("sat1", orb1, null, payload);
             Orbit orb2 = new KeplerianOrbit(a, 0.0001, i, 0.0, FastMath.toRadians(257.8), Math.toRadians(spacing), PositionAngle.MEAN, inertialFrame, startDate, mu);
             Satellite sat2 = new Satellite("sat2", orb2, null, payload);
-            Orbit orb3 = new KeplerianOrbit(a, 0.0001, i, 0.0, FastMath.toRadians(302.9), Math.toRadians(0), PositionAngle.MEAN, inertialFrame, startDate, mu);
+            Orbit orb3 = new KeplerianOrbit(a, 0.0001, i, 0.0, FastMath.toRadians(302.79), Math.toRadians(0), PositionAngle.MEAN, inertialFrame, startDate, mu);
             Satellite sat3 = new Satellite("sat3", orb3, null, payload);
-            Orbit orb4 = new KeplerianOrbit(a, 0.0001, i, 0.0, FastMath.toRadians(302.9), Math.toRadians(spacing), PositionAngle.MEAN, inertialFrame, startDate, mu);
+            Orbit orb4 = new KeplerianOrbit(a, 0.0001, i, 0.0, FastMath.toRadians(302.79), Math.toRadians(spacing), PositionAngle.MEAN, inertialFrame, startDate, mu);
             Satellite sat4 = new Satellite("sat4", orb4, null, payload);
 
             satellites.add(sat1);
@@ -231,6 +230,7 @@ public class Orekit_Pau2 {
         }
         long end = System.nanoTime();
         Logger.getGlobal().finest(String.format("Took %.4f sec", (end - start) / Math.pow(10, 9)));
+        OrekitConfig.end();
     }
     
 }
