@@ -82,7 +82,7 @@ public class Orekit_Pau {
             filename = "tropics";
         }
 
-        OrekitConfig.init();
+        OrekitConfig.init(4);
         //setup logger
         Level level = Level.ALL;
         Logger.getGlobal().setLevel(level);
@@ -115,25 +115,58 @@ public class Orekit_Pau {
         payload.add(view1);
         
         //number of total satellites
-        int t=4;
+        int t=12;
         //number of planes
-        int p=2;
+        int p=3;
         //
         int f=0;
-        
-        Walker walker = new Walker("walker1", payload, a, i, t, p, f, inertialFrame, startDate, mu);
-        
-//        ArrayList<GeodeticPoint> pts = new ArrayList<>();
-//        pts.add(new GeodeticPoint(-0.1745329251994330, 6.0737457969402699, 0.0));
-//        pts.add(new GeodeticPoint(-0.8726646259971650,  0.209439510239320, 0.0));
-//        pts.add(new GeodeticPoint(1.5707963267949001, 0.0000000000000000, 0.0));
-//        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", pts, earthShape);
-//        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", 6, earthShape, UNIFORM);
-        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", 9, earthShape, EQUAL_AREA);
-//        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", STKGRID.getPoints20(), earthShape);
+//        
+        Walker constel = new Walker("walker1", payload, a, i, t, p, f, inertialFrame, startDate, mu);
+//        ArrayList<Satellite> satellites=new ArrayList<>();
+//        Orbit orb1 = new KeplerianOrbit(a, 0.0001, i, 0.0, Math.toRadians(0), Math.toRadians(0), PositionAngle.MEAN, inertialFrame, startDate, mu);
+//        Satellite sat1 = new Satellite("sat1", orb1, null, payload);
+//        Orbit orb2 = new KeplerianOrbit(a, 0.0001, i, 0.0, Math.toRadians(0), Math.toRadians(59.9999), PositionAngle.MEAN, inertialFrame, startDate, mu);
+//        Satellite sat2 = new Satellite("sat2", orb2, null, payload);
+//        Orbit orb3 = new KeplerianOrbit(a, 0.0001, i, 0.0, Math.toRadians(0), Math.toRadians(119.9999), PositionAngle.MEAN, inertialFrame, startDate, mu);
+//        Satellite sat3 = new Satellite("sat3", orb3, null, payload);
+//        Orbit orb4 = new KeplerianOrbit(a, 0.0001, i, 0.0, Math.toRadians(0), Math.toRadians(180), PositionAngle.MEAN, inertialFrame, startDate, mu);
+//        Satellite sat4 = new Satellite("sat4", orb4, null, payload);
+//        Orbit orb5 = new KeplerianOrbit(a, 0.0001, i, 0.0, Math.toRadians(0), Math.toRadians(239.9999), PositionAngle.MEAN, inertialFrame, startDate, mu);
+//        Satellite sat5 = new Satellite("sat5", orb5, null, payload);
+//        Orbit orb6 = new KeplerianOrbit(a, 0.0001, i, 0.0, Math.toRadians(0), Math.toRadians(299.9999), PositionAngle.MEAN, inertialFrame, startDate, mu);
+//        Satellite sat6 = new Satellite("sat6", orb6, null, payload);
+//        Orbit orb7 = new KeplerianOrbit(a, 0.0001, i, 0.0, Math.toRadians(180), Math.toRadians(0), PositionAngle.MEAN, inertialFrame, startDate, mu);
+//        Satellite sat7 = new Satellite("sat7", orb7, null, payload);
+//        Orbit orb8 = new KeplerianOrbit(a, 0.0001, i, 0.0, Math.toRadians(180), Math.toRadians(59.9999), PositionAngle.MEAN, inertialFrame, startDate, mu);
+//        Satellite sat8 = new Satellite("sat8", orb8, null, payload);
+//        Orbit orb9 = new KeplerianOrbit(a, 0.0001, i, 0.0, Math.toRadians(180), Math.toRadians(119.9999), PositionAngle.MEAN, inertialFrame, startDate, mu);
+//        Satellite sat9 = new Satellite("sat9", orb9, null, payload);
+//        Orbit orb10 = new KeplerianOrbit(a, 0.0001, i, 0.0, Math.toRadians(180), Math.toRadians(180), PositionAngle.MEAN, inertialFrame, startDate, mu);
+//        Satellite sat10 = new Satellite("sat10", orb10, null, payload);
+//        Orbit orb11 = new KeplerianOrbit(a, 0.0001, i, 0.0, Math.toRadians(180), Math.toRadians(239.9999), PositionAngle.MEAN, inertialFrame, startDate, mu);
+//        Satellite sat11 = new Satellite("sat11", orb11, null, payload);
+//        Orbit orb12 = new KeplerianOrbit(a, 0.0001, i, 0.0, Math.toRadians(180), Math.toRadians(299.9999), PositionAngle.MEAN, inertialFrame, startDate, mu);
+//        Satellite sat12 = new Satellite("sat12", orb12, null, payload);
+//        satellites.add(sat1);
+//        satellites.add(sat2);
+//        satellites.add(sat3);
+//        satellites.add(sat4);
+//        satellites.add(sat5);
+//        satellites.add(sat6);
+//        satellites.add(sat7);
+//        satellites.add(sat8);
+//        satellites.add(sat9);
+//        satellites.add(sat10);
+//        satellites.add(sat11);
+//        satellites.add(sat12);
 
-        covDef1.assignConstellation(walker);
-        
+
+//        Constellation constel = new Constellation ("tropics2",satellites);
+
+        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", 2, earthShape, UNIFORM);
+
+        //covDef1.assignConstellation(walker);
+        covDef1.assignConstellation(constel);
         HashSet<CoverageDefinition> covDefs = new HashSet<>();
         covDefs.add(covDef1);
         
@@ -148,18 +181,9 @@ public class Orekit_Pau {
         propertiesPropagator.setProperty("orekit.propagator.solararea", "0.058");
 
         //PropagatorFactory pf = new PropagatorFactory(PropagatorType.KEPLERIAN,propertiesPropagator);
-        //PropagatorFactory pf = new PropagatorFactory(PropagatorType.J2,propertiesPropagator);
-        PropagatorFactory pf = new PropagatorFactory(PropagatorType.NUMERICAL,propertiesPropagator);
+        PropagatorFactory pf = new PropagatorFactory(PropagatorType.J2,propertiesPropagator);
+        //PropagatorFactory pf = new PropagatorFactory(PropagatorType.NUMERICAL,propertiesPropagator);
         
-        //LINK BUDGET
-//        double txPower = 0.05;
-//        double txGain = 1;
-//        double rxGain = 31622.8;
-//        double lambda = 0.15;
-//        double noiseTemperature = 165;
-//        double dataRate = 50e6;
-//        LinkBudget lb = new LinkBudget(txPower, txGain, rxGain, lambda, noiseTemperature, dataRate);
-
         Properties propertiesEventAnalysis = new Properties();
         propertiesEventAnalysis.setProperty("fov.numThreads", "4");
 
@@ -170,23 +194,23 @@ public class Orekit_Pau {
         FieldOfViewEventAnalysis fovEvent = (FieldOfViewEventAnalysis) eaf.createGroundPointAnalysis(EventAnalysisEnum.FOV, covDefs, propertiesEventAnalysis);
         eventanalyses.add(fovEvent);
 
-        //set the analyses
-        double analysisTimeStep = 60;
+//        //set the analyses
+//        double analysisTimeStep = 60;
         ArrayList<Analysis> analyses = new ArrayList<>();
-        for (Satellite sat : walker.getSatellites()) {
-            //analyses.add(new OrbitalElementsAnalysis(startDate, endDate, analysisTimeStep, sat, pf));
-            //analyses.add(new VectorAnalisysEclipseSunlightDiffDrag(startDate, endDate, analysisTimeStep, sat, pf, inertialFrame, 0.015, 0.075, 0.058, 6));
-            //analyses.add(new HohmannTransferAnalysis(startDate, endDate, analysisTimeStep, sat, pf, startDate.shiftedBy(86400),200000,400));
-        }
+//        for (Satellite sat : walker.getSatellites()) {
+//            //analyses.add(new OrbitalElementsAnalysis(startDate, endDate, analysisTimeStep, sat, pf));
+//            //analyses.add(new VectorAnalisysEclipseSunlightDiffDrag(startDate, endDate, analysisTimeStep, sat, pf, inertialFrame, 0.015, 0.075, 0.058, 6));
+//            //analyses.add(new HohmannTransferAnalysis(startDate, endDate, analysisTimeStep, sat, pf, startDate.shiftedBy(86400),200000,400));
+//        }
         
         Scenario scen = new Scenario.Builder(startDate, endDate, utc).
                 eventAnalysis(eventanalyses).analysis(analyses).
-                covDefs(covDefs).name(String.format("%s_%s_%s_%s_%s", h,ideg,t,p,f)).properties(propertiesEventAnalysis).
+                covDefs(covDefs).name("map_12_3_0").properties(propertiesEventAnalysis).
                 propagatorFactory(pf).build();
         try {
             Logger.getGlobal().finer(String.format("Running Scenario %s", scen));
             Logger.getGlobal().finer(String.format("Number of points:     %d", covDef1.getNumberOfPoints()));
-            Logger.getGlobal().finer(String.format("Number of satellites: %d", walker.getSatellites().size()));
+            Logger.getGlobal().finer(String.format("Number of satellites: %d", constel.getSatellites().size()));
             scen.call();
         } catch (Exception ex) {
             Logger.getLogger(Orekit_Pau.class.getName()).log(Level.SEVERE, null, ex);

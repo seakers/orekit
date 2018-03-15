@@ -67,12 +67,12 @@ public class CoverageExample {
         }
 
         //initializes the look up tables for planteary position (required!)
-        OrekitConfig.init();
+        OrekitConfig.init(4);
 
         //define the start and end date of the simulation
         TimeScale utc = TimeScalesFactory.getUTC();
         AbsoluteDate startDate = new AbsoluteDate(2016, 1, 1, 00, 00, 00.000, utc);
-        AbsoluteDate endDate = new AbsoluteDate(2016, 2, 1, 00, 00, 00.000, utc);
+        AbsoluteDate endDate = new AbsoluteDate(2016, 1, 7, 00, 00, 00.000, utc);
 
         //define the scenario parameters
         double mu = Constants.WGS84_EARTH_MU; // gravitation coefficient

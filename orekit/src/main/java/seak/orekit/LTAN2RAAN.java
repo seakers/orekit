@@ -95,9 +95,9 @@ public class LTAN2RAAN {
         
         
         
-        AbsoluteDate date=new AbsoluteDate(2020, 1, 1, 10, 30, 00.000, utc);
-        Orbit SSO = new KeplerianOrbit(Constants.WGS84_EARTH_EQUATORIAL_RADIUS+825000, 0.0001, FastMath.toRadians(98.7090),0.0,
-                FastMath.toRadians(257.8), 0.0, PositionAngle.MEAN, inertialFrame, date, mu);
+        AbsoluteDate date=new AbsoluteDate(2020, 1, 2, 06, 30, 00.000, utc);
+        Orbit SSO = new KeplerianOrbit(Constants.WGS84_EARTH_EQUATORIAL_RADIUS+600000, 0.0001, FastMath.toRadians(97.7874),0.0,
+                FastMath.toRadians(197.811), 0.0, PositionAngle.MEAN, inertialFrame, date, mu);
         GeodeticPoint p = new GeodeticPoint(0, 0, 0);
         CoveragePoint point=new CoveragePoint(earthShape, p, "");
         Vector3D pt1=SSO.getPVCoordinates().getPosition();

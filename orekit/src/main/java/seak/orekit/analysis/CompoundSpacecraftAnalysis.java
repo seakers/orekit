@@ -72,7 +72,11 @@ public class CompoundSpacecraftAnalysis extends AbstractSpacecraftAnalysis<Objec
 
     @Override
     public String getName() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        String name="CompoundAnalysis";
+        for (Analysis anal:this.getAnalyses()){
+            name=name.concat(String.format("_%s",anal.getName()));
+        }
+        return name;
     }
 
 }
