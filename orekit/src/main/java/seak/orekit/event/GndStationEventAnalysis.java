@@ -10,12 +10,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Callable;
-import java.util.concurrent.CompletionService;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorCompletionService;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.orekit.errors.OrekitException;
@@ -59,7 +54,7 @@ public class GndStationEventAnalysis extends AbstractEventAnalysis {
     /**
      * Stores all the accesses of each satellite if saveAllAccesses is true.
      */
-    private HashMap<Satellite, HashMap<GndStation, TimeIntervalArray>> allAccesses;
+    private final HashMap<Satellite, HashMap<GndStation, TimeIntervalArray>> allAccesses;
 
     /**
      * Creates a new event analysis.
@@ -175,7 +170,8 @@ public class GndStationEventAnalysis extends AbstractEventAnalysis {
      * Returns the computed accesses for each ground station by each of the
      * satellites assigned to that coverage definition
      *
-     * @return
+     * @return the computed accesses for each ground station by each of the
+     * satellites assigned to that coverage definition
      */
     public HashMap<Satellite, HashMap<GndStation, TimeIntervalArray>> getAllAccesses() {
         return allAccesses;
@@ -215,6 +211,7 @@ public class GndStationEventAnalysis extends AbstractEventAnalysis {
      * Topocentric Frame, their accesses will be merged into the same time
      * interval array.
      *
+     * @param satellite
      * @return The access times to each ground station
      */
     public Map<TopocentricFrame, TimeIntervalArray> getEvents(Satellite satellite) {

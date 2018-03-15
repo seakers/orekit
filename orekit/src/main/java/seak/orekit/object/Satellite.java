@@ -209,9 +209,9 @@ public class Satellite implements OrekitObject, Serializable {
         try {
             //create hash for orbit
             TimeStampedPVCoordinates pv = this.orbit.getPVCoordinates(FramesFactory.getEME2000());
-            hash = 23 * hash + Objects.hashCode(pv.getMomentum());
+            hash = 23 * hash + Objects.hashCode(pv.getPosition());
+            hash = 23 * hash + Objects.hashCode(pv.getVelocity());
             hash = 23 * hash + Objects.hashCode(pv.getAcceleration());
-            hash = 23 * hash + Objects.hashCode(pv.getAngularVelocity());
 
             //get hash for attitude provider based on rotation matrix at specific time in specific frame
             if (attProv != null) {

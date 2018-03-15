@@ -86,8 +86,8 @@ public class Tests {
         double[] incs={30,51.6,90};
         int[] ts={1,2,3,4,6,8,9,12,16};
         ArrayList<WalkerParameters> constels=EnumerateWalkerConstellations.fullFactWalker(alts, incs, ts);
-
         
+
         
         TimeScale utc = TimeScalesFactory.getUTC();
         AbsoluteDate startDate = new AbsoluteDate(2016, 1, 1, 00, 00, 00.000, utc);
@@ -141,7 +141,7 @@ public class Tests {
             covDef1.assignConstellation(walker);
             HashSet<CoverageDefinition> covDefs = new HashSet<>();
             covDefs.add(covDef1);
-
+    
 
             Properties propertiesEventAnalysis = new Properties();
             propertiesEventAnalysis.setProperty("fov.numThreads", "12");
@@ -169,7 +169,7 @@ public class Tests {
             } catch (Exception ex) {
                 Logger.getLogger(Orekit_Pau.class.getName()).log(Level.SEVERE, null, ex);
                 throw new IllegalStateException("scenario failed to complete.");
-            }
+        }
 
             Logger.getGlobal().finer(String.format("Done Running Scenario %s", scen));
 
@@ -177,7 +177,7 @@ public class Tests {
             ScenarioIO.saveGroundEventAnalysisMetrics(Paths.get(System.getProperty("results"), ""), filename, scen, covDef1, fovEvent);
             ScenarioIO.saveGroundEventAnalyzerObject(Paths.get(System.getProperty("results"), ""), filename, scen,covDef1, fovEvent);
     
-        }
+    }
     }
     
 }
