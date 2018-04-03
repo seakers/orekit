@@ -12,10 +12,12 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import seak.orekit.coverage.access.TimeIntervalArray;
 import seak.orekit.object.CoveragePoint;
 import org.hipparchus.stat.descriptive.DescriptiveStatistics;
 import org.orekit.frames.TopocentricFrame;
+import org.orekit.time.AbsoluteDate;
 
 /**
  * This class computes several standard metrics regarding events (occurring and
@@ -31,17 +33,47 @@ public class GroundEventAnalyzer implements Serializable {
      * Collection of the CoveragePoints
      */
     private final Map<TopocentricFrame, TimeIntervalArray> events;
+    
+    /**
+     * Start of simulation
+     */
+    private final AbsoluteDate startDate;
+    
+    /**
+     * End of simulation
+     */
+    private final AbsoluteDate endDate;
 
     /**
      * Creates an analyzer from a set of coverage points and time interval array
      * of event occurrences
      *
-     * @param events
+     * @param fovEvents
      */
-    public GroundEventAnalyzer(Map<TopocentricFrame, TimeIntervalArray> events) {
-        this.events = events;
+    public GroundEventAnalyzer(Map<TopocentricFrame, TimeIntervalArray> fovEvents) {
+        this.events = fovEvents;
+        Set<TopocentricFrame> topos = fovEvents.keySet();
+        TopocentricFrame tp = topos.iterator().next();
+        this.startDate = fovEvents.get(tp).getHead();
+        this.endDate = fovEvents.get(tp).getTail();
     }
 
+    /**
+     * Gets the start date of the simulation
+     * @return the start date of the simulation
+     */
+    public AbsoluteDate getStartDate() {
+        return startDate;
+    }
+
+    /**
+     * Gets the end date of the simulation
+     * @return the end date of the simulation
+     */
+    public AbsoluteDate getEndDate() {
+        return endDate;
+    }
+    
     /**
      * Gets the collection of coverage points covered in this analysis. The
      * returned collection is sorted by latitude first then by longitude in
@@ -219,6 +251,11 @@ public class GroundEventAnalyzer implements Serializable {
                     for (double event : data.get(cp).getRiseAndSetTimesList()) {
                         ds.addValue(event);
                     }
+                }
+                break;
+            case OCCURRENCES:
+                for (TopocentricFrame cp : data.keySet()) {
+                    ds.addValue(data.get(cp).getDurations().length);
                 }
                 break;
             default:

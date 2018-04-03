@@ -43,4 +43,8 @@ public enum AnalysisMetric {
      * used when obtaining the rise and set times of event ocurrences (start and end times of accesses or gaps)
      */
     LIST_RISE_SET_TIMES,
+    /**
+     * Number of occurrences (passes or gaps)
+     */
+    OCCURRENCES,
 }
