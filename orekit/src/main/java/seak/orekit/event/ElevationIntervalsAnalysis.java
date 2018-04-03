@@ -7,9 +7,11 @@ package seak.orekit.event;
 
 import org.orekit.bodies.CelestialBodyFactory;
 import org.orekit.frames.Frame;
+import org.orekit.frames.TopocentricFrame;
 import org.orekit.propagation.Propagator;
 import org.orekit.propagation.SpacecraftState;
 import org.orekit.propagation.events.EclipseDetector;
+import org.orekit.propagation.events.ElevationDetector;
 import org.orekit.propagation.events.handlers.ContinueOnEvent;
 import org.orekit.propagation.events.handlers.EventHandler;
 import org.orekit.propagation.events.handlers.StopOnEvent;
@@ -21,23 +23,32 @@ import seak.orekit.coverage.access.TimeIntervalArray;
 import seak.orekit.object.Satellite;
 import seak.orekit.propagation.PropagatorFactory;
 
-/**Analysis that allows us to obtain the eclipse intervals of a given satellite.
- *
+/**
+ * This event analysis is used to compute the intervals when a given satellite is in
+ * an elevation to a ground point equal or higher than a given minimum elevation. 
+ * To do: implement this class for multiple satellites and multiple groundstations.
  * @author paugarciabuzzi
  */
-public class EclipseIntervalsAnalysis extends AbstractEventAnalysis{
+public class ElevationIntervalsAnalysis extends AbstractEventAnalysis{
     
     private final TimeIntervalArray timearray;
     
     private final Satellite sat;
     
+    private final TopocentricFrame groundpoint;
+    
+    private final double minElevation;
+    
     protected final PropagatorFactory pf;
 
-    public EclipseIntervalsAnalysis(AbsoluteDate startDate, AbsoluteDate endDate, Frame inertialFrame, Satellite sat, PropagatorFactory pf) {
+    public ElevationIntervalsAnalysis(AbsoluteDate startDate, AbsoluteDate endDate, Frame inertialFrame, 
+            Satellite sat, PropagatorFactory pf, TopocentricFrame groundpoint, double minElevation) {
         super(startDate, endDate, inertialFrame);
         this.sat=sat;
         this.pf=pf;
         this.timearray=this.getEmptyTimeArray();
+        this.groundpoint=groundpoint;
+        this.minElevation=minElevation;
     }
 
     @Override
@@ -50,22 +61,17 @@ public class EclipseIntervalsAnalysis extends AbstractEventAnalysis{
         prop.resetInitialState(prop.getInitialState());
         prop.clearEventsDetectors();
         
-        final PVCoordinatesProvider occulted=CelestialBodyFactory.getSun();
-        double occultedRadius=Constants.SUN_RADIUS;
-        final PVCoordinatesProvider occulting=CelestialBodyFactory.getEarth();
-        double occultingRadius=Constants.WGS84_EARTH_EQUATORIAL_RADIUS;
-        final EventHandler<? super EclipseDetector> handler=new StopOnEvent<>();
-        EclipseDetector detector= new EclipseDetector(detStepSize,threshold,
-                                                occulted,occultedRadius,
-                                                occulting,occultingRadius)
-                                                .withHandler(handler);
-        prop.addEventDetector(detector);
+        final EventHandler<? super ElevationDetector> handler=new StopOnEvent<>();
         
+        ElevationDetector detector = new ElevationDetector(detStepSize, threshold,
+                this.groundpoint).withConstantElevation(minElevation).withHandler(handler);
+        prop.addEventDetector(detector);
+         
         boolean end=false;
         SpacecraftState s=prop.getInitialState();
         while (!end){
             prop.resetInitialState(s);
-            if (detector.g(prop.getInitialState())<0){
+            if (detector.g(prop.getInitialState())>0){
                 this.timearray.addRiseTime(s.getDate());
             }else{
                 this.timearray.addSetTime(s.getDate());
@@ -86,7 +92,7 @@ public class EclipseIntervalsAnalysis extends AbstractEventAnalysis{
     @Override
     public String getHeader() {
         StringBuilder sb = new StringBuilder();
-        sb.append("Eclipse Event Analysis\n");
+        sb.append("Comms(Elevation) Event Analysis\n");
         sb.append(String.format("\t\tSatellite %s\n", sat.toString()));
         return sb.toString();
     }

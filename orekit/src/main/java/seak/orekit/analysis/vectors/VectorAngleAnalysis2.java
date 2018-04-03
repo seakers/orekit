@@ -18,11 +18,11 @@ import seak.orekit.propagation.PropagatorFactory;
 
 /**
  * This analysis will record how the angle [rad] between two vector changes in
- * the given frame of reference. One of the vectors must be accessible from the
+ * the given frame of reference. The vectors must be accessible from the
  * spacecraft state. This class is very similar to VectorAnalysis but we can have
- * access to a CelestialBody such as sun and moon.
+ * access to a CelestialBody such as sun or moon.
  *
- * @author nozomihitomi
+ * @author paugarciabuzzi
  */
 public abstract class VectorAngleAnalysis2 extends AbstractSpacecraftAnalysis<Double> {
 

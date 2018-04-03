@@ -31,6 +31,7 @@ import seak.orekit.coverage.access.TimeIntervalArray;
 import seak.orekit.coverage.analysis.AnalysisMetric;
 import seak.orekit.coverage.analysis.GroundEventAnalyzer;
 import seak.orekit.event.EclipseIntervalsAnalysis;
+import seak.orekit.event.ElevationIntervalsAnalysis;
 import seak.orekit.event.GroundEventAnalysis;
 import seak.orekit.object.CoverageDefinition;
 import seak.orekit.object.CoveragePoint;
@@ -97,14 +98,11 @@ public class ScenarioIO {
     }
     
     /**
-     * Saves the accesses of the coverage definition from the scenario in a
-     * desired directory. Searches the scenario for the computed metrics
-     * belonging to the specified coverage definition
+     * Saves the eclipse intervals from the scenario in a desired directory.
      *
      * @param path to the directory to save the file
      * @param filename name of the file without the extension
      * @param scenario Scenario that was simulated
-     * @param covdef the coverage definition of interest
      * @param analysis the analysis to save
      * @return
      */
@@ -134,7 +132,46 @@ public class ScenarioIO {
             Logger.getLogger(ScenarioIO.class.getName()).log(Level.SEVERE, null, ex);
             return false;
         }
-        Logger.getGlobal().finest(String.format("Saved accesses in %s", file.toString()));
+        Logger.getGlobal().finest(String.format("Saved eclipse intervals in %s", file.toString()));
+        return true;
+    }
+        /**
+     * Saves the Comms(elevation>minElevation) intervals from the scenario in a 
+     * desired directory.
+     *
+     * @param path to the directory to save the file
+     * @param filename name of the file without the extension
+     * @param scenario Scenario that was simulated
+     * @param analysis the analysis to save
+     * @return
+     */
+    public static boolean saveElevationAnalysis(Path path, String filename,
+            Scenario scenario , ElevationIntervalsAnalysis analysis) {
+
+        TimeIntervalArray elevationEvents = analysis.getTimeIntervalArray();
+        File file = new File(path.toFile(),
+                String.format("%s_%s.ele", filename, scenario.getName()));
+        try (FileWriter fw = new FileWriter(file)) {
+            fw.append(String.format("Start Date: %s\n\n", scenario.getStartDate()));
+            fw.append(String.format("End Date: %s\n\n", scenario.getEndDate()));
+            fw.append(analysis.getHeader());
+            fw.flush();
+            Iterator<RiseSetTime> iter = elevationEvents.getRiseSetTimes().iterator();
+            while (iter.hasNext()) {
+                fw.append(String.format("%.14e", iter.next().getTime()));
+                try {
+                    fw.append(String.format(",%.14e\n", iter.next().getTime()));
+                } catch (NoSuchElementException ex) {
+                    Logger.getLogger(ScenarioIO.class.getName()).log(Level.SEVERE, "Expected all intervals to be closed. Found an open one", ex);
+                }
+            }
+            fw.append("\n");
+            fw.flush();
+        } catch (IOException ex) {
+            Logger.getLogger(ScenarioIO.class.getName()).log(Level.SEVERE, null, ex);
+            return false;
+        }
+        Logger.getGlobal().finest(String.format("Saved elevation intervals in %s", file.toString()));
         return true;
     }
 
