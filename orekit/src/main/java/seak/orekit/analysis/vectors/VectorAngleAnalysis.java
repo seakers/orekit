@@ -17,7 +17,7 @@ import seak.orekit.propagation.PropagatorFactory;
 
 /**
  * This analysis will record how the angle [rad] between two vector changes in
- * the given frame of reference. One of the vectors must be accessible from the
+ * the given frame of reference. The vectors must be accessible from the
  * spacecraft state
  *
  * @author nozomihitomi

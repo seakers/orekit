@@ -6,6 +6,8 @@
 package seak.orekit.analysis.ephemeris;
 
 import org.orekit.bodies.BodyShape;
+import org.orekit.bodies.GeodeticPoint;
+import org.orekit.frames.Frame;
 import org.orekit.orbits.PositionAngle;
 import org.orekit.propagation.Propagator;
 import org.orekit.propagation.SpacecraftState;
@@ -13,25 +15,26 @@ import org.orekit.propagation.events.AltitudeDetector;
 import org.orekit.propagation.events.handlers.EventHandler;
 import org.orekit.propagation.events.handlers.StopOnEvent;
 import org.orekit.time.AbsoluteDate;
+import org.orekit.utils.PVCoordinates;
 import seak.orekit.object.Satellite;
 import seak.orekit.propagation.PropagatorFactory;
 
 /**
- * Lifetime Analysis using master mode and an altitude detector. It records the orbital elements at every
- * analysis time step.
+ * * Lifetime Analysis using slave mode and without altitude detectors. It does not record the orbital
+ * elements and it is only useful to get the lifetime value.
  * @author paugarciabuzzi
  */
-public class LifetimeAnalysis extends OrbitalElementsAnalysis{
+public class LifetimeAnalysis2 extends OrbitalElementsAnalysis{
    
     private static final double thresholdAltitude=150000;
     
-    private final BodyShape bodyshape;
+    private final BodyShape bodyShape;
     
     private double lifetime;
 
-    public LifetimeAnalysis(AbsoluteDate startDate, AbsoluteDate endDate, double timeStep, Satellite sat, PositionAngle type, PropagatorFactory propagatorFactory, BodyShape bodyshape) {
+    public LifetimeAnalysis2(AbsoluteDate startDate, AbsoluteDate endDate, double timeStep, Satellite sat, PositionAngle type, PropagatorFactory propagatorFactory, BodyShape bodyshape) {
         super(startDate, endDate, timeStep, sat, type,propagatorFactory);
-        this.bodyshape=bodyshape;
+        this.bodyShape=bodyshape;
         this.lifetime=0;
     }
 
@@ -43,13 +46,21 @@ public class LifetimeAnalysis extends OrbitalElementsAnalysis{
     @Override
     public OrbitalElementsAnalysis call() throws Exception {
         Propagator prop = propagatorFactory.createPropagator(this.getSatellite().getOrbit(), this.getSatellite().getGrossMass());
-        final EventHandler<? super AltitudeDetector> handler=new StopOnEvent<>();
-        AltitudeDetector detector= new AltitudeDetector(this.getTimeStep(),thresholdAltitude,bodyshape)
-                                                .withHandler(handler);
-
-        prop.addEventDetector(detector);
-        prop.setMasterMode(this.getTimeStep(), this);
-        SpacecraftState s=prop.propagate(getStartDate(), getEndDate());
+        prop.setSlaveMode();
+        AbsoluteDate targetDate=getStartDate();
+        SpacecraftState s=prop.getInitialState();
+        while (getEndDate().durationFrom(targetDate)>0){
+            targetDate=targetDate.shiftedBy(getTimeStep());
+            s=prop.propagate(targetDate);
+            prop.resetInitialState(s);
+            Frame bodyFrame      = bodyShape.getBodyFrame();
+            PVCoordinates pvBody = s.getPVCoordinates(bodyFrame);
+            GeodeticPoint point  = bodyShape.transform(pvBody.getPosition(),
+                                                         bodyFrame, s.getDate());
+            if(point.getAltitude()<thresholdAltitude){
+                break;
+            }
+        }
         this.lifetime=s.getDate().durationFrom(getStartDate())/60/60/24/365.25;
         return this;
     }
