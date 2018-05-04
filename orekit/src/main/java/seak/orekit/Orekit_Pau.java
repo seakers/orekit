@@ -93,6 +93,7 @@ public class Orekit_Pau {
         TimeScale utc = TimeScalesFactory.getUTC();
         AbsoluteDate startDate = new AbsoluteDate(2020, 1, 1, 00, 00, 00.000, utc);
         AbsoluteDate endDate = new AbsoluteDate(2020, 1, 8, 00, 00, 00.000, utc);
+        //AbsoluteDate endDate = new AbsoluteDate(2021, 1, 1, 00, 00, 00.000, utc);
         double mu = Constants.WGS84_EARTH_MU; // gravitation coefficient
 
         //must use IERS_2003 and EME2000 frames to be consistent with STK
@@ -115,39 +116,39 @@ public class Orekit_Pau {
         payload.add(view1);
         
         //number of total satellites
-        int t=12;
+        int t=10;
         //number of planes
-        int p=3;
+        int p=1;
         //
         int f=0;
 //        
-        Walker constel = new Walker("walker1", payload, a, i, t, p, f, inertialFrame, startDate, mu);
-//        ArrayList<Satellite> satellites=new ArrayList<>();
-//        Orbit orb1 = new KeplerianOrbit(a, 0.0001, i, 0.0, Math.toRadians(0), Math.toRadians(0), PositionAngle.MEAN, inertialFrame, startDate, mu);
-//        Satellite sat1 = new Satellite("sat1", orb1, null, payload);
-//        Orbit orb2 = new KeplerianOrbit(a, 0.0001, i, 0.0, Math.toRadians(0), Math.toRadians(59.9999), PositionAngle.MEAN, inertialFrame, startDate, mu);
+//        Walker constel = new Walker("walker1", payload, a, i, t, p, f, inertialFrame, startDate, mu);
+        ArrayList<Satellite> satellites=new ArrayList<>();
+        Orbit orb1 = new KeplerianOrbit(a, 0.0001, i, 0.0, Math.toRadians(0), Math.toRadians(0), PositionAngle.MEAN, inertialFrame, startDate, mu);
+        Satellite sat1 = new Satellite("sat1", orb1, null, payload);
+//        Orbit orb2 = new KeplerianOrbit(a, 0.0001, i, 0.0, Math.toRadians(0), Math.toRadians(60), PositionAngle.MEAN, inertialFrame, startDate, mu);
 //        Satellite sat2 = new Satellite("sat2", orb2, null, payload);
-//        Orbit orb3 = new KeplerianOrbit(a, 0.0001, i, 0.0, Math.toRadians(0), Math.toRadians(119.9999), PositionAngle.MEAN, inertialFrame, startDate, mu);
+//        Orbit orb3 = new KeplerianOrbit(a, 0.0001, i, 0.0, Math.toRadians(0), Math.toRadians(120), PositionAngle.MEAN, inertialFrame, startDate, mu);
 //        Satellite sat3 = new Satellite("sat3", orb3, null, payload);
 //        Orbit orb4 = new KeplerianOrbit(a, 0.0001, i, 0.0, Math.toRadians(0), Math.toRadians(180), PositionAngle.MEAN, inertialFrame, startDate, mu);
 //        Satellite sat4 = new Satellite("sat4", orb4, null, payload);
-//        Orbit orb5 = new KeplerianOrbit(a, 0.0001, i, 0.0, Math.toRadians(0), Math.toRadians(239.9999), PositionAngle.MEAN, inertialFrame, startDate, mu);
+//        Orbit orb5 = new KeplerianOrbit(a, 0.0001, i, 0.0, Math.toRadians(0), Math.toRadians(240), PositionAngle.MEAN, inertialFrame, startDate, mu);
 //        Satellite sat5 = new Satellite("sat5", orb5, null, payload);
-//        Orbit orb6 = new KeplerianOrbit(a, 0.0001, i, 0.0, Math.toRadians(0), Math.toRadians(299.9999), PositionAngle.MEAN, inertialFrame, startDate, mu);
+//        Orbit orb6 = new KeplerianOrbit(a, 0.0001, i, 0.0, Math.toRadians(0), Math.toRadians(299.99), PositionAngle.MEAN, inertialFrame, startDate, mu);
 //        Satellite sat6 = new Satellite("sat6", orb6, null, payload);
 //        Orbit orb7 = new KeplerianOrbit(a, 0.0001, i, 0.0, Math.toRadians(180), Math.toRadians(0), PositionAngle.MEAN, inertialFrame, startDate, mu);
 //        Satellite sat7 = new Satellite("sat7", orb7, null, payload);
-//        Orbit orb8 = new KeplerianOrbit(a, 0.0001, i, 0.0, Math.toRadians(180), Math.toRadians(59.9999), PositionAngle.MEAN, inertialFrame, startDate, mu);
+//        Orbit orb8 = new KeplerianOrbit(a, 0.0001, i, 0.0, Math.toRadians(180), Math.toRadians(60), PositionAngle.MEAN, inertialFrame, startDate, mu);
 //        Satellite sat8 = new Satellite("sat8", orb8, null, payload);
-//        Orbit orb9 = new KeplerianOrbit(a, 0.0001, i, 0.0, Math.toRadians(180), Math.toRadians(119.9999), PositionAngle.MEAN, inertialFrame, startDate, mu);
+//        Orbit orb9 = new KeplerianOrbit(a, 0.0001, i, 0.0, Math.toRadians(180), Math.toRadians(120), PositionAngle.MEAN, inertialFrame, startDate, mu);
 //        Satellite sat9 = new Satellite("sat9", orb9, null, payload);
 //        Orbit orb10 = new KeplerianOrbit(a, 0.0001, i, 0.0, Math.toRadians(180), Math.toRadians(180), PositionAngle.MEAN, inertialFrame, startDate, mu);
 //        Satellite sat10 = new Satellite("sat10", orb10, null, payload);
-//        Orbit orb11 = new KeplerianOrbit(a, 0.0001, i, 0.0, Math.toRadians(180), Math.toRadians(239.9999), PositionAngle.MEAN, inertialFrame, startDate, mu);
+//        Orbit orb11 = new KeplerianOrbit(a, 0.0001, i, 0.0, Math.toRadians(180), Math.toRadians(240), PositionAngle.MEAN, inertialFrame, startDate, mu);
 //        Satellite sat11 = new Satellite("sat11", orb11, null, payload);
-//        Orbit orb12 = new KeplerianOrbit(a, 0.0001, i, 0.0, Math.toRadians(180), Math.toRadians(299.9999), PositionAngle.MEAN, inertialFrame, startDate, mu);
+//        Orbit orb12 = new KeplerianOrbit(a, 0.0001, i, 0.0, Math.toRadians(180), Math.toRadians(300), PositionAngle.MEAN, inertialFrame, startDate, mu);
 //        Satellite sat12 = new Satellite("sat12", orb12, null, payload);
-//        satellites.add(sat1);
+        satellites.add(sat1);
 //        satellites.add(sat2);
 //        satellites.add(sat3);
 //        satellites.add(sat4);
@@ -161,11 +162,10 @@ public class Orekit_Pau {
 //        satellites.add(sat12);
 
 
-//        Constellation constel = new Constellation ("tropics2",satellites);
+        Constellation constel = new Constellation ("tropics2",satellites);
 
-        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", 2, earthShape, UNIFORM);
+        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", 9, earthShape, EQUAL_AREA);
 
-        //covDef1.assignConstellation(walker);
         covDef1.assignConstellation(constel);
         HashSet<CoverageDefinition> covDefs = new HashSet<>();
         covDefs.add(covDef1);
@@ -181,8 +181,9 @@ public class Orekit_Pau {
         propertiesPropagator.setProperty("orekit.propagator.solararea", "0.058");
 
         //PropagatorFactory pf = new PropagatorFactory(PropagatorType.KEPLERIAN,propertiesPropagator);
-        PropagatorFactory pf = new PropagatorFactory(PropagatorType.J2,propertiesPropagator);
-        //PropagatorFactory pf = new PropagatorFactory(PropagatorType.NUMERICAL,propertiesPropagator);
+        //PropagatorFactory pf = new PropagatorFactory(PropagatorType.J2,propertiesPropagator);
+        //PropagatorFactory pf = new PropagatorFactory(PropagatorType.J2MODIFIED,propertiesPropagator);
+        PropagatorFactory pf = new PropagatorFactory(PropagatorType.NUMERICAL,propertiesPropagator);
         
         Properties propertiesEventAnalysis = new Properties();
         propertiesEventAnalysis.setProperty("fov.numThreads", "4");
@@ -199,13 +200,11 @@ public class Orekit_Pau {
         ArrayList<Analysis> analyses = new ArrayList<>();
 //        for (Satellite sat : walker.getSatellites()) {
 //            //analyses.add(new OrbitalElementsAnalysis(startDate, endDate, analysisTimeStep, sat, pf));
-//            //analyses.add(new VectorAnalisysEclipseSunlightDiffDrag(startDate, endDate, analysisTimeStep, sat, pf, inertialFrame, 0.015, 0.075, 0.058, 6));
-//            //analyses.add(new HohmannTransferAnalysis(startDate, endDate, analysisTimeStep, sat, pf, startDate.shiftedBy(86400),200000,400));
 //        }
         
         Scenario scen = new Scenario.Builder(startDate, endDate, utc).
                 eventAnalysis(eventanalyses).analysis(analyses).
-                covDefs(covDefs).name("map_12_3_0").properties(propertiesEventAnalysis).
+                covDefs(covDefs).name("sat1").properties(propertiesEventAnalysis).
                 propagatorFactory(pf).build();
         try {
             Logger.getGlobal().finer(String.format("Running Scenario %s", scen));
@@ -218,31 +217,30 @@ public class Orekit_Pau {
         }
 
         Logger.getGlobal().finer(String.format("Done Running Scenario %s", scen));
-        
-//        GroundEventAnalyzer ea = new GroundEventAnalyzer(fovEvent.getEvents(covDef1));
-//        DescriptiveStatistics accessStats = ea.getStatistics(AnalysisMetric.DURATION, true);
-//        DescriptiveStatistics gapStats = ea.getStatistics(AnalysisMetric.DURATION, false);
-//
-//        System.out.println(String.format("Max access time %s", accessStats.getMax()));
-//        System.out.println(String.format("Mean access time %s", accessStats.getMean()));
-//        System.out.println(String.format("Min access time %s", accessStats.getMin()));
-//        System.out.println(String.format("50th access time %s", accessStats.getPercentile(50)));
-//        System.out.println(String.format("80th access time %s", accessStats.getPercentile(80)));
-//        System.out.println(String.format("90th access time %s", accessStats.getPercentile(90)));
-//
-//        System.out.println(String.format("Max gap time %s", gapStats.getMax()));
-//        System.out.println(String.format("Mean gap time %s", gapStats.getMean()));
-//        System.out.println(String.format("Min gap time %s", gapStats.getMin()));
-//        System.out.println(String.format("50th gap time %s", gapStats.getPercentile(50)));
-//        System.out.println(String.format("80th gap time %s", gapStats.getPercentile(80)));
-//        System.out.println(String.format("90th gap time %s", gapStats.getPercentile(90)));
+        Properties props=new Properties();
+        GroundEventAnalyzer ea = new GroundEventAnalyzer(fovEvent.getEvents(covDef1));
+        DescriptiveStatistics accessStats = ea.getStatistics(AnalysisMetric.DURATION, true,props);
+        DescriptiveStatistics gapStats = ea.getStatistics(AnalysisMetric.DURATION, false,props);
+
+        System.out.println(String.format("Max access time %s", accessStats.getMax()));
+        System.out.println(String.format("Mean access time %s", accessStats.getMean()));
+        System.out.println(String.format("Min access time %s", accessStats.getMin()));
+        System.out.println(String.format("50th access time %s", accessStats.getPercentile(50)));
+        System.out.println(String.format("80th access time %s", accessStats.getPercentile(80)));
+        System.out.println(String.format("90th access time %s", accessStats.getPercentile(90)));
+
+        System.out.println(String.format("Max gap time %s", gapStats.getMax()));
+        System.out.println(String.format("Mean gap time %s", gapStats.getMean()));
+        System.out.println(String.format("Min gap time %s", gapStats.getMin()));
+        System.out.println(String.format("50th gap time %s", gapStats.getPercentile(50)));
+        System.out.println(String.format("80th gap time %s", gapStats.getPercentile(80)));
+        System.out.println(String.format("90th gap time %s", gapStats.getPercentile(90)));
 //
         ScenarioIO.saveGroundEventAnalysis(Paths.get(System.getProperty("results"), ""), filename, scen, covDef1, fovEvent);
         //ScenarioIO.saveGroundEventAnalysisMetrics(Paths.get(System.getProperty("results"), ""), filename, scen, covDef1, fovEvent);
         ScenarioIO.saveGroundEventAnalyzerObject(Paths.get(System.getProperty("results"), ""), filename, scen,covDef1, fovEvent);
 //        ScenarioIO.saveGroundEventAnalysis(Paths.get(System.getProperty("results"), ""), filename + "_gsa", scen, covDef1, gndSunAngEvent);
-//        ScenarioIO.saveLinkBudget(Paths.get(System.getProperty("results"), ""), filename, scenComp, cdefToSave);
-//        ScenarioIO.saveReadMe(Paths.get(path, ""), filename, scenComp);
+ //        ScenarioIO.saveReadMe(Paths.get(path, ""), filename, scenComp);
         
         for (Analysis analysis : analyses) {
             ScenarioIO.saveAnalysis(Paths.get(System.getProperty("results"), ""),
