@@ -201,15 +201,6 @@ public class Orekit {
 //            analyses.add(new VectorAnalisysEclipseSunlightDiffDrag(startDate, endDate, analysisTimeStep, sat, pf, inertialFrame, 0.015, 0.075, 0.058, 6));
 //        }
 
-        //LINK BUDGET
-        double txPower = 0.05;
-        double txGain = 1;
-        double rxGain = 31622.8;
-        double lambda = 0.15;
-        double noiseTemperature = 165;
-        double dataRate = 50e6;
-        LinkBudget lb = new LinkBudget(txPower, txGain, rxGain, lambda, noiseTemperature, dataRate);
-
         Scenario scen = new Scenario.Builder(startDate, endDate, utc).
                 eventAnalysis(eventanalyses).analysis(analyses).
                 covDefs(covDefs).name("test1").properties(propertiesEventAnalysis).
