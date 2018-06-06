@@ -359,5 +359,4 @@ public class CoverageDefinition implements OrekitObject, Serializable {
         }
         return true;
     }
-
 }

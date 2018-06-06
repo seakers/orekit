@@ -33,6 +33,17 @@ public class GndStation extends GroundStation implements OrekitObject {
      * Minimum elevation angle [rad]
      */
     private final double minEl;
+    
+    /**
+     * Flag for if the ground station is designated or not
+     */
+    private final int designated;
+
+    /**
+     * Communication band type designation
+     */
+    private final String[] commBandType;
+
 
     /**
      * Creates a new ground station
@@ -42,14 +53,18 @@ public class GndStation extends GroundStation implements OrekitObject {
      * @param receiver the receiving antenna
      * @param transmitter the transmitting antenna
      * @param minEl the minimum elevation angle [rad]
+     * @param designated the flag that returns whether this gnd station is designated or not
+     * @param commBandType returns the communication bands for this ground station
      * @throws OrekitException
      */
     public GndStation(TopocentricFrame topo,
-            Receiver receiver, Transmitter transmitter, double minEl) throws OrekitException {
+            Receiver receiver, Transmitter transmitter, double minEl, int designated, String[] commBandType) throws OrekitException {
         super(topo);
         this.receiver = receiver;
         this.transmitter = transmitter;
         this.minEl = minEl;
+        this.designated = designated;
+        this.commBandType = commBandType;
     }
 
     /**
@@ -78,6 +93,24 @@ public class GndStation extends GroundStation implements OrekitObject {
      */
     public double getMinEl() {
         return minEl;
+    }
+    
+    /**
+     * Gets the flag for if the ground station is designated or not
+     *
+     * @return the designated flag from this ground station
+     */
+    public int getDesignated() {
+        return designated;
+    }
+    
+    /**
+     * Gets the types of communication bands for this ground station
+     *
+     * @return a string with communication bands for this ground station
+     */
+    public String[] getCommBandType() {
+        return commBandType;
     }
 
     @Override
