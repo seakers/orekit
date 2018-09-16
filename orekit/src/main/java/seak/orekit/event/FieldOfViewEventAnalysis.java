@@ -150,7 +150,7 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
             }
 
             try {
-                for (SubRoutine sr : ParallelRoutine.submit(subRoutines)) {
+                for (SubRoutine sr : ParallelRoutine.blockingSubmit(subRoutines)) {
                     if (sr == null) {
                         throw new IllegalStateException("Subroutine failed in field of view event.");
                     }

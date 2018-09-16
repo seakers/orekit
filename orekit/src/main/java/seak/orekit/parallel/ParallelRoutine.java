@@ -11,6 +11,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Integrated method to use a central thread pool
@@ -31,12 +32,16 @@ public class ParallelRoutine {
     /**
      * Used to prevent new task submissions when running routines
      */
-    private static boolean locked;
+    private static ReentrantLock lock;
 
     /**
      * The number of threads in the thread pool
      */
     private static int numThreads;
+
+    static {
+        lock = new ReentrantLock();
+    }
 
     /**
      * Creates a singleton instance
@@ -90,14 +95,14 @@ public class ParallelRoutine {
             throw new IllegalStateException("Executor has already been shutdown and cannot accept any futher tasks until it is reset.");
         }
         
-        if (ParallelRoutine.locked) {
+        if (ParallelRoutine.lock.isLocked()) {
             return null;
         }
 
-        ParallelRoutine.locked = true;
+        ParallelRoutine.lock.lock();
         ParallelRoutine.ecs.submit(subroutine);
         SubRoutine out = ParallelRoutine.ecs.take().get();
-        ParallelRoutine.locked = false;
+        ParallelRoutine.lock.unlock();
         return out;
     }
 
@@ -118,10 +123,10 @@ public class ParallelRoutine {
             throw new IllegalStateException("Executor has already been shutdown and cannot accept any futher tasks until it is reset.");
         }
         
-        if (ParallelRoutine.locked) {
+        if (ParallelRoutine.lock.isLocked()) {
             return null;
         }
-        ParallelRoutine.locked = true;
+        ParallelRoutine.lock.lock();
         int i = 0;
         for (SubRoutine sr : subroutines) {
             ParallelRoutine.ecs.submit(sr);
@@ -131,7 +136,27 @@ public class ParallelRoutine {
         for (int j = 0; j < i; j++) {
             completedTasks.add(ParallelRoutine.ecs.take().get());
         }
-        ParallelRoutine.locked = false;
+        ParallelRoutine.lock.unlock();
+        return completedTasks;
+    }
+
+
+    public static Collection<SubRoutine> blockingSubmit(Collection<SubRoutine> subroutines) throws InterruptedException, ExecutionException {
+        if(ParallelRoutine.executor.isShutdown()){
+            throw new IllegalStateException("Executor has already been shutdown and cannot accept any futher tasks until it is reset.");
+        }
+
+        ParallelRoutine.lock.lock();
+        int i = 0;
+        for (SubRoutine sr : subroutines) {
+            ParallelRoutine.ecs.submit(sr);
+            i++;
+        }
+        ArrayList<SubRoutine> completedTasks = new ArrayList<>(i);
+        for (int j = 0; j < i; j++) {
+            completedTasks.add(ParallelRoutine.ecs.take().get());
+        }
+        ParallelRoutine.lock.unlock();
         return completedTasks;
     }
 
@@ -150,6 +175,6 @@ public class ParallelRoutine {
      * @return true if locked. Else false.
      */
     public static boolean isLocked() {
-        return ParallelRoutine.locked;
+        return ParallelRoutine.lock.isLocked();
     }
 }
