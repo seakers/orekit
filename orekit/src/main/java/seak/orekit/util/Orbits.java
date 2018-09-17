@@ -106,4 +106,15 @@ public class Orbits {
     public static double circularOrbitVelocity(double sma){
         return FastMath.sqrt(MU/sma);
     }
+    
+    /**
+     * Computes the inclination for a circular SSO with a given altitude
+     * @param h altitude [m]
+     * @return the inclination [rad]
+     */
+    public static double incSSO(double h){
+        double kh=10.10949;
+        double cosi=Math.pow(((RE+h)/RE), 3.5)/-kh;
+        return FastMath.acos(cosi);
+    }
 }
