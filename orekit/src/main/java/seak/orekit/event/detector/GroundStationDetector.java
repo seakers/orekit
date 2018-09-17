@@ -166,7 +166,7 @@ public class GroundStationDetector extends AbstractEventDetector<GroundStationDe
             return elevation - station.getMinEl();
         }else{
             return -1.;
-        }
+    }
     }
 
 }
