@@ -141,7 +141,7 @@ public class PropagatorFactory {
         return new EcksteinHechlerPropagator(orbit, mass, Constants.WGS84_EARTH_EQUATORIAL_RADIUS,
                 Constants.WGS84_EARTH_MU, Constants.WGS84_EARTH_C20, 0, 0, 0, 0);
     }
-
+    
     /**
      * Creates a TLE propagator
      *

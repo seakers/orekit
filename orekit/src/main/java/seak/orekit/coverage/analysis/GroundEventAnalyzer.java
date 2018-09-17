@@ -75,6 +75,15 @@ public class GroundEventAnalyzer implements Serializable {
     }
     
     /**
+     * Gets the collection of  coverage points and their time interval array
+     * of event occurrences
+     *
+     * @return
+     */
+    public Map<TopocentricFrame, TimeIntervalArray> getEvents() {
+        return events;
+    }
+    /**
      * Gets the collection of coverage points covered in this analysis. The
      * returned collection is sorted by latitude first then by longitude in
      * ascending order
@@ -87,18 +96,16 @@ public class GroundEventAnalyzer implements Serializable {
         return points;
     }
     
-    public Map<TopocentricFrame, TimeIntervalArray> getEvents(boolean occurrences, Collection<TopocentricFrame> points, Properties properties) {
-        ArrayList<TimeIntervalArray> listOfEvents = new ArrayList(events.values());
-        
+    /**
+     * gets the map of specified coverage points and 
+     * their time interval array of their occurrences
+     */
+    public Map<TopocentricFrame, TimeIntervalArray> getEvents(Collection<TopocentricFrame> points) {
+
         Map<TopocentricFrame, TimeIntervalArray> data = new HashMap<>();
         for (TopocentricFrame tp : points) {
-            if (occurrences) {
-                data.put(tp, events.get(tp));
-            } else {
-                data.put(tp, events.get(tp).complement());
-            }
+            data.put(tp, events.get(tp));
         }
-
         return data;
     }
 
