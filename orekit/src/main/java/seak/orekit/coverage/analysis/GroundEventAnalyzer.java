@@ -88,8 +88,8 @@ public class GroundEventAnalyzer implements Serializable {
     }
     
     /**
-     *gets the map of specified coverage points and 
-     * their time interval array of their occurences
+     * gets the map of specified coverage points and 
+     * their time interval array of their occurrences
      */
     public Map<TopocentricFrame, TimeIntervalArray> getEvents(Collection<TopocentricFrame> points) {
 
