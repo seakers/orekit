@@ -75,6 +75,15 @@ public class GroundEventAnalyzer implements Serializable {
     }
     
     /**
+     * Gets the collection of  coverage points and their time interval array
+     * of event occurrences
+     *
+     * @return
+     */
+    public Map<TopocentricFrame, TimeIntervalArray> getEvents() {
+        return events;
+    }
+    /**
      * Gets the collection of coverage points covered in this analysis. The
      * returned collection is sorted by latitude first then by longitude in
      * ascending order
