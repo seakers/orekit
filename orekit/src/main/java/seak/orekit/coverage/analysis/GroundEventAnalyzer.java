@@ -95,6 +95,19 @@ public class GroundEventAnalyzer implements Serializable {
         Collections.sort(points);
         return points;
     }
+    
+    /**
+     *gets the map of specified coverage points and 
+     * their time interval array of their occurences
+     */
+    public Map<TopocentricFrame, TimeIntervalArray> getEvents(Collection<TopocentricFrame> points) {
+
+        Map<TopocentricFrame, TimeIntervalArray> data = new HashMap<>();
+        for (TopocentricFrame tp : points) {
+            data.put(tp, events.get(tp));
+        }
+        return data;
+    }
 
     /**
      * Computes the statistics for a specified metric over all points given to
