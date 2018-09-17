@@ -87,18 +87,16 @@ public class GroundEventAnalyzer implements Serializable {
         return points;
     }
     
-    public Map<TopocentricFrame, TimeIntervalArray> getEvents(boolean occurrences, Collection<TopocentricFrame> points, Properties properties) {
-        ArrayList<TimeIntervalArray> listOfEvents = new ArrayList(events.values());
-        
+    /**
+     *gets the map of specified coverage points and 
+     * their time interval array of their occurences
+     */
+    public Map<TopocentricFrame, TimeIntervalArray> getEvents(Collection<TopocentricFrame> points) {
+
         Map<TopocentricFrame, TimeIntervalArray> data = new HashMap<>();
         for (TopocentricFrame tp : points) {
-            if (occurrences) {
-                data.put(tp, events.get(tp));
-            } else {
-                data.put(tp, events.get(tp).complement());
-            }
+            data.put(tp, events.get(tp));
         }
-
         return data;
     }
 
