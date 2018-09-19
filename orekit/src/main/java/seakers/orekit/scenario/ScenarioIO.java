@@ -33,8 +33,8 @@ import seakers.orekit.coverage.analysis.GroundEventAnalyzer;
 import seakers.orekit.event.EclipseIntervalsAnalysis;
 import seakers.orekit.event.ElevationIntervalsAnalysis;
 import seakers.orekit.event.GroundEventAnalysis;
-import seaker.orekit.object.CoverageDefinition;
-import seaker.orekit.object.CoveragePoint;
+import seakers.orekit.object.CoverageDefinition;
+import seakers.orekit.object.CoveragePoint;
 
 /**
  * Saves and loads scenarios

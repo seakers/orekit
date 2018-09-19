@@ -15,7 +15,7 @@ import seakers.orekit.analysis.AbstractAnalysis;
 import seakers.orekit.analysis.AbstractSpacecraftAnalysis;
 import seakers.orekit.analysis.Record;
 import seakers.orekit.maneuvers.OrbitTransfer;
-import seaker.orekit.object.Satellite;
+import seakers.orekit.object.Satellite;
 import seakers.orekit.propagation.PropagatorFactory;
 
 /**

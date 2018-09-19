@@ -5,7 +5,7 @@
  */
 package seakers.orekit.event.detector;
 
-import seaker.orekit.object.Instrument;
+import seakers.orekit.object.Instrument;
 import org.orekit.errors.OrekitException;
 import org.orekit.frames.TopocentricFrame;
 import org.orekit.propagation.SpacecraftState;

@@ -5,7 +5,7 @@
  */
 package seakers.orekit.event.detector;
 
-import seaker.orekit.object.CoveragePoint;
+import seakers.orekit.object.CoveragePoint;
 import seakers.orekit.object.linkbudget.LinkBudget;
 import org.orekit.errors.OrekitException;
 import org.orekit.propagation.SpacecraftState;

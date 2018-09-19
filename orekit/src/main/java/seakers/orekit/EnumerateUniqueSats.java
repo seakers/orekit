@@ -15,8 +15,8 @@ import org.orekit.time.AbsoluteDate;
 import seakers.orekit.constellations.EnumerateWalkerConstellations;
 import seakers.orekit.constellations.Walker;
 import seakers.orekit.constellations.WalkerParameters;
-import seaker.orekit.object.Instrument;
-import seaker.orekit.object.Satellite;
+import seakers.orekit.object.Instrument;
+import seakers.orekit.object.Satellite;
 
 /**
  *

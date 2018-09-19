@@ -5,7 +5,7 @@
  */
 package seakers.orekit.event.detector;
 
-import seaker.orekit.object.CoveragePoint;
+import seakers.orekit.object.CoveragePoint;
 import org.hipparchus.geometry.euclidean.threed.Vector3D;
 import org.orekit.bodies.BodyShape;
 import org.orekit.errors.OrekitException;

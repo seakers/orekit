@@ -6,7 +6,7 @@
 package seakers.orekit.object.communications;
 
 import java.util.Set;
-import seaker.orekit.object.CommunicationBand;
+import seakers.orekit.object.CommunicationBand;
 
 /**
  *

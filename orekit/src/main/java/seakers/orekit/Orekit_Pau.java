@@ -19,10 +19,10 @@ import seakers.orekit.analysis.Analysis;
 import seakers.orekit.analysis.ephemeris.OrbitalElementsAnalysis;
 import seakers.orekit.constellations.Walker;
 import seakers.orekit.coverage.access.TimeIntervalArray;
-import seaker.orekit.object.CoverageDefinition;
-import seaker.orekit.object.CoveragePoint;
-import seaker.orekit.object.Instrument;
-import seaker.orekit.object.Satellite;
+import seakers.orekit.object.CoverageDefinition;
+import seakers.orekit.object.CoveragePoint;
+import seakers.orekit.object.Instrument;
+import seakers.orekit.object.Satellite;
 import seakers.orekit.object.fieldofview.NadirSimpleConicalFOV;
 import seakers.orekit.object.linkbudget.LinkBudget;
 import seakers.orekit.propagation.PropagatorFactory;
@@ -55,9 +55,9 @@ import seakers.orekit.event.EventAnalysisEnum;
 import seakers.orekit.event.EventAnalysisFactory;
 import seakers.orekit.event.FieldOfViewEventAnalysis;
 import seakers.orekit.event.GroundBodyAngleEventAnalysis;
-import seaker.orekit.object.Constellation;
-import static seaker.orekit.object.CoverageDefinition.GridStyle.EQUAL_AREA;
-import static seaker.orekit.object.CoverageDefinition.GridStyle.UNIFORM;
+import seakers.orekit.object.Constellation;
+import static seakers.orekit.object.CoverageDefinition.GridStyle.EQUAL_AREA;
+import static seakers.orekit.object.CoverageDefinition.GridStyle.UNIFORM;
 import seakers.orekit.object.fieldofview.NadirRectangularFOV;
 
 /**

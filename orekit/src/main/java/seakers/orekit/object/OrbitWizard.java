@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package seaker.orekit.object;
+package seakers.orekit.object;
 
 import org.hipparchus.util.FastMath;
 import org.orekit.utils.Constants;

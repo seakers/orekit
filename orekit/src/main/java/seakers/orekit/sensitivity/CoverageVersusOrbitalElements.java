@@ -36,10 +36,10 @@ import org.orekit.utils.Constants;
 import seakers.orekit.coverage.analysis.AnalysisMetric;
 import seakers.orekit.coverage.analysis.FastCoverageAnalysis;
 import seakers.orekit.coverage.analysis.GroundEventAnalyzer;
-import seaker.orekit.object.Constellation;
-import seaker.orekit.object.CoverageDefinition;
-import seaker.orekit.object.CoveragePoint;
-import seaker.orekit.object.Satellite;
+import seakers.orekit.object.Constellation;
+import seakers.orekit.object.CoverageDefinition;
+import seakers.orekit.object.CoveragePoint;
+import seakers.orekit.object.Satellite;
 
 /**
  *

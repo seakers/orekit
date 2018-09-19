@@ -37,7 +37,7 @@ import org.orekit.time.AbsoluteDate;
 import org.orekit.utils.Constants;
 import org.orekit.utils.IERSConventions;
 import org.orekit.utils.PVCoordinatesProvider;
-import seaker.orekit.object.Satellite;
+import seakers.orekit.object.Satellite;
 import seakers.orekit.propagation.PropagatorFactory;
 
 /**

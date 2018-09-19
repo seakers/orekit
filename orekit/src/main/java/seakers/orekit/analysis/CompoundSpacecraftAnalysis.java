@@ -10,7 +10,7 @@ import java.util.Collection;
 import org.orekit.errors.OrekitException;
 import org.orekit.propagation.SpacecraftState;
 import org.orekit.time.AbsoluteDate;
-import seaker.orekit.object.Satellite;
+import seakers.orekit.object.Satellite;
 import seakers.orekit.propagation.PropagatorFactory;
 
 /**

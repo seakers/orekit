@@ -13,7 +13,7 @@ import org.orekit.propagation.events.AltitudeDetector;
 import org.orekit.propagation.events.handlers.EventHandler;
 import org.orekit.propagation.events.handlers.StopOnEvent;
 import org.orekit.time.AbsoluteDate;
-import seaker.orekit.object.Satellite;
+import seakers.orekit.object.Satellite;
 import seakers.orekit.propagation.PropagatorFactory;
 
 /**

@@ -7,15 +7,15 @@ package seakers.orekit.constellations;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import seaker.orekit.object.Constellation;
-import seaker.orekit.object.Satellite;
+import seakers.orekit.object.Constellation;
+import seakers.orekit.object.Satellite;
 import org.hipparchus.util.FastMath;
 import org.orekit.frames.Frame;
 import org.orekit.orbits.KeplerianOrbit;
 import org.orekit.orbits.Orbit;
 import org.orekit.orbits.PositionAngle;
 import org.orekit.time.AbsoluteDate;
-import seaker.orekit.object.Instrument;
+import seakers.orekit.object.Instrument;
 import seakers.orekit.orbit.J2KeplerianOrbit;
 
 /**

@@ -20,8 +20,8 @@ import org.orekit.propagation.events.handlers.EventHandler;
 import org.orekit.time.AbsoluteDate;
 import seakers.orekit.coverage.access.TimeIntervalArray;
 import seakers.orekit.event.detector.GroundBodyAngleDetector;
-import seaker.orekit.object.CoverageDefinition;
-import seaker.orekit.object.CoveragePoint;
+import seakers.orekit.object.CoverageDefinition;
+import seakers.orekit.object.CoveragePoint;
 
 /**
  * An analysis for recording when the angle between a direction centered at a

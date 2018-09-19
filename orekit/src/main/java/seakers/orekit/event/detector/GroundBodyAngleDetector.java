@@ -15,7 +15,7 @@ import org.orekit.propagation.SpacecraftState;
 import org.orekit.propagation.events.EventDetector;
 import org.orekit.propagation.events.handlers.EventHandler;
 import org.orekit.time.AbsoluteDate;
-import seaker.orekit.object.CoveragePoint;
+import seakers.orekit.object.CoveragePoint;
 
 /**
  * Detects when the angle between a celestial body (e.g. sun or moon) and a

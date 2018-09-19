@@ -32,9 +32,9 @@ import org.orekit.utils.Constants;
 import seakers.orekit.coverage.access.RiseSetTime;
 import seakers.orekit.coverage.access.TimeIntervalArray;
 import seakers.orekit.event.FieldOfViewEventAnalysis;
-import seaker.orekit.object.CoverageDefinition;
-import seaker.orekit.object.CoveragePoint;
-import seaker.orekit.object.Satellite;
+import seakers.orekit.object.CoverageDefinition;
+import seakers.orekit.object.CoveragePoint;
+import seakers.orekit.object.Satellite;
 import seakers.orekit.parallel.ParallelRoutine;
 import seakers.orekit.parallel.SubRoutine;
 

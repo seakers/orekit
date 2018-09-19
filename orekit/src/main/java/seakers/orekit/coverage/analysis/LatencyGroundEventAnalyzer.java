@@ -14,13 +14,13 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import seakers.orekit.coverage.access.TimeIntervalArray;
-import seaker.orekit.object.CoveragePoint;
+import seakers.orekit.object.CoveragePoint;
 import org.hipparchus.stat.descriptive.DescriptiveStatistics;
 import org.orekit.frames.TopocentricFrame;
 import org.orekit.time.AbsoluteDate;
 import seakers.orekit.coverage.access.RiseSetTime;
-import seaker.orekit.object.GndStation;
-import seaker.orekit.object.Satellite;
+import seakers.orekit.object.GndStation;
+import seakers.orekit.object.Satellite;
 
 /**
  * This class computes several standard metrics regarding events (occurring and

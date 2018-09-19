@@ -16,9 +16,9 @@ import org.orekit.bodies.CelestialBodyFactory;
 import org.orekit.errors.OrekitException;
 import org.orekit.frames.Frame;
 import org.orekit.time.AbsoluteDate;
-import seaker.orekit.object.CoverageDefinition;
-import seaker.orekit.object.GndStation;
-import seaker.orekit.object.Satellite;
+import seakers.orekit.object.CoverageDefinition;
+import seakers.orekit.object.GndStation;
+import seakers.orekit.object.Satellite;
 import seakers.orekit.parallel.ParallelRoutine;
 import seakers.orekit.propagation.PropagatorFactory;
 

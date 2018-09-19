@@ -18,11 +18,11 @@ import org.orekit.frames.Frame;
 import org.orekit.time.AbsoluteDate;
 import org.orekit.time.TimeScale;
 import seakers.orekit.analysis.Analysis;
-import seaker.orekit.object.Constellation;
-import seaker.orekit.object.CoverageDefinition;
-import seaker.orekit.object.CoveragePoint;
-import seaker.orekit.object.Instrument;
-import seaker.orekit.object.Satellite;
+import seakers.orekit.object.Constellation;
+import seakers.orekit.object.CoverageDefinition;
+import seakers.orekit.object.CoveragePoint;
+import seakers.orekit.object.Instrument;
+import seakers.orekit.object.Satellite;
 import seakers.orekit.propagation.PropagatorFactory;
 
 /**

@@ -7,7 +7,7 @@ package seakers.orekit.object.communications;
 
 import java.util.Objects;
 import java.util.Set;
-import seaker.orekit.object.CommunicationBand;
+import seakers.orekit.object.CommunicationBand;
 
 /**
  * An abstract transmitter to send signals to receivers

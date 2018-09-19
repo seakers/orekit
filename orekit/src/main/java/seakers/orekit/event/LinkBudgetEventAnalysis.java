@@ -30,11 +30,11 @@ import seakers.orekit.coverage.access.TimeIntervalMerger;
 import seakers.orekit.event.detector.FOVDetector;
 import seakers.orekit.event.detector.LBDetector;
 import seakers.orekit.event.detector.LOSDetector;
-import seaker.orekit.object.Constellation;
-import seaker.orekit.object.CoverageDefinition;
-import seaker.orekit.object.CoveragePoint;
-import seaker.orekit.object.Instrument;
-import seaker.orekit.object.Satellite;
+import seakers.orekit.object.Constellation;
+import seakers.orekit.object.CoverageDefinition;
+import seakers.orekit.object.CoveragePoint;
+import seakers.orekit.object.Instrument;
+import seakers.orekit.object.Satellite;
 import seakers.orekit.object.linkbudget.LinkBudget;
 import seakers.orekit.propagation.PropagatorFactory;
 

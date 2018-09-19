@@ -15,9 +15,9 @@ import org.orekit.frames.Frame;
 import org.orekit.frames.TopocentricFrame;
 import org.orekit.time.AbsoluteDate;
 import seakers.orekit.coverage.access.TimeIntervalArray;
-import seaker.orekit.object.Constellation;
-import seaker.orekit.object.CoverageDefinition;
-import seaker.orekit.object.Satellite;
+import seakers.orekit.object.Constellation;
+import seakers.orekit.object.CoverageDefinition;
+import seakers.orekit.object.Satellite;
 
 /**
  * The abstract class for an event analysis.

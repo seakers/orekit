@@ -18,7 +18,7 @@ import org.orekit.time.AbsoluteDate;
 import org.orekit.utils.Constants;
 import org.orekit.utils.PVCoordinatesProvider;
 import seakers.orekit.coverage.access.TimeIntervalArray;
-import seaker.orekit.object.Satellite;
+import seakers.orekit.object.Satellite;
 import seakers.orekit.propagation.PropagatorFactory;
 
 /**Analysis that allows us to obtain the eclipse intervals of a given satellite.

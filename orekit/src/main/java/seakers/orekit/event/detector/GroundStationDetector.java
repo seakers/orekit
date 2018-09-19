@@ -10,7 +10,7 @@ import org.orekit.propagation.SpacecraftState;
 import org.orekit.propagation.events.EventDetector;
 import org.orekit.propagation.events.handlers.EventHandler;
 import org.orekit.time.AbsoluteDate;
-import seaker.orekit.object.GndStation;
+import seakers.orekit.object.GndStation;
 import seakers.orekit.object.communications.Receiver;
 import seakers.orekit.object.communications.Transmitter;
 

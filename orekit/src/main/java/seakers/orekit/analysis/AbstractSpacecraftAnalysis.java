@@ -7,7 +7,7 @@ package seakers.orekit.analysis;
 
 import org.orekit.propagation.Propagator;
 import org.orekit.time.AbsoluteDate;
-import seaker.orekit.object.Satellite;
+import seakers.orekit.object.Satellite;
 import seakers.orekit.propagation.PropagatorFactory;
 
 /**

@@ -15,7 +15,7 @@ import org.orekit.frames.Frame;
 import org.orekit.propagation.SpacecraftState;
 import org.orekit.time.AbsoluteDate;
 import seakers.orekit.analysis.AbstractSpacecraftAnalysis;
-import seaker.orekit.object.Satellite;
+import seakers.orekit.object.Satellite;
 import seakers.orekit.propagation.PropagatorFactory;
 
 /**

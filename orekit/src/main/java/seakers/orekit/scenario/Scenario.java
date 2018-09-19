@@ -12,7 +12,7 @@ import java.util.HashSet;
 import java.util.Properties;
 import java.util.logging.Logger;
 import seakers.orekit.analysis.Analysis;
-import seaker.orekit.object.CoverageDefinition;
+import seakers.orekit.object.CoverageDefinition;
 import seakers.orekit.propagation.PropagatorFactory;
 import seakers.orekit.propagation.PropagatorType;
 import org.orekit.frames.Frame;

@@ -8,7 +8,7 @@ package seakers.orekit.event;
 import java.util.Map;
 import org.orekit.frames.TopocentricFrame;
 import seakers.orekit.coverage.access.TimeIntervalArray;
-import seaker.orekit.object.CoverageDefinition;
+import seakers.orekit.object.CoverageDefinition;
 
 /**
  * Event analysis for the ground-based analyses (e.g. field-of-view access,
