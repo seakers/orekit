@@ -64,7 +64,7 @@ public class GroundTrackAnalysis extends AbstractSpacecraftAnalysis<String> {
             String str = String.format("%f,%f", 
                     FastMath.toDegrees(pt.getLatitude()),
                     FastMath.toDegrees(pt.getLongitude()));
-            addRecord(new Record(currentState.getDate(),str));
+            addRecord(new Record<>(currentState.getDate(),str));
         } catch (OrekitException ex) {
             Logger.getLogger(GroundTrackAnalysis.class.getName()).log(Level.SEVERE, null, ex);
         }

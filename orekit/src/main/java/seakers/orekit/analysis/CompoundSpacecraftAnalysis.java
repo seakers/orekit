@@ -42,7 +42,7 @@ public class CompoundSpacecraftAnalysis extends AbstractSpacecraftAnalysis<Objec
      * @return
      */
     public Collection<AbstractSpacecraftAnalysis> getAnalyses() {
-        ArrayList<AbstractSpacecraftAnalysis> out = new ArrayList();
+        ArrayList<AbstractSpacecraftAnalysis> out = new ArrayList<>();
         for (AbstractSpacecraftAnalysis a : analyses) {
             if (a instanceof CompoundSpacecraftAnalysis) {
                 out.addAll(((CompoundSpacecraftAnalysis) a).getAnalyses());
@@ -50,7 +50,7 @@ public class CompoundSpacecraftAnalysis extends AbstractSpacecraftAnalysis<Objec
                 out.add(a);
             }
         }
-        return analyses;
+        return out;
     }
 
     @Override
@@ -61,7 +61,7 @@ public class CompoundSpacecraftAnalysis extends AbstractSpacecraftAnalysis<Objec
     }
 
     @Override
-    public Collection getHistory() {
+    public Collection<Record<Object>> getHistory() {
         throw new UnsupportedOperationException("Cannot obtain history from compound analysis.");
     }
 

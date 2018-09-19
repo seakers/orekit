@@ -85,7 +85,7 @@ public class LBDetector extends AbstractEventDetector<LBDetector> {
     }
 
     @Override
-    protected EventDetector create(SpacecraftState initialState, AbsoluteDate startDate, AbsoluteDate endDate, EventHandler.Action action, double maxCheck, double threshold, int maxIter) {
+    protected LBDetector create(SpacecraftState initialState, AbsoluteDate startDate, AbsoluteDate endDate, EventHandler.Action action, double maxCheck, double threshold, int maxIter) {
         return new LBDetector(initialState, startDate, endDate, pt, lb, maxCheck, threshold, action);
     }
 

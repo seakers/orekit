@@ -100,7 +100,7 @@ public class CoverageDefinition implements OrekitObject, Serializable {
         }
 
         //Create grid points
-        this.grid = new HashSet();
+        this.grid = new HashSet<>();
         int numPoints = 0;
         for (double lat = minLatitude; lat <= maxLatitude; lat += granularity) {
 
@@ -146,7 +146,7 @@ public class CoverageDefinition implements OrekitObject, Serializable {
             BodyShape planet) {
         this.name = name;
         this.planet = planet;
-        this.grid = new HashSet();
+        this.grid = new HashSet<>();
         int numPoints = 0;
         for (GeodeticPoint point : points) {
             this.grid.add(new CoveragePoint(planet, point, String.valueOf(numPoints)));
@@ -166,7 +166,7 @@ public class CoverageDefinition implements OrekitObject, Serializable {
         CoveragePoint refPt = points.iterator().next();
         this.planet = refPt.getParentShape();
 
-        this.grid = new HashSet();
+        this.grid = new HashSet<>();
         for (CoveragePoint pt : points) {
             this.grid.add(pt);
         }
@@ -179,7 +179,7 @@ public class CoverageDefinition implements OrekitObject, Serializable {
      * @param constellation
      */
     public void assignConstellation(Constellation constellation) {
-        this.constellations = new HashSet();
+        this.constellations = new HashSet<>();
         this.constellations.add(constellation);
     }
 
@@ -190,7 +190,7 @@ public class CoverageDefinition implements OrekitObject, Serializable {
      * @param constellation
      */
     public void assignConstellation(Collection<Constellation> constellation) {
-        this.constellations = new HashSet(constellation);
+        this.constellations = new HashSet<>(constellation);
     }
 
     /**

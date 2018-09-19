@@ -151,13 +151,13 @@ public class Scenario extends AbstractScenario {
          * A set event analyses allow time intervals to be recorded when events
          * occur during the simulation
          */
-        private Collection<EventAnalysis> eventAnalyses = new ArrayList();
+        private Collection<EventAnalysis> eventAnalyses = new ArrayList<>();
 
         /**
          * A set of analyses in which values are recorded during the simulation
          * at fixed time steps
          */
-        private Collection<Analysis> analyses = new ArrayList();
+        private Collection<Analysis> analyses = new ArrayList<>();
 
         /**
          * The set of coverage definitions to simulate.

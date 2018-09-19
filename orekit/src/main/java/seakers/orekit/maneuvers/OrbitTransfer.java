@@ -73,9 +73,9 @@ public class OrbitTransfer implements Serializable{
         Vector3D deltaVVector2=new Vector3D(deltaV2,0,0);
         EventDetector trigger2=new ApogeeDetectorHohmannTransfer(prop.getInitialState().getOrbit(),date);
         AttitudeProvider attitudeOverride = new LofOffset(prop.getFrame(), LOFType.TNW);
-        ImpulseManeuver maneuver1 = new ImpulseManeuver(trigger1,attitudeOverride,deltaVVector1,isp);
+        ImpulseManeuver maneuver1 = new ImpulseManeuver<>(trigger1,attitudeOverride,deltaVVector1,isp);
         
-        ImpulseManeuver maneuver2 = new ImpulseManeuver(trigger2,attitudeOverride,deltaVVector2,isp);
+        ImpulseManeuver maneuver2 = new ImpulseManeuver<>(trigger2,attitudeOverride,deltaVVector2,isp);
         
         prop.addEventDetector(maneuver1);
         prop.addEventDetector(maneuver2);

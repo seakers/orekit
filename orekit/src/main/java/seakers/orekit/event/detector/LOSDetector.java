@@ -159,7 +159,7 @@ public class LOSDetector extends AbstractEventDetector<LOSDetector> {
     }
 
     @Override
-    protected EventDetector create(SpacecraftState initialState, 
+    protected LOSDetector create(SpacecraftState initialState,
             AbsoluteDate startDate, AbsoluteDate endDate, 
             EventHandler.Action action, double maxCheck, double threshold, int maxIter) {
         return new LOSDetector(initialState, startDate, endDate, pt, shape, inertialFrame, maxCheck, threshold, maxIter, action);

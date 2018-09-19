@@ -21,7 +21,7 @@ public class Constellation implements OrekitObject, Serializable{
     private final String name;
 
     public Constellation(String name, Collection<Satellite> satellites) {
-        this.satellites = new HashSet(satellites);
+        this.satellites = new HashSet<>(satellites);
         this.name = name;
     }
     

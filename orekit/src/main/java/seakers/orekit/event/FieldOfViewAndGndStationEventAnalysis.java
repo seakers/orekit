@@ -43,6 +43,7 @@ import seakers.orekit.object.Satellite;
 import seakers.orekit.parallel.ParallelRoutine;
 import seakers.orekit.parallel.SubRoutine;
 import seakers.orekit.propagation.PropagatorFactory;
+import seakers.orekit.util.RawSafety;
 
 /**
  * This event analysis is used to compute when the given ground points are in
@@ -111,12 +112,12 @@ public class FieldOfViewAndGndStationEventAnalysis extends AbstractGroundEventAn
         this.propagatorFactory = propagatorFactory;
         this.saveAllAccesses = saveAllAccesses;
         if (saveAllAccesses) {
-            this.allAccesses = new HashMap();
+            this.allAccesses = new HashMap<>();
             for (CoverageDefinition cdef : covDefs) {
-                allAccesses.put(cdef, new HashMap());
+                allAccesses.put(cdef, new HashMap<>());
             }
         }
-        this.allAccessesGS = new HashMap();
+        this.allAccessesGS = new HashMap<>();
         this.stationAssignment = stationAssignment;
         this.saveToDB = saveToDB;
     }
@@ -144,7 +145,7 @@ public class FieldOfViewAndGndStationEventAnalysis extends AbstractGroundEventAn
             //propogate each satellite individually
             ArrayList<SubRoutine> subRoutines = new ArrayList<>();
             for (Satellite sat : getUniqueSatellites(cdef)) {
-                allAccessesGS.put(sat, new HashMap());
+                allAccessesGS.put(sat, new HashMap<>());
                 //if no precomuted times available, then propagate
                 Propagator prop = propagatorFactory.createPropagator(sat.getOrbit(), sat.getGrossMass());
                 //Set stepsizes and threshold for detectors
@@ -253,7 +254,7 @@ public class FieldOfViewAndGndStationEventAnalysis extends AbstractGroundEventAn
     private HashMap<TopocentricFrame, TimeIntervalArray> readAccesses(File file) {
         HashMap<TopocentricFrame, TimeIntervalArray> out = new HashMap<>();
         try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file))) {
-            out = (HashMap<TopocentricFrame, TimeIntervalArray>) ois.readObject();
+            out = RawSafety.castHashMap(ois.readObject());
         } catch (FileNotFoundException ex) {
             Logger.getLogger(FieldOfViewAndGndStationEventAnalysis.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
@@ -336,7 +337,7 @@ public class FieldOfViewAndGndStationEventAnalysis extends AbstractGroundEventAn
 
                 //check if the ground station was already added to results
                 if (!timeArrays.containsKey(station.getBaseFrame())) {
-                    timeArrays.put(station.getBaseFrame(), new ArrayList());
+                    timeArrays.put(station.getBaseFrame(), new ArrayList<>());
                 }
                 timeArrays.get(station.getBaseFrame()).add(allAccessesGS.get(sat).get(station));
 
@@ -365,7 +366,7 @@ public class FieldOfViewAndGndStationEventAnalysis extends AbstractGroundEventAn
 
             //check if the ground station was already added to results
             if (!timeArrays.containsKey(station.getBaseFrame())) {
-                timeArrays.put(station.getBaseFrame(), new ArrayList());
+                timeArrays.put(station.getBaseFrame(), new ArrayList<>());
             }
             timeArrays.get(station.getBaseFrame()).add(allAccessesGS.get(satellite).get(station));
         }

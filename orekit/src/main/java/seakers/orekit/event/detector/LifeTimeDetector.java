@@ -76,7 +76,7 @@ public class LifeTimeDetector extends AbstractEventDetector<LifeTimeDetector> {
     }
 
     @Override
-    protected EventDetector create(SpacecraftState initialState, AbsoluteDate startDate, AbsoluteDate endDate, EventHandler.Action action, double maxCheck, double threshold, int maxIter) {
+    protected LifeTimeDetector create(SpacecraftState initialState, AbsoluteDate startDate, AbsoluteDate endDate, EventHandler.Action action, double maxCheck, double threshold, int maxIter) {
         return new LifeTimeDetector(initialState, startDate, endDate, thresholdAltitude, maxCheck, threshold, action);
     }
 

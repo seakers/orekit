@@ -87,9 +87,9 @@ public class Satellite implements OrekitObject, Serializable {
      * @param orbit initial orbit to position satellite
      */
     public Satellite(String name, Orbit orbit) {
-        this(name, orbit, null, new ArrayList(),
-                new ReceiverAntenna(1., new HashSet()),
-                new TransmitterAntenna(1, new HashSet()),
+        this(name, orbit, null, new ArrayList<>(),
+                new ReceiverAntenna(1., new HashSet<>()),
+                new TransmitterAntenna(1, new HashSet<>()),
                 Propagator.DEFAULT_MASS, Propagator.DEFAULT_MASS);
     }
 
@@ -104,8 +104,8 @@ public class Satellite implements OrekitObject, Serializable {
      */
     public Satellite(String name, Orbit orbit, AttitudeProvider attProv, Collection<Instrument> instruments) {
         this(name, orbit, attProv, instruments,
-                new ReceiverAntenna(1., new HashSet()),
-                new TransmitterAntenna(1, new HashSet()),
+                new ReceiverAntenna(1., new HashSet<>()),
+                new TransmitterAntenna(1, new HashSet<>()),
                 Propagator.DEFAULT_MASS, Propagator.DEFAULT_MASS);
     }
 

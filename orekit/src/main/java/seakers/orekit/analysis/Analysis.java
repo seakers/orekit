@@ -21,9 +21,9 @@ import org.orekit.time.AbsoluteDate;
  * the history can be retrieved after propagation.
  *
  * @author nozomihitomi
- * @param <Record> the generic object for the record
+ * @param <T> the generic object for the record
  */
-public interface Analysis<Record> extends Callable<Analysis>, OrekitFixedStepHandler{
+public interface Analysis<T> extends Callable<Analysis<T>>, OrekitFixedStepHandler{
 
     /**
      * Gets the recorded value of an analysis from each time step. The returned
@@ -32,7 +32,7 @@ public interface Analysis<Record> extends Callable<Analysis>, OrekitFixedStepHan
      *
      * @return the recorded value of an analysis from each time step.
      */
-    public Collection<Record> getHistory();
+    public Collection<Record<T>> getHistory();
     
     /**
      * Gets the start date of the analysis

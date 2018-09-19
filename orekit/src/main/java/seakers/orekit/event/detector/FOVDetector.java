@@ -146,7 +146,7 @@ public class FOVDetector extends AbstractEventDetector<FOVDetector> {
     }
 
     @Override
-    protected EventDetector create(SpacecraftState initialState, AbsoluteDate startDate, AbsoluteDate endDate, EventHandler.Action action, double maxCheck, double threshold, int maxIter) {
+    protected FOVDetector create(SpacecraftState initialState, AbsoluteDate startDate, AbsoluteDate endDate, EventHandler.Action action, double maxCheck, double threshold, int maxIter) {
         return new FOVDetector(initialState, startDate, endDate, target, instrument, maxCheck, threshold, maxIter, action);
     }
 }

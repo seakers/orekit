@@ -11,7 +11,7 @@ import org.hipparchus.util.FastMath;
  * 
  * @author nozomihitomi
  */
-public class OrbitalElements{
+public class OrbitalElements {
     
     /**
      * Semi-major axis[km]

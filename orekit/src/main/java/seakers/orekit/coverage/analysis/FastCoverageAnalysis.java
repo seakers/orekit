@@ -91,7 +91,7 @@ public class FastCoverageAnalysis extends FieldOfViewEventAnalysis {
 
     @Override
     public FieldOfViewEventAnalysis call() throws OrekitException {
-        ArrayList<SubRoutine> subroutines = new ArrayList();
+        ArrayList<SubRoutine> subroutines = new ArrayList<>();
         
         for (CoverageDefinition cdef : getCoverageDefinitions()) {
             Logger.getGlobal().finer(String.format("Acquiring access times for %s...", cdef));

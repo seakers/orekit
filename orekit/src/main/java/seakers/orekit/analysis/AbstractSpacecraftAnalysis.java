@@ -15,7 +15,7 @@ import seakers.orekit.propagation.PropagatorFactory;
  * @author nhitomi
  * @param <T> The generic for the record object to record 
  */
-public abstract class AbstractSpacecraftAnalysis<T> extends AbstractAnalysis<T>{
+public abstract class AbstractSpacecraftAnalysis<T> extends AbstractAnalysis<T> {
     
     /**
      * Satellite for the analysis

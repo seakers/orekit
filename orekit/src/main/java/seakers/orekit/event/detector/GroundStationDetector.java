@@ -151,7 +151,7 @@ public class GroundStationDetector extends AbstractEventDetector<GroundStationDe
     }
 
     @Override
-    protected EventDetector create(SpacecraftState initialState, 
+    protected GroundStationDetector create(SpacecraftState initialState,
             AbsoluteDate startDate, AbsoluteDate endDate, 
             EventHandler.Action action, double maxCheck, double threshold, int maxIter) {
         return new GroundStationDetector(initialState, startDate, endDate,

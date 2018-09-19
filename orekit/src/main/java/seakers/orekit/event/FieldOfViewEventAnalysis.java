@@ -40,6 +40,7 @@ import seakers.orekit.object.Satellite;
 import seakers.orekit.parallel.ParallelRoutine;
 import seakers.orekit.parallel.SubRoutine;
 import seakers.orekit.propagation.PropagatorFactory;
+import seakers.orekit.util.RawSafety;
 
 /**
  * This event analysis is used to compute when the given ground points are in
@@ -98,9 +99,9 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
         this.propagatorFactory = propagatorFactory;
         this.saveAllAccesses = saveAllAccesses;
         if (saveAllAccesses) {
-            this.allAccesses = new HashMap();
+            this.allAccesses = new HashMap<>();
             for (CoverageDefinition cdef : covDefs) {
-                allAccesses.put(cdef, new HashMap());
+                allAccesses.put(cdef, new HashMap<>());
             }
         }
 
@@ -220,7 +221,7 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
     private HashMap<TopocentricFrame, TimeIntervalArray> readAccesses(File file) {
         HashMap<TopocentricFrame, TimeIntervalArray> out = new HashMap<>();
         try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file))) {
-            out = (HashMap<TopocentricFrame, TimeIntervalArray>) ois.readObject();
+            out = RawSafety.castHashMap(ois.readObject());
         } catch (FileNotFoundException ex) {
             Logger.getLogger(FieldOfViewEventAnalysis.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {

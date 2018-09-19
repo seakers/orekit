@@ -106,7 +106,7 @@ public class GroundRangeDetector extends AbstractEventDetector<GroundRangeDetect
     }
 
     @Override
-    protected EventDetector create(SpacecraftState initialState, 
+    protected GroundRangeDetector create(SpacecraftState initialState,
             AbsoluteDate startDate, AbsoluteDate endDate, 
             EventHandler.Action action, double maxCheck, double threshold, int maxIter) {
         return new GroundRangeDetector(initialState, startDate, endDate, target, rangeThreshold, action, maxCheck, threshold, maxIter);

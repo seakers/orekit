@@ -73,7 +73,7 @@ public class GndStationEventAnalysis extends AbstractEventAnalysis {
             PropagatorFactory propagatorFactory) {
         super(startDate, endDate, inertialFrame);
         this.propagatorFactory = propagatorFactory;
-        this.allAccesses = new HashMap();
+        this.allAccesses = new HashMap<>();
         this.stationAssignment = stationAssignment;
     }
 
@@ -98,7 +98,7 @@ public class GndStationEventAnalysis extends AbstractEventAnalysis {
                     String.format("Simulation dates %s to %s (%.2f days)",
                             getStartDate(), getEndDate(),
                             getEndDate().durationFrom(getStartDate()) / 86400.));
-            allAccesses.put(sat, new HashMap());
+            allAccesses.put(sat, new HashMap<>());
 
             //propogate each satellite individually
             //if no precomuted times available, then propagate
@@ -192,7 +192,7 @@ public class GndStationEventAnalysis extends AbstractEventAnalysis {
 
                 //check if the ground station was already added to results
                 if (!timeArrays.containsKey(station.getBaseFrame())) {
-                    timeArrays.put(station.getBaseFrame(), new ArrayList());
+                    timeArrays.put(station.getBaseFrame(), new ArrayList<>());
                 }
                 timeArrays.get(station.getBaseFrame()).add(allAccesses.get(sat).get(station));
 
@@ -221,7 +221,7 @@ public class GndStationEventAnalysis extends AbstractEventAnalysis {
 
             //check if the ground station was already added to results
             if (!timeArrays.containsKey(station.getBaseFrame())) {
-                timeArrays.put(station.getBaseFrame(), new ArrayList());
+                timeArrays.put(station.getBaseFrame(), new ArrayList<>());
             }
             timeArrays.get(station.getBaseFrame()).add(allAccesses.get(satellite).get(station));
         }

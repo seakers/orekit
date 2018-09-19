@@ -71,6 +71,6 @@ public abstract class VectorAnalysis extends AbstractSpacecraftAnalysis<String> 
             throw new IllegalStateException("Could not complete Vector Analysis");
         }
         String str = String.format("%f,%f,%f", pos.getX(),pos.getY(),pos.getZ());
-        addRecord(new Record(currentState.getDate(),str));
+        addRecord(new Record<>(currentState.getDate(),str));
     }
 }

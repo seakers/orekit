@@ -66,7 +66,7 @@ public abstract class VectorAngleAnalysis extends AbstractSpacecraftAnalysis<Dou
     public void handleStep(SpacecraftState currentState, boolean isLast) throws OrekitException{   
         Vector3D v1 = getVector1(currentState, frame);
         Vector3D v2 = getVector2(currentState, frame);
-        addRecord(new Record(currentState.getDate(), Vector3D.angle(v1, v2)));
+        addRecord(new Record<>(currentState.getDate(), Vector3D.angle(v1, v2)));
     }
 
 }

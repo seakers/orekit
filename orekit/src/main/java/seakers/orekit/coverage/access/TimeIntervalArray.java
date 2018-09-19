@@ -20,6 +20,7 @@ import java.util.logging.Logger;
 import seakers.orekit.object.CoveragePoint;
 import org.hipparchus.util.FastMath;
 import org.orekit.time.AbsoluteDate;
+import seakers.orekit.util.RawSafety;
 
 /**
  * Array to store intervals of rise and set times (e.g. gaps or accesses). The
@@ -361,7 +362,7 @@ public class TimeIntervalArray implements Iterable<RiseSetTime>, Serializable {
     public static HashMap<CoveragePoint,TimeIntervalArray> load(File file){
         HashMap<CoveragePoint, TimeIntervalArray> out = null;
         try(ObjectInputStream is = new ObjectInputStream(new FileInputStream(file))){
-            out = (HashMap<CoveragePoint, TimeIntervalArray> )is.readObject();
+            out = RawSafety.castHashMap(is.readObject());
         } catch (ClassNotFoundException ex) {
             Logger.getLogger(TimeIntervalArray.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {

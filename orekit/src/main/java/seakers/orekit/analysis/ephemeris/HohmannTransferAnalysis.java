@@ -60,7 +60,7 @@ public class HohmannTransferAnalysis extends AbstractSpacecraftAnalysis<OrbitalE
     @Override
     public void handleStep(SpacecraftState currentState, boolean isLast) {
         KeplerianOrbit o = (KeplerianOrbit) OrbitType.KEPLERIAN.convertType(currentState.getOrbit());
-        Record<OrbitalElements> e = new Record(currentState.getDate(), new OrbitalElements(o.getA(), o.getE(), o.getI(),
+        Record<OrbitalElements> e = new Record<>(currentState.getDate(), new OrbitalElements(o.getA(), o.getE(), o.getI(),
                 o.getRightAscensionOfAscendingNode(), o.getPerigeeArgument(),
                 o.getMeanAnomaly()));
         addRecord(e);

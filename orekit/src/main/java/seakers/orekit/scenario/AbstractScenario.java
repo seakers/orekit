@@ -124,7 +124,7 @@ public abstract class AbstractScenario implements Callable<Scenario>{
     private void includeCovDef(HashSet<CoverageDefinition> c) {
         for (CoverageDefinition cdef : c) {
             covDefs.add(cdef);
-            uniqueSatsAssignedToCovDef.put(cdef, new HashSet());
+            uniqueSatsAssignedToCovDef.put(cdef, new HashSet<>());
             for (Constellation constel : cdef.getConstellations()) {
                 uniqueConstellations.add(constel);
                 for (Satellite satellite : constel.getSatellites()) {
@@ -265,7 +265,7 @@ public abstract class AbstractScenario implements Callable<Scenario>{
             out += "\t\t}\n";
             out += "\t\tNumber of Points: " + covdef.getNumberOfPoints() + "\n";
             out += "\t\tLatitude\tLongitude\tAltitude:\n";
-            ArrayList<CoveragePoint> sortedTopoPts = new ArrayList(covdef.getPoints());
+            ArrayList<CoveragePoint> sortedTopoPts = new ArrayList<>(covdef.getPoints());
             Collections.sort(sortedTopoPts);
             for (CoveragePoint topoPt : sortedTopoPts) {
                 GeodeticPoint pt = topoPt.getPoint();

@@ -306,7 +306,7 @@ public class ScenarioIO {
      * @param analysis analysis to save
      * @return true if the analysis is successfully saved
      */
-    public static boolean saveAnalysis(Path path, String fileName, Analysis analysis) {
+    public static <T> boolean saveAnalysis(Path path, String fileName, Analysis<T> analysis) {
         if (analysis instanceof CompoundSpacecraftAnalysis) {
             boolean out = true;
             for (Analysis a : ((CompoundSpacecraftAnalysis) analysis).getAnalyses()) {
@@ -327,9 +327,9 @@ public class ScenarioIO {
      * @param analysis analysis to save
      * @return true if the analysis is successfully saved
      */
-    private static boolean saveSingleAnalysis(Path path, String fileName, Analysis analysis) {
+    private static <T> boolean saveSingleAnalysis(Path path, String fileName, Analysis<T> analysis) {
         File file = new File(path.toFile(), String.format("%s.%s", fileName, analysis.getExtension()));
-        Iterator<Record> histIter = analysis.getHistory().iterator();
+        Iterator<Record<T>> histIter = analysis.getHistory().iterator();
         try (FileWriter fw = new FileWriter(file)) {
             fw.append("#Epoch time," + analysis.getHeader() + "\n");
             while (histIter.hasNext()) {

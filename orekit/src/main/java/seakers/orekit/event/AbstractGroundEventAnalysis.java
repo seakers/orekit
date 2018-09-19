@@ -64,7 +64,7 @@ public abstract class AbstractGroundEventAnalysis extends AbstractEventAnalysis 
         this.events = new HashMap<>();
         
         for (CoverageDefinition cdef : this.covDefs) {
-            tuniqueSatsAssignedToCovDef.put(cdef, new HashSet());
+            tuniqueSatsAssignedToCovDef.put(cdef, new HashSet<>());
             for (Constellation constel : cdef.getConstellations()) {
                 tuniqueConstellations.add(constel);
                 for (Satellite satellite : constel.getSatellites()) {

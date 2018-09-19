@@ -5,13 +5,7 @@
  */
 package seakers.orekit.sensitivity;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Properties;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletionService;
 import java.util.concurrent.ExecutionException;
@@ -216,7 +210,7 @@ public class CoverageVersusOrbitalElements extends SobolSensitivityAnalysis {
         this.varAP = varAP;
         this.testTA = testTA;
         this.varTA = varTA;
-        List<Parameter> parameters = new ArrayList();
+        List<Parameter> parameters = new ArrayList<>();
         if (testSensor) {
             parameters.add(varSensor);
             this.defSensor = Double.NaN;
@@ -266,7 +260,7 @@ public class CoverageVersusOrbitalElements extends SobolSensitivityAnalysis {
     public RealMatrix evaluateAll(RealMatrix values) {
         //set up resource pool
         ExecutorService pool = Executors.newFixedThreadPool(nThreads);
-        CompletionService<SubRoutine> ecs = new ExecutorCompletionService(pool);
+        CompletionService<SubRoutine> ecs = new ExecutorCompletionService<>(pool);
 
         for (int row = 0; row < values.getRowDimension(); row++) {
             RealVector sample = values.getRowVector(row);
@@ -741,7 +735,7 @@ public class CoverageVersusOrbitalElements extends SobolSensitivityAnalysis {
         public SubRoutine call() throws Exception {
             Set<CoverageDefinition> covDefs = new HashSet<>();
             CoverageDefinition cdef = new CoverageDefinition("cdef", poi);
-            Constellation constel = new Constellation("constel", new ArrayList(Arrays.asList(new Satellite[]{sat})));
+            Constellation constel = new Constellation("constel", new ArrayList<>(Collections.singletonList(sat)));
             cdef.assignConstellation(constel);
             covDefs.add(cdef);
             FastCoverageAnalysis fca = new FastCoverageAnalysis(startDate, endDate, inertialFrame, covDefs, conicalHalfAngle);

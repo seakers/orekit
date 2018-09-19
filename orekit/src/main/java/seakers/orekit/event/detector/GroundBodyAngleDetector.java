@@ -216,7 +216,7 @@ public class GroundBodyAngleDetector extends AbstractEventDetector<GroundBodyAng
     }
 
     @Override
-    protected EventDetector create(SpacecraftState initialState,
+    protected GroundBodyAngleDetector create(SpacecraftState initialState,
             AbsoluteDate startDate, AbsoluteDate endDate,
             EventHandler.Action action, double maxCheck, double threshold, int maxIter) {
         try {

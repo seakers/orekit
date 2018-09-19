@@ -29,7 +29,7 @@ import org.orekit.time.AbsoluteDate;
  * @author nozomihitomi
  * @param <T>
  */
-public abstract class AbstractEventDetector<T extends EventDetector> extends AbstractDetector {
+public abstract class AbstractEventDetector<T extends EventDetector> extends AbstractDetector<T> {
 
     private static final long serialVersionUID = 1500574292575623469L;
 
@@ -146,11 +146,11 @@ public abstract class AbstractEventDetector<T extends EventDetector> extends Abs
      * @return
      */
     @Override
-    protected final EventDetector create(double newMaxCheck, double newThreshold, int newMaxIter, EventHandler newHandler) {
+    protected final T create(double newMaxCheck, double newThreshold, int newMaxIter, EventHandler newHandler) {
         return create(initialState, startDate, endDate, action, newMaxCheck, newThreshold, newMaxIter);
     }
 
-    protected abstract EventDetector create(SpacecraftState initialState,
+    protected abstract T create(SpacecraftState initialState,
             AbsoluteDate startDate, AbsoluteDate endDate,
             EventHandler.Action action, double maxCheck, double threshold, int maxIter);
 

@@ -127,7 +127,7 @@ public class Walker extends Constellation {
         final double delRaan = pu * s; //node spacing
         final double phasing = pu * f;
 
-        final ArrayList<Satellite> walker = new ArrayList(t);
+        final ArrayList<Satellite> walker = new ArrayList<>(t);
         for (int planeNum = 0; planeNum < p; planeNum++) {
             for (int satNum = 0; satNum < s; satNum++) {
                 double anom = (refAnom + satNum * delAnom + phasing * planeNum) % (2.*FastMath.PI);

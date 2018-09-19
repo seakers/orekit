@@ -98,7 +98,7 @@ public class LinkBudgetEventAnalysis extends AbstractGroundEventAnalysis {
         this.propagatorFactory = propagatorFactory;
         this.saveAllLinkIntervals = saveAllLinkIntervals;
         if (saveAllLinkIntervals) {
-            this.allLinkIntervals = new HashMap();
+            this.allLinkIntervals = new HashMap<>();
         }
 
         this.numThreads = numThreads;
@@ -120,7 +120,7 @@ public class LinkBudgetEventAnalysis extends AbstractGroundEventAnalysis {
     public LinkBudgetEventAnalysis call() throws OrekitException {
         //set up resource pool
         ExecutorService pool = Executors.newFixedThreadPool(numThreads);
-        CompletionService<LinkBudgetSubRoutine> ecs = new ExecutorCompletionService(pool);
+        CompletionService<LinkBudgetSubRoutine> ecs = new ExecutorCompletionService<>(pool);
 
         for (CoverageDefinition cdef : getCoverageDefinitions()) {
             Logger.getGlobal().finer(String.format("Acquiring access times for %s...", cdef));
@@ -129,7 +129,7 @@ public class LinkBudgetEventAnalysis extends AbstractGroundEventAnalysis {
                             getStartDate(), getEndDate(),
                             getEndDate().durationFrom(getStartDate()) / 86400.));
             if (saveAllLinkIntervals) {
-                allLinkIntervals.put(cdef, new HashMap());
+                allLinkIntervals.put(cdef, new HashMap<>());
             }
 
             //propogate each satellite individually

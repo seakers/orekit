@@ -14,7 +14,7 @@ import seakers.orekit.propagation.PropagatorFactory;
  * @author nozomihitomi
  * @param <T> The generic for the record object to record 
  */ 
-public abstract class AbstractAnalysis<T> implements Analysis {
+public abstract class AbstractAnalysis<T> implements Analysis<T> {
 
     /**
      * Gets the start date of the analysis
@@ -38,7 +38,7 @@ public abstract class AbstractAnalysis<T> implements Analysis {
         this.startDate = startDate;
         this.endDate = endDate;
         this.timeStep = timeStep;
-        this.history = new RecordHistory();
+        this.history = new RecordHistory<>();
     }
 
     protected void addRecord(Record<T> record) {
