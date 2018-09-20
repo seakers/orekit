@@ -97,7 +97,7 @@ public abstract class AbstractScenario implements Callable<Scenario>{
      */
     public AbstractScenario(String name, AbsoluteDate startDate, AbsoluteDate endDate,
             TimeScale timeScale, Frame inertialFrame, PropagatorFactory propagatorFactory,
-            HashSet<CoverageDefinition> covDefs, Collection<Analysis> analyses) {
+            HashSet<CoverageDefinition> covDefs, Collection<Analysis<?>> analyses) {
 
         this.scenarioName = name;
         this.startDate = startDate;

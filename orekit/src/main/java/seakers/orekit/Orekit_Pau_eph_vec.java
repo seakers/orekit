@@ -140,11 +140,11 @@ public class Orekit_Pau_eph_vec {
 
         //set the analyses
         double analysisTimeStep = 60;
-        Collection<Analysis> analyses = new ArrayList<>();
+        Collection<Analysis<?>> analyses = new ArrayList<>();
         for (final Satellite sat : constellation.getSatellites()) {
             analyses.add(new LifetimeAnalysis(startDate, endDate, analysisTimeStep, sat, PositionAngle.MEAN, pf, earthShape));
             //analyses.add(new OrbitalElementsAnalysis(startDate, endDate, analysisTimeStep, sat, PositionAngle.MEAN,pf));
-            //analyses.add(new VectorAnalisysEclipseSunlightDiffDrag(startDate, endDate, analysisTimeStep, sat, pf, inertialFrame, 0.015, 0.075, 0.058, 6));
+            //analyses.add(new CompoundSpacecraftAnalysis(startDate, endDate, analysisTimeStep, sat, pf, inertialFrame, 0.015, 0.075, 0.058, 6));
 //            analyses.add(new VectorAnalysis(startDate,endDate,analysisTimeStep,sat,pf,inertialFrame) {
 //                private static final long serialVersionUID = 4680062066885650976L;
 //                @Override
@@ -189,9 +189,9 @@ public class Orekit_Pau_eph_vec {
         }
 
         
-        for (Analysis analysis : analyses) {
+        for (Analysis<?> analysis : analyses) {
             if (analysis instanceof CompoundSpacecraftAnalysis){
-                for (Analysis anal:((CompoundSpacecraftAnalysis) analysis).getAnalyses()){
+                for (Analysis<?> anal:((CompoundSpacecraftAnalysis) analysis).getAnalyses()){
                     ScenarioIO.saveAnalysis(Paths.get(System.getProperty("results"), ""),
                     String.format("%s_%s", filename, anal.getName()), anal);
                 }

@@ -89,7 +89,7 @@ public class PositionVectorExample {
 
         //set the analyses
         double analysisTimeStep = 60;
-        ArrayList<Analysis> analyses = new ArrayList<>();
+        ArrayList<Analysis<?>> analyses = new ArrayList<>();
         for (final Satellite sat : walker.getSatellites()) {
 
             //create an analysis to compute the position vector of the spacecraft in the inertial frame
@@ -120,7 +120,7 @@ public class PositionVectorExample {
             throw new IllegalStateException("scenario failed to complete.");
         }
 
-        for (Analysis analysis : analyses) {
+        for (Analysis<?> analysis : analyses) {
             ScenarioIO.saveAnalysis(Paths.get(System.getProperty("results"), ""),
                     String.format("%s_%s", filename, analysis.getName()), analysis);
         }

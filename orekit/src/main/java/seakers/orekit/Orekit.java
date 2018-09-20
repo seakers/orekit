@@ -195,7 +195,7 @@ public class Orekit {
 
         //set the analyses
         double analysisTimeStep = 60;
-        ArrayList<Analysis> analyses = new ArrayList<>();
+        ArrayList<Analysis<?>> analyses = new ArrayList<>();
 //        for (Satellite sat : walker.getSatellites()) {
         //analyses.add(new OrbitalElementsAnalysis(startDate, endDate, analysisTimeStep, sat, pf));
 //            analyses.add(new VectorAnalisysEclipseSunlightDiffDrag(startDate, endDate, analysisTimeStep, sat, pf, inertialFrame, 0.015, 0.075, 0.058, 6));
@@ -270,7 +270,7 @@ public class Orekit {
 //        ScenarioIO.saveLinkBudget(Paths.get(System.getProperty("results"), ""), filename, scenComp, cdefToSave);
 //        ScenarioIO.saveReadMe(Paths.get(path, ""), filename, scenComp);
 
-        for (Analysis analysis : analyses) {
+        for (Analysis<?> analysis : analyses) {
             ScenarioIO.saveAnalysis(Paths.get(System.getProperty("results"), ""),
                     String.format("%s_%s", scen.toString(), "analysis"), analysis);
         }

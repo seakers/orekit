@@ -155,7 +155,7 @@ public class Tests {
 
             //set the analyses
             double analysisTimeStep = 60;
-            ArrayList<Analysis> analyses = new ArrayList<>();
+            ArrayList<Analysis<?>> analyses = new ArrayList<>();
 
             Scenario scen = new Scenario.Builder(startDate, endDate, utc).
                     eventAnalysis(eventanalyses).analysis(analyses).

@@ -41,7 +41,7 @@ public class Scenario extends AbstractScenario {
      * A set of analyses in which values are recorded during the simulation at
      * fixed time steps
      */
-    private final Collection<Analysis> analyses;
+    private final Collection<Analysis<?>> analyses;
 
     /**
      * Flag to signal if the scenario was simulated without errors.
@@ -67,7 +67,7 @@ public class Scenario extends AbstractScenario {
             TimeScale timeScale, Frame inertialFrame, PropagatorFactory propagatorFactory,
             HashSet<CoverageDefinition> covDefs,
             Collection<EventAnalysis> eventAnalyses,
-            Collection<Analysis> analyses,
+            Collection<Analysis<?>> analyses,
             Properties properties) {
 
         super(name, startDate, endDate, timeScale, inertialFrame, propagatorFactory, covDefs, analyses);
@@ -157,7 +157,7 @@ public class Scenario extends AbstractScenario {
          * A set of analyses in which values are recorded during the simulation
          * at fixed time steps
          */
-        private Collection<Analysis> analyses = new ArrayList<>();
+        private Collection<Analysis<?>> analyses = new ArrayList<>();
 
         /**
          * The set of coverage definitions to simulate.
@@ -209,7 +209,7 @@ public class Scenario extends AbstractScenario {
          * @param a
          * @return
          */
-        public Builder analysis(Collection<Analysis> a) {
+        public Builder analysis(Collection<Analysis<?>> a) {
             this.analyses = a;
             return this;
         }
@@ -278,7 +278,7 @@ public class Scenario extends AbstractScenario {
      *
      * @return
      */
-    public Collection<Analysis> getAnalyses() {
+    public Collection<Analysis<?>> getAnalyses() {
         return analyses;
     }
 

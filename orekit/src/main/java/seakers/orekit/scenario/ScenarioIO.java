@@ -309,7 +309,7 @@ public class ScenarioIO {
     public static <T> boolean saveAnalysis(Path path, String fileName, Analysis<T> analysis) {
         if (analysis instanceof CompoundSpacecraftAnalysis) {
             boolean out = true;
-            for (Analysis a : ((CompoundSpacecraftAnalysis) analysis).getAnalyses()) {
+            for (Analysis<?> a : ((CompoundSpacecraftAnalysis) analysis).getAnalyses()) {
                 out = Boolean.logicalAnd(out, saveSingleAnalysis(path, fileName, a));
             }
             return out;

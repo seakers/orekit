@@ -199,7 +199,7 @@ public class Orekit_Pau2 {
             eventanalyses.add(fovEvent);
 
             //set the analyses
-            ArrayList<Analysis> analyses = new ArrayList<>();
+            ArrayList<Analysis<?>> analyses = new ArrayList<>();
 
             Scenario scen = new Scenario.Builder(startDate, endDate, utc).
                     eventAnalysis(eventanalyses).analysis(analyses).
@@ -223,7 +223,7 @@ public class Orekit_Pau2 {
     //        ScenarioIO.saveLinkBudget(Paths.get(System.getProperty("results"), ""), filename, scenComp, cdefToSave);
     //        ScenarioIO.saveReadMe(Paths.get(path, ""), filename, scenComp);
 
-            for (Analysis analysis : analyses) {
+            for (Analysis<?> analysis : analyses) {
                 ScenarioIO.saveAnalysis(Paths.get(System.getProperty("results"), ""),
                         String.format("%s_%s",scen.toString(),analysis.getName()), analysis);
             }

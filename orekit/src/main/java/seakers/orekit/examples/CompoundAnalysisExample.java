@@ -139,9 +139,9 @@ public class CompoundAnalysisExample {
 
         //set the analyses
         double analysisTimeStep = 60;
-        Collection<Analysis> analyses = new ArrayList<>();        
+        Collection<Analysis<?>> analyses = new ArrayList<>();
         for (final Satellite sat : constellation.getSatellites()) {
-            Collection<AbstractSpacecraftAnalysis> analyses2 = new ArrayList<>();
+            Collection<AbstractSpacecraftAnalysis<?>> analyses2 = new ArrayList<>();
             analyses2.add(new OrbitalElementsAnalysis(startDate, endDate, analysisTimeStep, sat, PositionAngle.MEAN,pf));
             analyses2.add(new VectorAnalysis(startDate,endDate,analysisTimeStep,sat,pf,inertialFrame) {
                 private static final long serialVersionUID = 4680062066885650976L;
@@ -170,9 +170,9 @@ public class CompoundAnalysisExample {
         }
 
         
-        for (Analysis analysis : analyses) {
+        for (Analysis<?> analysis : analyses) {
             if (analysis instanceof CompoundSpacecraftAnalysis){
-                for (Analysis anal:((CompoundSpacecraftAnalysis) analysis).getAnalyses()){
+                for (Analysis<?> anal:((CompoundSpacecraftAnalysis) analysis).getAnalyses()){
                     ScenarioIO.saveAnalysis(Paths.get(System.getProperty("results"), ""),
                     String.format("%s_%s", filename, anal.getName()), anal);
                 }

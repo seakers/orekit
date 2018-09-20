@@ -26,11 +26,11 @@ public class CompoundSpacecraftAnalysis extends AbstractSpacecraftAnalysis<Objec
     /**
      * G
      */
-    private final Collection<AbstractSpacecraftAnalysis> analyses;
+    private final Collection<AbstractSpacecraftAnalysis<?>> analyses;
 
     public CompoundSpacecraftAnalysis(AbsoluteDate startDate, AbsoluteDate endDate,
             double timeStep, Satellite sat, PropagatorFactory propagatorFactory,
-            Collection<AbstractSpacecraftAnalysis> analyses) {
+            Collection<AbstractSpacecraftAnalysis<?>> analyses) {
         super(startDate, endDate, timeStep, sat, propagatorFactory);
         this.analyses = analyses;
     }
@@ -41,8 +41,8 @@ public class CompoundSpacecraftAnalysis extends AbstractSpacecraftAnalysis<Objec
      *
      * @return
      */
-    public Collection<AbstractSpacecraftAnalysis> getAnalyses() {
-        ArrayList<AbstractSpacecraftAnalysis> out = new ArrayList<>();
+    public Collection<AbstractSpacecraftAnalysis<?>> getAnalyses() {
+        ArrayList<AbstractSpacecraftAnalysis<?>> out = new ArrayList<>();
         for (AbstractSpacecraftAnalysis a : analyses) {
             if (a instanceof CompoundSpacecraftAnalysis) {
                 out.addAll(((CompoundSpacecraftAnalysis) a).getAnalyses());
