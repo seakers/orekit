@@ -201,7 +201,7 @@ public class Orekit_Pau_eph_vec {
             }
         }
         
-        for (Analysis analysis : analyses) {
+        for (Analysis<?> analysis : analyses) {
             if (analysis instanceof LifetimeAnalysis){
                 Logger.getGlobal().finest(String.format("Lifetime of %.2f years", ((LifetimeAnalysis) analysis).getLifetime()));
             }

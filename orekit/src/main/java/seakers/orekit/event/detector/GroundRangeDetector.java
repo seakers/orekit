@@ -20,6 +20,8 @@ import org.orekit.time.AbsoluteDate;
  */
 public class GroundRangeDetector extends AbstractEventDetector<GroundRangeDetector> {
 
+    private static final long serialVersionUID = 1L;
+
     /**
      * the ground target to attach the detector to
      */

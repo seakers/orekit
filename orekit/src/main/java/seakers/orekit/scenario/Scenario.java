@@ -82,7 +82,7 @@ public class Scenario extends AbstractScenario {
             eventAnalysis.call();
         }
         ArrayList<SubRoutine> subRoutines = new ArrayList<>();
-        for (Analysis analysis : analyses) {
+        for (Analysis<?> analysis : analyses) {
             AnalysisSubRoutine subRoutine = new AnalysisSubRoutine(analysis);
             subRoutines.add(subRoutine);
         }
@@ -298,9 +298,9 @@ public class Scenario extends AbstractScenario {
         /**
          * The anaylisis to complete
          */
-        private final Analysis anal;
+        private final Analysis<?> anal;
         
-        public AnalysisSubRoutine(Analysis anal){
+        public AnalysisSubRoutine(Analysis<?> anal){
             this.anal=anal;
         }
         @Override
@@ -310,7 +310,7 @@ public class Scenario extends AbstractScenario {
             return this;
         }
         
-       public Analysis getAnalysis(){
+       public Analysis<?> getAnalysis(){
            return anal;
        }
     }

@@ -51,7 +51,7 @@ public class Record<T> implements Comparable<Record<T>>, Serializable {
      * before, simultaneous, or after the specified date.
      */
     @Override
-    public int compareTo(Record o) {
+    public int compareTo(Record<T> o) {
         return this.getDate().compareTo(o.getDate());
     }
 

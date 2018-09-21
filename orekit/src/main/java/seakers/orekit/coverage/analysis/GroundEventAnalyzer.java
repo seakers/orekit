@@ -91,7 +91,12 @@ public class GroundEventAnalyzer implements Serializable {
      * @return
      */
     public ArrayList<CoveragePoint> getCoveragePoints() {
-        ArrayList<CoveragePoint> points = new ArrayList(events.keySet());
+        ArrayList<CoveragePoint> points = new ArrayList<>();
+        for (TopocentricFrame frame: events.keySet()) {
+            if (frame instanceof CoveragePoint) {
+                points.add((CoveragePoint)frame);
+            }
+        }
         Collections.sort(points);
         return points;
     }

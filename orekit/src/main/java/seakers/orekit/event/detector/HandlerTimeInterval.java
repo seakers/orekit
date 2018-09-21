@@ -5,6 +5,7 @@
  */
 package seakers.orekit.event.detector;
 
+import org.orekit.propagation.events.EventDetector;
 import seakers.orekit.coverage.access.TimeIntervalArray;
 import org.orekit.errors.OrekitException;
 import org.orekit.propagation.SpacecraftState;
@@ -23,7 +24,7 @@ import org.orekit.time.AbsoluteDate;
  *
  * @author nozomihitomi
  */
-public class HandlerTimeInterval implements EventHandler<AbstractDetector> {
+public class HandlerTimeInterval<T extends EventDetector> implements EventHandler<T> {
 
     private final TimeIntervalArray timeArray;
     
@@ -78,7 +79,7 @@ public class HandlerTimeInterval implements EventHandler<AbstractDetector> {
     }
 
     @Override
-    public EventHandler.Action eventOccurred(final SpacecraftState s, final AbstractDetector detector,
+    public EventHandler.Action eventOccurred(final SpacecraftState s, final T detector,
             final boolean increasing) throws OrekitException {
 
         if (increasing) {

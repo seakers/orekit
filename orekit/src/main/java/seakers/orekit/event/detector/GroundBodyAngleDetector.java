@@ -31,6 +31,8 @@ import seakers.orekit.object.CoveragePoint;
  */
 public class GroundBodyAngleDetector extends AbstractEventDetector<GroundBodyAngleDetector> {
 
+    private static final long serialVersionUID = 1L;
+
     /**
      * The ground target
      */

@@ -182,7 +182,7 @@ public class CompoundAnalysisExample {
             }
         }
         
-        for (Analysis analysis : analyses) {
+        for (Analysis<?> analysis : analyses) {
             if (analysis instanceof LifetimeAnalysis){
                 Logger.getGlobal().finest(String.format("Lifetime of %.2f years", ((LifetimeAnalysis) analysis).getLifetime()));
             }

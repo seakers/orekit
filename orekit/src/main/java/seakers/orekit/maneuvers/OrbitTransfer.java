@@ -6,6 +6,8 @@
 package seakers.orekit.maneuvers;
 
 import java.io.Serializable;
+import java.util.Date;
+
 import org.hipparchus.geometry.euclidean.threed.Vector3D;
 import org.orekit.attitudes.AttitudeProvider;
 import org.orekit.attitudes.LofOffset;
@@ -63,7 +65,7 @@ public class OrbitTransfer implements Serializable{
         }else if(date.compareTo(endDate)>0){
             throw new IllegalArgumentException("Initial date of orbit transfer is later than the scenario end date");
         }
-        EventDetector trigger1 = new DateDetector(date);
+        DateDetector trigger1 = new DateDetector(date);
         double aL=prop.getInitialState().getA();
         double aH=aL+inc;
         double aT=0.5*(aL+aH);
@@ -71,11 +73,11 @@ public class OrbitTransfer implements Serializable{
         double deltaV2=Math.sqrt(Constants.WGS84_EARTH_MU)*(Math.sqrt(1/aH)-Math.sqrt(2/aH-1/aT));
         Vector3D deltaVVector1=new Vector3D(deltaV1,0,0);
         Vector3D deltaVVector2=new Vector3D(deltaV2,0,0);
-        EventDetector trigger2=new ApogeeDetectorHohmannTransfer(prop.getInitialState().getOrbit(),date);
+        ApogeeDetectorHohmannTransfer trigger2=new ApogeeDetectorHohmannTransfer(prop.getInitialState().getOrbit(),date);
         AttitudeProvider attitudeOverride = new LofOffset(prop.getFrame(), LOFType.TNW);
-        ImpulseManeuver maneuver1 = new ImpulseManeuver<>(trigger1,attitudeOverride,deltaVVector1,isp);
+        ImpulseManeuver<DateDetector> maneuver1 = new ImpulseManeuver<>(trigger1,attitudeOverride,deltaVVector1,isp);
         
-        ImpulseManeuver maneuver2 = new ImpulseManeuver<>(trigger2,attitudeOverride,deltaVVector2,isp);
+        ImpulseManeuver<ApogeeDetectorHohmannTransfer> maneuver2 = new ImpulseManeuver<>(trigger2,attitudeOverride,deltaVVector2,isp);
         
         prop.addEventDetector(maneuver1);
         prop.addEventDetector(maneuver2);

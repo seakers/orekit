@@ -62,7 +62,7 @@ public abstract class AbstractEventDetector<T extends EventDetector> extends Abs
     /**
      * Event handler for the time intervals
      */
-    private HandlerTimeInterval handlerTimeInterval;
+    private HandlerTimeInterval<? super T> handlerTimeInterval;
 
     /**
      * Constructor for the detector.
@@ -126,7 +126,7 @@ public abstract class AbstractEventDetector<T extends EventDetector> extends Abs
                 throw new IllegalArgumentException("Spacecraft state must be given at the provided start date");
             }
             try {
-                this.handlerTimeInterval = new HandlerTimeInterval(startDate, endDate, g(initialState), action);
+                this.handlerTimeInterval = new HandlerTimeInterval<>(startDate, endDate, g(initialState), action);
             } catch (OrekitException ex) {
                 Logger.getLogger(AbstractEventDetector.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -146,7 +146,7 @@ public abstract class AbstractEventDetector<T extends EventDetector> extends Abs
      * @return
      */
     @Override
-    protected final T create(double newMaxCheck, double newThreshold, int newMaxIter, EventHandler newHandler) {
+    protected final T create(double newMaxCheck, double newThreshold, int newMaxIter, EventHandler<? super T> newHandler) {
         return create(initialState, startDate, endDate, action, newMaxCheck, newThreshold, newMaxIter);
     }
 
@@ -155,7 +155,7 @@ public abstract class AbstractEventDetector<T extends EventDetector> extends Abs
             EventHandler.Action action, double maxCheck, double threshold, int maxIter);
 
     @Override
-    public EventHandler getHandler() {
+    public EventHandler<? super T> getHandler() {
         if (this.handlerTimeInterval == null) {
             return super.getHandler();
         } else {

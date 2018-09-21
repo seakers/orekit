@@ -102,8 +102,13 @@ public class LatencyGroundEventAnalyzer implements Serializable {
      */
     public ArrayList<CoveragePoint> getCoveragePoints() {
         Set<Satellite> sats = events.keySet();
-        Map<TopocentricFrame, TimeIntervalArray> sat1_accesses=events.get(sats.iterator().next());
-        ArrayList<CoveragePoint> points = new ArrayList(sat1_accesses.keySet());
+        Map<TopocentricFrame, TimeIntervalArray> sat1_accesses = events.get(sats.iterator().next());
+        ArrayList<CoveragePoint> points = new ArrayList<>();
+        for (TopocentricFrame frame: sat1_accesses.keySet()) {
+            if (frame instanceof CoveragePoint) {
+                points.add((CoveragePoint)frame);
+            }
+        }
         Collections.sort(points);
         return points;
     }

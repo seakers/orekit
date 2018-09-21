@@ -43,7 +43,7 @@ public class CompoundSpacecraftAnalysis extends AbstractSpacecraftAnalysis<Objec
      */
     public Collection<AbstractSpacecraftAnalysis<?>> getAnalyses() {
         ArrayList<AbstractSpacecraftAnalysis<?>> out = new ArrayList<>();
-        for (AbstractSpacecraftAnalysis a : analyses) {
+        for (AbstractSpacecraftAnalysis<?> a : analyses) {
             if (a instanceof CompoundSpacecraftAnalysis) {
                 out.addAll(((CompoundSpacecraftAnalysis) a).getAnalyses());
             } else {
@@ -55,7 +55,7 @@ public class CompoundSpacecraftAnalysis extends AbstractSpacecraftAnalysis<Objec
 
     @Override
     public void handleStep(SpacecraftState currentState, boolean isLast) throws OrekitException {
-        for (Analysis a : analyses) {
+        for (Analysis<?> a : analyses) {
             a.handleStep(currentState, isLast);
         }
     }
@@ -73,7 +73,7 @@ public class CompoundSpacecraftAnalysis extends AbstractSpacecraftAnalysis<Objec
     @Override
     public String getName() {
         String name="CompoundAnalysis";
-        for (Analysis anal:this.getAnalyses()){
+        for (Analysis<?> anal:this.getAnalyses()){
             name=name.concat(String.format("_%s",anal.getName()));
         }
         return name;

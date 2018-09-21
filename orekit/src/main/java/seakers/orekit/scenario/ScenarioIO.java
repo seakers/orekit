@@ -68,7 +68,12 @@ public class ScenarioIO {
             fw.flush();
 
             int i = 0;
-            ArrayList<CoveragePoint> gridPoints = new ArrayList(groundEvents.keySet());
+            ArrayList<CoveragePoint> gridPoints = new ArrayList<>();
+            for (TopocentricFrame frame: groundEvents.keySet()) {
+                if (frame instanceof CoveragePoint) {
+                    gridPoints.add((CoveragePoint)frame);
+                }
+            }
             Collections.sort(gridPoints);
             for (CoveragePoint pt : gridPoints) {
                 fw.append(String.format("PointNumber:        %d\n", i));
@@ -333,7 +338,7 @@ public class ScenarioIO {
         try (FileWriter fw = new FileWriter(file)) {
             fw.append("#Epoch time," + analysis.getHeader() + "\n");
             while (histIter.hasNext()) {
-                Record r = histIter.next();
+                Record<T> r = histIter.next();
                 fw.append(String.format("%f,%s\n",
                         r.getDate().durationFrom(analysis.getStartDate()),
                         r.getValue()));
