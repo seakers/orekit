@@ -34,15 +34,7 @@ public class GndStation extends GroundStation implements OrekitObject {
      */
     private final double minEl;
     
-    /**
-     * Flag for if the ground station is designated or not
-     */
-    private final int designated;
 
-    /**
-     * Communication band type designation
-     */
-    private final String[] commBandType;
 
 
     /**
@@ -58,13 +50,11 @@ public class GndStation extends GroundStation implements OrekitObject {
      * @throws OrekitException
      */
     public GndStation(TopocentricFrame topo,
-            Receiver receiver, Transmitter transmitter, double minEl, int designated, String[] commBandType) throws OrekitException {
+            Receiver receiver, Transmitter transmitter, double minEl) throws OrekitException {
         super(topo);
         this.receiver = receiver;
         this.transmitter = transmitter;
         this.minEl = minEl;
-        this.designated = designated;
-        this.commBandType = commBandType;
     }
 
     /**
@@ -95,24 +85,6 @@ public class GndStation extends GroundStation implements OrekitObject {
         return minEl;
     }
     
-    /**
-     * Gets the flag for if the ground station is designated or not
-     *
-     * @return the designated flag from this ground station
-     */
-    public int getDesignated() {
-        return designated;
-    }
-    
-    /**
-     * Gets the types of communication bands for this ground station
-     *
-     * @return a string with communication bands for this ground station
-     */
-    public String[] getCommBandType() {
-        return commBandType;
-    }
-
     @Override
     public int hashCode() {
         int hash = super.hashCode();

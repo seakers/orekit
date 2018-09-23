@@ -42,6 +42,8 @@ import org.orekit.frames.FramesFactory;
 import org.orekit.orbits.KeplerianOrbit;
 import org.orekit.orbits.Orbit;
 import org.orekit.orbits.PositionAngle;
+import org.orekit.propagation.Propagator;
+import org.orekit.propagation.SpacecraftState;
 import org.orekit.time.AbsoluteDate;
 import org.orekit.time.TimeScale;
 import org.orekit.time.TimeScalesFactory;
@@ -60,8 +62,9 @@ import seak.orekit.event.GroundBodyAngleEventAnalysis;
 import seak.orekit.object.Constellation;
 import static seak.orekit.object.CoverageDefinition.GridStyle.EQUAL_AREA;
 import static seak.orekit.object.CoverageDefinition.GridStyle.UNIFORM;
+import seak.orekit.object.OrbitWizard;
 import seak.orekit.object.fieldofview.NadirRectangularFOV;
-
+import seak.orekit.propagation.PropagatorFactory;
 /**
  *
  * @author paugarciabuzzi
@@ -93,10 +96,10 @@ public class LTAN2RAAN {
         BodyShape earthShape = new OneAxisEllipsoid(Constants.WGS84_EARTH_EQUATORIAL_RADIUS,
                 Constants.WGS84_EARTH_FLATTENING, earthFrame);
         
-        
-        
+        double h=600000;
+        double inc=OrbitWizard.SSOinc(Constants.WGS84_EARTH_EQUATORIAL_RADIUS+h, 0);
         AbsoluteDate date=new AbsoluteDate(2020, 1, 2, 06, 30, 00.000, utc);
-        Orbit SSO = new KeplerianOrbit(Constants.WGS84_EARTH_EQUATORIAL_RADIUS+600000, 0.0001, FastMath.toRadians(97.7874),0.0,
+        Orbit SSO = new KeplerianOrbit(Constants.WGS84_EARTH_EQUATORIAL_RADIUS+h, 0.0001, FastMath.toRadians(inc),0.0,
                 FastMath.toRadians(197.811), 0.0, PositionAngle.MEAN, inertialFrame, date, mu);
         GeodeticPoint p = new GeodeticPoint(0, 0, 0);
         CoveragePoint point=new CoveragePoint(earthShape, p, "");
@@ -105,7 +108,7 @@ public class LTAN2RAAN {
         double angle=Vector3D.angle(pt1, pt2);
         
         Logger.getGlobal().finest(String.format("ANGLE=%.4f", angle));
-    
+        
     }
     
 }

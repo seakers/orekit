@@ -100,8 +100,8 @@ public class Orekit_Pau_eph_vec {
         Logger.getGlobal().addHandler(handler);
 
         TimeScale utc = TimeScalesFactory.getUTC();
-        AbsoluteDate startDate = new AbsoluteDate(2004, 1, 1, 00, 00, 00.000, utc);
-        AbsoluteDate endDate = new AbsoluteDate(2030, 1, 1, 00, 00, 00.000, utc);
+        AbsoluteDate startDate = new AbsoluteDate(2010, 1, 1, 00, 00, 00.000, utc);
+        AbsoluteDate endDate = new AbsoluteDate(2011, 1, 1, 00, 00, 00.000, utc);
         double mu = Constants.WGS84_EARTH_MU; // gravitation coefficient
         
         Frame earthFrame = FramesFactory.getITRF(IERSConventions.IERS_2003, true);
@@ -118,16 +118,13 @@ public class Orekit_Pau_eph_vec {
         ArrayList<Instrument> payload = new ArrayList<>();
         Collection<Satellite> constel = new ArrayList<>();
         Satellite sat1 = new Satellite("sat1", new KeplerianOrbit(a, 0.0001, i, 0, 0, 0, PositionAngle.MEAN, inertialFrame, startDate, mu), null, payload);
-        //Satellite sat2 = new Satellite("sat2", new KeplerianOrbit(a, 0.00000001, i, 0, 0, FastMath.toRadians(180), PositionAngle.MEAN, inertialFrame, startDate, mu), null, payload);
         constel.add(sat1);
-        //constel.add(sat2);
 
         Constellation constellation = new Constellation("constel", constel);
 
         Properties propertiesPropagator = new Properties();
         propertiesPropagator.setProperty("orekit.propagator.mass", "6");
         propertiesPropagator.setProperty("orekit.propagator.atmdrag", "true");
-        //propertiesPropagator.setProperty("orekit.propagator.dragarea", "0.08196");
         propertiesPropagator.setProperty("orekit.propagator.dragarea", "0.075");
         propertiesPropagator.setProperty("orekit.propagator.dragcoeff", "2.2");
         propertiesPropagator.setProperty("orekit.propagator.thirdbody.sun", "true");
@@ -142,8 +139,8 @@ public class Orekit_Pau_eph_vec {
         double analysisTimeStep = 60;
         Collection<Analysis> analyses = new ArrayList<>();
         for (final Satellite sat : constellation.getSatellites()) {
-            analyses.add(new LifetimeAnalysis(startDate, endDate, analysisTimeStep, sat, PositionAngle.MEAN, pf, earthShape));
-            //analyses.add(new OrbitalElementsAnalysis(startDate, endDate, analysisTimeStep, sat, PositionAngle.MEAN,pf));
+            //analyses.add(new LifetimeAnalysis(startDate, endDate, analysisTimeStep, sat, PositionAngle.MEAN, pf, earthShape));
+            analyses.add(new OrbitalElementsAnalysis(startDate, endDate, analysisTimeStep, sat, PositionAngle.MEAN,pf));
             //analyses.add(new VectorAnalisysEclipseSunlightDiffDrag(startDate, endDate, analysisTimeStep, sat, pf, inertialFrame, 0.015, 0.075, 0.058, 6));
 //            analyses.add(new VectorAnalysis(startDate,endDate,analysisTimeStep,sat,pf,inertialFrame) {
 //                private static final long serialVersionUID = 4680062066885650976L;
