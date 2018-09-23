@@ -48,9 +48,9 @@ public abstract class VectorAngleAnalysis extends AbstractSpacecraftAnalysis<Dou
         this.frame = frame;
     }
 
-    public abstract Vector3D getVector1(SpacecraftState currentState, Frame frame);
+    public abstract Vector3D getVector1(SpacecraftState currentState, Frame frame) throws OrekitException;
 
-    public abstract Vector3D getVector2(SpacecraftState currentState, Frame frame);
+    public abstract Vector3D getVector2(SpacecraftState currentState, Frame frame) throws OrekitException;
 
     @Override
     public String getHeader() {
