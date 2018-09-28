@@ -26,7 +26,7 @@ import seakers.orekit.object.Satellite;
  * This class computes several standard metrics regarding events (occurring and
  * not occurring) computed during a coverage simulation
  *
- * @author nozomihitomi
+ * @author paugarciabuzzi
  */
 public class LatencyGroundEventAnalyzer implements Serializable {
     
@@ -52,7 +52,7 @@ public class LatencyGroundEventAnalyzer implements Serializable {
     /**
      * True if saellites communicate with each other, false otherwise.
      */
-    private final boolean allowCrosslinks;
+    private final boolean allowCrossLinks;
 
     /**
      * Creates an analyzer from a set of coverage points and time interval array
@@ -65,7 +65,7 @@ public class LatencyGroundEventAnalyzer implements Serializable {
      * @param gsEvents accesses of all  satellites in the constellation to a set of ground stations
      */
     public LatencyGroundEventAnalyzer(HashMap<Satellite,HashMap<TopocentricFrame, TimeIntervalArray>> fovEvents, 
-            HashMap<Satellite,HashMap<GndStation, TimeIntervalArray>> gsEvents, boolean allowCrosslinks) {
+            HashMap<Satellite,HashMap<GndStation, TimeIntervalArray>> gsEvents, boolean allowCrossLinks) {
         this.events = fovEvents;
         this.gndstations = gsEvents;
         Set<Satellite> sats = fovEvents.keySet();
@@ -74,7 +74,7 @@ public class LatencyGroundEventAnalyzer implements Serializable {
         TopocentricFrame tp = topos.iterator().next();
         this.startDate = sat1_accesses.get(tp).getHead();
         this.endDate = sat1_accesses.get(tp).getTail();
-        this.allowCrosslinks=allowCrosslinks;
+        this.allowCrossLinks=allowCrossLinks;
     }
 
     /**
@@ -177,7 +177,7 @@ public class LatencyGroundEventAnalyzer implements Serializable {
      */
     public DescriptiveStatistics getStatistics(Collection<TopocentricFrame> points) {
         DescriptiveStatistics ds = new DescriptiveStatistics();
-        if (this.allowCrosslinks){
+        if (this.allowCrossLinks){
             RiseSetTime lastAccessRiseSetTime=this.lastSetTimeConstellation();
             //for each coverage point, we will calculate the latency of each rise time event
             for (TopocentricFrame cp : points) {
@@ -303,7 +303,7 @@ public class LatencyGroundEventAnalyzer implements Serializable {
      /**
      * Returns true if a ground station is in contact at the time when a coverage point is accessed
      *
-     * @param eventGS List of rise and set times of ground station contacts
+     * @param eventsGS List of rise and set times of ground station contacts
      * @param time Access rise time of coverage point
      */
     private boolean isAccessing(ArrayList<RiseSetTime> eventsGS, double time) {

@@ -102,8 +102,8 @@ public class VectorAnalisysEclipseSunlightDiffDrag extends VectorAnalysis{
         boolean flag=true;
         while (!end){
             prop.resetInitialState(s);
-            ((NumericalPropagator) prop).removeForceModels();
             if (flag){
+                ((NumericalPropagator) prop).removeForceModels();
                 if (detector.g(prop.getInitialState())<0){
                     prop=setNumericalPropagator(prop, eclipseDragArea, solarArea);
                     flag=false;
