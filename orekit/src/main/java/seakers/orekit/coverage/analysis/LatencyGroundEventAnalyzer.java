@@ -187,37 +187,40 @@ public class LatencyGroundEventAnalyzer implements Serializable {
                     ArrayList<RiseSetTime> eventsCP = events.get(sat).get(cp).getRiseSetTimes();
                     for (RiseSetTime tcp:eventsCP){
                         //check if it is a rise time
-                        if(tcp.isRise() && tcp.getTime()<lastAccess){
-                            //default initialization of latency of an specific coverage point and specific rise time
-                            double latencyopt=getEndDate().durationFrom(getStartDate());
-                            //Loop around the different ground stations to see which one is accessed first and determines shortest latency
-                            for (Satellite sat1 : getSatellites()){
-                                for(GndStation gs: gndstations.get(sat1).keySet()){
-                                    //Obtain rise and set times of the different contacts with ground station gs
-                                    ArrayList<RiseSetTime> eventsGS = gndstations.get(sat1).get(gs).getRiseSetTimes();
-                                    //If on coverage point access rise time tcp, there is contact with ground station gs, latency is 0.
-                                    if(isAccessing(eventsGS,tcp.getTime())){
-                                        latencyopt=0;
-                                        break;
-                                    }
-                                    //Find the latency for the rise time tcp of coverage point cp and ground station gs
-                                    for(RiseSetTime tgs:eventsGS){
-                                        if(tgs.isRise()){
-                                            double latency=tgs.getTime()-tcp.getTime();
-                                            if (latency>0 && latency<latencyopt){
-                                                //Update the latency of a specific rise time of a specific cov point if previous ground stations had longer latency
-                                                latencyopt=latency;
+                        if(tcp.isRise()){
+                            if(tcp.getTime()<lastAccess) {
+                                //default initialization of latency of an specific coverage point and specific rise time
+                                double latencyopt = getEndDate().durationFrom(getStartDate());
+                                //Loop around the different ground stations to see which one is accessed first and determines shortest latency
+                                for (Satellite sat1 : getSatellites()) {
+                                    for (GndStation gs : gndstations.get(sat1).keySet()) {
+                                        //Obtain rise and set times of the different contacts with ground station gs
+                                        ArrayList<RiseSetTime> eventsGS = gndstations.get(sat1).get(gs).getRiseSetTimes();
+                                        //If on coverage point access rise time tcp, there is contact with ground station gs, latency is 0.
+                                        if (isAccessing(eventsGS, tcp.getTime())) {
+                                            latencyopt = 0;
+                                            break;
+                                        }
+                                        //Find the latency for the rise time tcp of coverage point cp and ground station gs
+                                        for (RiseSetTime tgs : eventsGS) {
+                                            if (tgs.isRise()) {
+                                                double latency = tgs.getTime() - tcp.getTime();
+                                                if (latency > 0 && latency < latencyopt) {
+                                                    //Update the latency of a specific rise time of a specific cov point if previous ground stations had longer latency
+                                                    latencyopt = latency;
+                                                }
                                             }
                                         }
                                     }
                                 }
+                                //Add the latency with the "best" ground station of a specific rise time of a specific cov point
+                                ds.addValue(latencyopt);
+                            }else{
+                                //ds.addValue(getEndDate().durationFrom(getStartDate())-tcp.getTime());
                             }
-                            //Add the latency with the "best" ground station of a specific rise time of a specific cov point
-                            ds.addValue(latencyopt);
                         }
                     }
                 }
-
             }
         }else{
             HashMap<Satellite,RiseSetTime> lastAccesses=this.lastSetTimeSatellites();
@@ -228,36 +231,43 @@ public class LatencyGroundEventAnalyzer implements Serializable {
                     ArrayList<RiseSetTime> eventsCP = events.get(sat).get(cp).getRiseSetTimes();
                     for (RiseSetTime tcp:eventsCP){
                         //check if it is a rise time
-                        if(tcp.isRise() && tcp.getTime()<lastAccesses.get(sat).getTime()){
-                            //default initialization of latency of an specific coverage point and specific rise time
-                            double latencyopt=getEndDate().durationFrom(getStartDate());
-                            //Loop around the different ground stations to see which one is accessed first and determines shortest latency
-                            for(GndStation gs: gndstations.get(sat).keySet()){
-                                //Obtain rise and set times of the different contacts with ground station gs
-                                ArrayList<RiseSetTime> eventsGS = gndstations.get(sat).get(gs).getRiseSetTimes();
-                                //If on coverage point access rise time tcp, there is contact with ground station gs, latency is 0.
-                                if(isAccessing(eventsGS,tcp.getTime())){
-                                    latencyopt=0;
-                                    break;
-                                }
-                                //Find the latency for the rise time tcp of coverage point cp and ground station gs
-                                for(RiseSetTime tgs:eventsGS){
-                                    if(tgs.isRise()){
-                                        double latency=tgs.getTime()-tcp.getTime();
-                                        if (latency>0 && latency<latencyopt){
-                                            //Update the latency of a specific rise time of a specific cov point if previous ground stations had longer latency
-                                            latencyopt=latency;
+                        if(tcp.isRise()){
+                            if(tcp.getTime()<lastAccesses.get(sat).getTime()) {
+                                //default initialization of latency of an specific coverage point and specific rise time
+                                double latencyopt = getEndDate().durationFrom(getStartDate());
+                                //Loop around the different ground stations to see which one is accessed first and determines shortest latency
+                                for (GndStation gs : gndstations.get(sat).keySet()) {
+                                    //Obtain rise and set times of the different contacts with ground station gs
+                                    ArrayList<RiseSetTime> eventsGS = gndstations.get(sat).get(gs).getRiseSetTimes();
+                                    //If on coverage point access rise time tcp, there is contact with ground station gs, latency is 0.
+                                    if (isAccessing(eventsGS, tcp.getTime())) {
+                                        latencyopt = 0;
+                                        break;
+                                    }
+                                    //Find the latency for the rise time tcp of coverage point cp and ground station gs
+                                    for (RiseSetTime tgs : eventsGS) {
+                                        if (tgs.isRise()) {
+                                            double latency = tgs.getTime() - tcp.getTime();
+                                            if (latency > 0 && latency < latencyopt) {
+                                                //Update the latency of a specific rise time of a specific cov point if previous ground stations had longer latency
+                                                latencyopt = latency;
+                                            }
                                         }
                                     }
                                 }
+                                //Add the latency with the "best" ground station of a specific rise time of a specific cov point
+                                ds.addValue(latencyopt);
+                            }else{
+                                //ds.addValue(getEndDate().durationFrom(getStartDate())-tcp.getTime());
                             }
-                            //Add the latency with the "best" ground station of a specific rise time of a specific cov point
-                            ds.addValue(latencyopt);
                         }
                     }
                 }
-
             }
+        }
+
+        if(ds.getN()==0){
+            ds.addValue(getEndDate().durationFrom(getStartDate()));
         }
         return ds;
     }   
@@ -274,9 +284,11 @@ public class LatencyGroundEventAnalyzer implements Serializable {
             HashMap<GndStation,TimeIntervalArray> mapGS=gndstations.get(sat);
             for (GndStation gs : mapGS.keySet()){
                 ArrayList<RiseSetTime> listRiseSetTimes=mapGS.get(gs).getRiseSetTimes();
-                RiseSetTime t =  listRiseSetTimes.get(listRiseSetTimes.size()-1);
-                if (t.getTime()>last.getTime()){;
-                    last=t;
+                if(!listRiseSetTimes.isEmpty()){
+                    RiseSetTime t =  listRiseSetTimes.get(listRiseSetTimes.size()-1);
+                    if (t.getTime()>last.getTime()){;
+                        last=t;
+                    }
                 }
             }
             finalMap.put(sat, last);

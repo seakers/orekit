@@ -30,6 +30,7 @@ import seakers.orekit.propagation.PropagatorFactory;
 import seakers.orekit.propagation.PropagatorType;
 import seakers.orekit.scenario.Scenario;
 import seakers.orekit.scenario.ScenarioIO;
+import seakers.orekit.util.Orbits;
 import seakers.orekit.util.OrekitConfig;
 import org.hipparchus.stat.descriptive.DescriptiveStatistics;
 import org.hipparchus.util.FastMath;
@@ -69,7 +70,7 @@ import seakers.orekit.object.fieldofview.NadirRectangularFOV;
  *
  * @author paugarciabuzzi
  */
-public class LTAN2RAAN {
+public class test_LTAN2RAAN {
 
     /**
      * @param args the command line arguments
@@ -85,29 +86,11 @@ public class LTAN2RAAN {
         ConsoleHandler handler = new ConsoleHandler();
         handler.setLevel(level);
         Logger.getGlobal().addHandler(handler);
-
-        TimeScale utc = TimeScalesFactory.getUTC();
-        double mu = Constants.WGS84_EARTH_MU; // gravitation coefficient
-
-        //must use IERS_2003 and EME2000 frames to be consistent with STK
-        Frame earthFrame = FramesFactory.getITRF(IERSConventions.IERS_2003, true);
-        Frame inertialFrame = FramesFactory.getEME2000();
-
-        BodyShape earthShape = new OneAxisEllipsoid(Constants.WGS84_EARTH_EQUATORIAL_RADIUS,
-                Constants.WGS84_EARTH_FLATTENING, earthFrame);
-        
-        double h=600000;
-        double inc=OrbitWizard.SSOinc(Constants.WGS84_EARTH_EQUATORIAL_RADIUS+h, 0);
-        AbsoluteDate date=new AbsoluteDate(2020, 1, 2, 06, 30, 00.000, utc);
-        Orbit SSO = new KeplerianOrbit(Constants.WGS84_EARTH_EQUATORIAL_RADIUS+h, 0.0001, FastMath.toRadians(inc),0.0,
-                FastMath.toRadians(197.811), 0.0, PositionAngle.MEAN, inertialFrame, date, mu);
-        GeodeticPoint p = new GeodeticPoint(0, 0, 0);
-        CoveragePoint point=new CoveragePoint(earthShape, p, "");
-        Vector3D pt1=SSO.getPVCoordinates().getPosition();
-        Vector3D pt2=point.getPVCoordinates(date, inertialFrame).getPosition();
-        double angle=Vector3D.angle(pt1, pt2);
-        
-        Logger.getGlobal().finest(String.format("ANGLE=%.4f", angle));
+        long start2 = System.nanoTime();
+        double raan=Orbits.LTAN2RAAN(600000,23.55,25,10,2018);
+        long end2 = System.nanoTime();
+        Logger.getGlobal().finest(String.format("Took %.4f sec", (end2 - start2) / Math.pow(10, 9)));
+        Logger.getGlobal().finest(String.format("ANGLE=%.4f", FastMath.toDegrees(raan)));
         
     }
     

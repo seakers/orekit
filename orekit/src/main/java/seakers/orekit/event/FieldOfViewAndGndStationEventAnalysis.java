@@ -52,7 +52,7 @@ import seakers.orekit.util.RawSafety;
  * constellation. Specific accesses between a point and a
  * satellite/constellation can be retrieved.
  *
- * @author nhitomi
+ * @author paugarciabuzzi
  */
 public class FieldOfViewAndGndStationEventAnalysis extends AbstractGroundEventAnalysis {
 
@@ -232,7 +232,6 @@ public class FieldOfViewAndGndStationEventAnalysis extends AbstractGroundEventAn
      * station
      *
      * @param sat the satellite
-     * @param station the ground station assigned to the satellite
      * @param satAccesses the accesses computed for the satellite to its
      * assigned coverage definition
      */
@@ -585,9 +584,9 @@ public class FieldOfViewAndGndStationEventAnalysis extends AbstractGroundEventAn
                 for (GndStation station : stations) {
                     GroundStationDetector gndstatDetec
                             = new GroundStationDetector(initialState,
-                                    getStartDate(), getEndDate(),
-                                    sat.getTransmitter(), sat.getReceiver(), station,
-                                    EventHandler.Action.CONTINUE, losStepSize, threshold);
+                            getStartDate(), getEndDate(),
+                            sat.getTransmitter(), sat.getReceiver(), station,
+                            EventHandler.Action.CONTINUE, losStepSize, threshold);
 
                     prop.addEventDetector(gndstatDetec);
                     mapGS.put(station, gndstatDetec);
@@ -603,11 +602,11 @@ public class FieldOfViewAndGndStationEventAnalysis extends AbstractGroundEventAn
                     satAccesses.put(pt, merger.orCombine());
                 }
                 for (GndStation station : mapGS.keySet()) {
-                    TimeIntervalArray fovTimeArray = mapGS.get(station).getTimeIntervalArray();
-                    if (fovTimeArray == null || fovTimeArray.isEmpty()) {
+                    TimeIntervalArray gndTimeArray = mapGS.get(station).getTimeIntervalArray();
+                    if (gndTimeArray == null || gndTimeArray.isEmpty()) {
                         continue;
                     }
-                    TimeIntervalMerger merger = new TimeIntervalMerger(accessesGS.get(station), fovTimeArray);
+                    TimeIntervalMerger merger = new TimeIntervalMerger(accessesGS.get(station), gndTimeArray);
                     accessesGS.put(station, merger.orCombine());
                 }
                 prop.clearEventsDetectors();
