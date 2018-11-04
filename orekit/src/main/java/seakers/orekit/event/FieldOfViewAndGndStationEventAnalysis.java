@@ -150,7 +150,7 @@ public class FieldOfViewAndGndStationEventAnalysis extends AbstractGroundEventAn
                 Propagator prop = propagatorFactory.createPropagator(sat.getOrbit(), sat.getGrossMass());
                 //Set stepsizes and threshold for detectors
                 double fovStepSize = sat.getOrbit().getKeplerianPeriod() / 100.;
-                double losStepSize = sat.getOrbit().getKeplerianPeriod() / 10.;
+                double losStepSize = sat.getOrbit().getKeplerianPeriod() / 100.;
                 double threshold = 1e-3;
 
                 FieldOfViewAndGndStationSubRoutine subRoutine = new FieldOfViewAndGndStationSubRoutine(sat, prop, 
