@@ -121,6 +121,15 @@ public class Orbits {
     public static double circularOrbitVelocity(double sma){
         return FastMath.sqrt(MU/sma);
     }
+
+    /**
+     * Computes the orbital period for a circular orbit with a given semi-major axis
+     * @param sma semi-major axis [m]
+     * @return the orbital period [s]
+     */
+    public static double circularOrbitPeriod(double sma){
+        return 2*FastMath.PI*FastMath.sqrt(FastMath.pow(sma,3)/MU);
+    }
     
     /**
      * Computes the inclination for a circular SSO with a given altitude
