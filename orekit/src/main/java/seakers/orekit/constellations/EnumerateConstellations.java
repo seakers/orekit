@@ -5,16 +5,19 @@
  */
 package seakers.orekit.constellations;
 
+import seakers.orekit.util.Powerset;
+
 import java.util.ArrayList;
+import java.util.Iterator;
 
 /**
  *
  * @author paugarciabuzzi
  */
-public class EnumerateWalkerConstellations {
+public class EnumerateConstellations {
     
     
-    public static ArrayList<WalkerParameters> fullFactWalker(double[] alts, double[] incs, int[] ts){
+    public static ArrayList<WalkerParameters> fullFactWalker(Double[] alts, Double[] incs, Integer[] ts){
         ArrayList<WalkerParameters> constels=new ArrayList<>();
         for (int i_a=0; i_a<alts.length; i_a++){
             for (int i_i=0; i_i<incs.length; i_i++){
@@ -40,6 +43,21 @@ public class EnumerateWalkerConstellations {
             }
         }
         return constels;
+    }
+
+    public static ArrayList<TrainParameters> fullFactTrain(Double[] alts, ArrayList<Double> LTANs) {
+        ArrayList<TrainParameters> constellations = new ArrayList<>();
+        ArrayList<ArrayList<Double>> combs = Powerset.powerSet(LTANs);
+        for(int i_a = 0; i_a < alts.length; ++i_a) {
+            Iterator<ArrayList<Double>> iterator = combs.iterator();
+            while (iterator.hasNext()){
+                ArrayList<Double> LTANi=iterator.next();
+                if (!LTANi.isEmpty()){
+                    constellations.add(new TrainParameters(alts[i_a],LTANi));
+                }
+            }
+        }
+        return constellations;
     }
     
 }

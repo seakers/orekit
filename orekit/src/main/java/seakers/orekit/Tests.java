@@ -5,8 +5,6 @@
  */
 package seakers.orekit;
 
-import java.io.File;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -15,10 +13,9 @@ import java.util.Properties;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.hipparchus.stat.descriptive.DescriptiveStatistics;
+
 import org.hipparchus.util.FastMath;
 import org.orekit.bodies.BodyShape;
-import org.orekit.bodies.GeodeticPoint;
 import org.orekit.bodies.OneAxisEllipsoid;
 import seakers.orekit.scenario.ScenarioIO;
 import seakers.orekit.util.OrekitConfig;
@@ -31,23 +28,17 @@ import org.orekit.time.TimeScalesFactory;
 import org.orekit.utils.Constants;
 import org.orekit.utils.IERSConventions;
 import seakers.orekit.analysis.Analysis;
-import seakers.orekit.constellations.EnumerateWalkerConstellations;
+import seakers.orekit.constellations.EnumerateConstellations;
 import seakers.orekit.constellations.Walker;
 import seakers.orekit.constellations.WalkerParameters;
-import seakers.orekit.coverage.analysis.AnalysisMetric;
-import seakers.orekit.coverage.analysis.GroundEventAnalyzer;
 import seakers.orekit.event.EventAnalysis;
 import seakers.orekit.event.EventAnalysisEnum;
 import seakers.orekit.event.EventAnalysisFactory;
 import seakers.orekit.event.FieldOfViewEventAnalysis;
-import seakers.orekit.event.GroundEventAnalysis;
 import seakers.orekit.object.CoverageDefinition;
 import static seakers.orekit.object.CoverageDefinition.GridStyle.EQUAL_AREA;
 import seakers.orekit.object.Instrument;
-import seakers.orekit.object.Satellite;
 import seakers.orekit.object.fieldofview.NadirRectangularFOV;
-import seakers.orekit.object.fieldofview.NadirSimpleConicalFOV;
-import seakers.orekit.object.linkbudget.LinkBudget;
 import seakers.orekit.propagation.PropagatorFactory;
 import seakers.orekit.propagation.PropagatorType;
 import seakers.orekit.scenario.Scenario;
@@ -82,10 +73,10 @@ public class Tests {
         Logger.getGlobal().addHandler(handler);
         
         double earthRadius=Constants.WGS84_EARTH_EQUATORIAL_RADIUS;
-        double[] alts={400000+earthRadius,600000+earthRadius,800000+earthRadius};
-        double[] incs={30,51.6,90};
-        int[] ts={1,2,3,4,6,8,9,12,16};
-        ArrayList<WalkerParameters> constels=EnumerateWalkerConstellations.fullFactWalker(alts, incs, ts);
+        Double[] alts={400000+earthRadius,600000+earthRadius,800000+earthRadius};
+        Double[] incs={30.0,51.6,90.0};
+        Integer[] ts={1,2,3,4,6,8,9,12,16};
+        ArrayList<WalkerParameters> constels= EnumerateConstellations.fullFactWalker(alts, incs, ts);
         
 
         
