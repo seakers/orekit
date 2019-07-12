@@ -7,6 +7,8 @@ package seakers.orekit.event.detector;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import org.hipparchus.ode.events.Action;
 import seakers.orekit.coverage.access.TimeIntervalArray;
 import org.orekit.errors.OrekitException;
 import org.orekit.propagation.SpacecraftState;
@@ -29,7 +31,7 @@ import org.orekit.time.AbsoluteDate;
  * @author nozomihitomi
  * @param <T>
  */
-public abstract class AbstractEventDetector<T extends EventDetector> extends AbstractDetector<T> {
+public abstract class AbstractEventDetector<T extends AbstractEventDetector<T>> extends AbstractDetector<T> {
 
     private static final long serialVersionUID = 1500574292575623469L;
 
@@ -57,7 +59,7 @@ public abstract class AbstractEventDetector<T extends EventDetector> extends Abs
     /**
      * specifies action after event is detected.
      */
-    private final EventHandler.Action action;
+    private final Action action;
 
     /**
      * Event handler for the time intervals
@@ -73,7 +75,7 @@ public abstract class AbstractEventDetector<T extends EventDetector> extends Abs
      * @param endDate the end date of the simulation or propagation
      */
     public AbstractEventDetector(SpacecraftState initialState, AbsoluteDate startDate, AbsoluteDate endDate) {
-        this(initialState, startDate, endDate, EventHandler.Action.STOP, DEFAULT_MAXCHECK, DEFAULT_THRESHOLD, DEFAULT_MAX_ITER);
+        this(initialState, startDate, endDate, Action.STOP, DEFAULT_MAXCHECK, DEFAULT_THRESHOLD, DEFAULT_MAX_ITER);
     }
 
     /**
@@ -87,7 +89,7 @@ public abstract class AbstractEventDetector<T extends EventDetector> extends Abs
      * @param threshold convergence threshold (s)
      */
     public AbstractEventDetector(SpacecraftState initialState, AbsoluteDate startDate, AbsoluteDate endDate, double maxCheck, double threshold) {
-        this(initialState, startDate, endDate, EventHandler.Action.STOP, maxCheck, threshold, DEFAULT_MAX_ITER);
+        this(initialState, startDate, endDate, Action.STOP, maxCheck, threshold, DEFAULT_MAX_ITER);
     }
 
     /**
@@ -108,7 +110,7 @@ public abstract class AbstractEventDetector<T extends EventDetector> extends Abs
      * @param threshold convergence threshold (s)
      * @param maxIter maximum number of iterations in the event time search
      */
-    public AbstractEventDetector(SpacecraftState initialState, AbsoluteDate startDate, AbsoluteDate endDate, EventHandler.Action action, double maxCheck, double threshold, int maxIter) {
+    public AbstractEventDetector(SpacecraftState initialState, AbsoluteDate startDate, AbsoluteDate endDate, Action action, double maxCheck, double threshold, int maxIter) {
         super(maxCheck, threshold, maxIter, new StopOnIncreasing<>());
         this.initialState = initialState;
         this.startDate = startDate;
@@ -152,7 +154,7 @@ public abstract class AbstractEventDetector<T extends EventDetector> extends Abs
 
     protected abstract T create(SpacecraftState initialState,
             AbsoluteDate startDate, AbsoluteDate endDate,
-            EventHandler.Action action, double maxCheck, double threshold, int maxIter);
+            Action action, double maxCheck, double threshold, int maxIter);
 
     @Override
     public EventHandler<? super T> getHandler() {

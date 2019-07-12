@@ -6,6 +6,7 @@
 package seakers.orekit.event.detector;
 
 import org.hipparchus.geometry.euclidean.threed.Vector3D;
+import org.hipparchus.ode.events.Action;
 import org.orekit.errors.OrekitException;
 import org.orekit.frames.TopocentricFrame;
 import org.orekit.propagation.SpacecraftState;
@@ -89,10 +90,10 @@ public class GroundRangeDetector extends AbstractEventDetector<GroundRangeDetect
      * @param maxIter maximum number of iterations in the event time search
      *
      */
-    public GroundRangeDetector(SpacecraftState initialState, 
-            AbsoluteDate startDate, AbsoluteDate endDate, 
-            TopocentricFrame target, double rangeThreshold, 
-            EventHandler.Action action, double maxCheck, double threshold, int maxIter) {
+    public GroundRangeDetector(SpacecraftState initialState,
+                               AbsoluteDate startDate, AbsoluteDate endDate,
+                               TopocentricFrame target, double rangeThreshold,
+                               Action action, double maxCheck, double threshold, int maxIter) {
         super(initialState, startDate, endDate, action, maxCheck, threshold, maxIter);
         this.target = target;
         this.rangeThreshold = rangeThreshold;
@@ -110,7 +111,7 @@ public class GroundRangeDetector extends AbstractEventDetector<GroundRangeDetect
     @Override
     protected GroundRangeDetector create(SpacecraftState initialState,
             AbsoluteDate startDate, AbsoluteDate endDate, 
-            EventHandler.Action action, double maxCheck, double threshold, int maxIter) {
+            Action action, double maxCheck, double threshold, int maxIter) {
         return new GroundRangeDetector(initialState, startDate, endDate, target, rangeThreshold, action, maxCheck, threshold, maxIter);
     }
 

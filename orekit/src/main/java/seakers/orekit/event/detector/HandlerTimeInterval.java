@@ -5,6 +5,7 @@
  */
 package seakers.orekit.event.detector;
 
+import org.hipparchus.ode.events.Action;
 import org.orekit.propagation.events.EventDetector;
 import seakers.orekit.coverage.access.TimeIntervalArray;
 import org.orekit.errors.OrekitException;
@@ -28,7 +29,7 @@ public class HandlerTimeInterval<T extends EventDetector> implements EventHandle
 
     private final TimeIntervalArray timeArray;
     
-    private EventHandler.Action action;
+    private Action action;
 
     /**
      * Creates a field of view handler for a specific coverage point. Default
@@ -39,7 +40,7 @@ public class HandlerTimeInterval<T extends EventDetector> implements EventHandle
      * @param endDate the end date of the simulation
      */
     public HandlerTimeInterval(AbsoluteDate startDate, AbsoluteDate endDate) {
-        this(startDate, endDate, EventHandler.Action.CONTINUE);
+        this(startDate, endDate, Action.CONTINUE);
     }
 
     /**
@@ -52,7 +53,7 @@ public class HandlerTimeInterval<T extends EventDetector> implements EventHandle
      * @param action set the action to execute after event is detected
      * {CONTINUE, STOP, RESET_DERIVATIVES, RESET_STATE}
      */
-    public HandlerTimeInterval(AbsoluteDate startDate, AbsoluteDate endDate, EventHandler.Action action) {
+    public HandlerTimeInterval(AbsoluteDate startDate, AbsoluteDate endDate, Action action) {
         this.timeArray = new TimeIntervalArray(startDate, endDate);
         this.action = action;
     }
@@ -69,7 +70,7 @@ public class HandlerTimeInterval<T extends EventDetector> implements EventHandle
      * @param action set the action to execute after event is detected
      * {CONTINUE, STOP, RESET_DERIVATIVES, RESET_STATE}
      */
-    public HandlerTimeInterval(AbsoluteDate startDate, AbsoluteDate endDate, double initGVal, EventHandler.Action action) {
+    public HandlerTimeInterval(AbsoluteDate startDate, AbsoluteDate endDate, double initGVal, Action action) {
         if(initGVal > 0){
             this.timeArray = new TimeIntervalArray(startDate, endDate, true);
         }else{
@@ -79,7 +80,7 @@ public class HandlerTimeInterval<T extends EventDetector> implements EventHandle
     }
 
     @Override
-    public EventHandler.Action eventOccurred(final SpacecraftState s, final T detector,
+    public Action eventOccurred(final SpacecraftState s, final T detector,
             final boolean increasing) throws OrekitException {
 
         if (increasing) {

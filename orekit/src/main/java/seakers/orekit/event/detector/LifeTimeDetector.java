@@ -5,6 +5,7 @@
  */
 package seakers.orekit.event.detector;
 
+import org.hipparchus.ode.events.Action;
 import org.orekit.errors.OrekitException;
 import org.orekit.propagation.SpacecraftState;
 import static org.orekit.propagation.events.AbstractDetector.DEFAULT_MAX_ITER;
@@ -55,7 +56,7 @@ public class LifeTimeDetector extends AbstractEventDetector<LifeTimeDetector> {
      * @param action specifies action after event is detected.
      */
     public LifeTimeDetector(final SpacecraftState initialState,
-            final AbsoluteDate startDate, final AbsoluteDate endDate, double thresholdAtltitude, double maxCheck, double threshold, EventHandler.Action action) {
+            final AbsoluteDate startDate, final AbsoluteDate endDate, double thresholdAtltitude, double maxCheck, double threshold, Action action) {
         super(initialState, startDate, endDate, action, maxCheck, threshold, DEFAULT_MAX_ITER);
         this.thresholdAltitude = thresholdAtltitude;
     }
@@ -76,7 +77,7 @@ public class LifeTimeDetector extends AbstractEventDetector<LifeTimeDetector> {
     }
 
     @Override
-    protected LifeTimeDetector create(SpacecraftState initialState, AbsoluteDate startDate, AbsoluteDate endDate, EventHandler.Action action, double maxCheck, double threshold, int maxIter) {
+    protected LifeTimeDetector create(SpacecraftState initialState, AbsoluteDate startDate, AbsoluteDate endDate, Action action, double maxCheck, double threshold, int maxIter) {
         return new LifeTimeDetector(initialState, startDate, endDate, thresholdAltitude, maxCheck, threshold, action);
     }
 

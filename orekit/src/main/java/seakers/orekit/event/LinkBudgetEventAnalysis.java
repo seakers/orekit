@@ -16,6 +16,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import org.hipparchus.ode.events.Action;
 import org.orekit.errors.OrekitException;
 import org.orekit.frames.Frame;
 import org.orekit.frames.TopocentricFrame;
@@ -420,7 +422,7 @@ public class LinkBudgetEventAnalysis extends AbstractGroundEventAnalysis {
                     LOSDetector losDetec = new LOSDetector(
                             prop.getInitialState(), getStartDate(), getEndDate(),
                             pt, cdef.getPlanetShape(), getInertialFrame(),
-                            losStepSize, threshold, EventHandler.Action.CONTINUE);
+                            losStepSize, threshold, Action.CONTINUE);
                     prop.addEventDetector(losDetec);
                     prop.propagate(getStartDate(), getEndDate());
                     TimeIntervalArray losTimeArray = losDetec.getTimeIntervalArray();
@@ -433,7 +435,7 @@ public class LinkBudgetEventAnalysis extends AbstractGroundEventAnalysis {
                     prop.clearEventsDetectors();
                     //Next search through intervals with line of sight to compute when point is in field of view 
                     FOVDetector fovDetec = new FOVDetector(initialState, getStartDate(), getEndDate(),
-                            pt, inst, fovStepSize, threshold, EventHandler.Action.STOP);
+                            pt, inst, fovStepSize, threshold, Action.STOP);
                     prop.addEventDetector(fovDetec);
 
                     double date0 = 0;
@@ -476,7 +478,7 @@ public class LinkBudgetEventAnalysis extends AbstractGroundEventAnalysis {
                     prop.resetInitialState(initialState);
 
                     //Next search through intervals with line of sight to compute when point is in field of view 
-                    LBDetector lbDetec = new LBDetector(initialState, getStartDate(), getEndDate(), pt, lb, lbStepSize, threshold, EventHandler.Action.CONTINUE);
+                    LBDetector lbDetec = new LBDetector(initialState, getStartDate(), getEndDate(), pt, lb, lbStepSize, threshold, Action.CONTINUE);
                     prop.addEventDetector(lbDetec);
                     prop.propagate(getStartDate(), getEndDate());
                     TimeIntervalArray lbTimeArray = lbDetec.getTimeIntervalArray();
@@ -506,7 +508,7 @@ public class LinkBudgetEventAnalysis extends AbstractGroundEventAnalysis {
             for (Instrument inst : sat.getPayload()) {
                 for (CoveragePoint pt : cdef.getPoints()) {
                     FOVDetector fovDetec = new FOVDetector(initialState, getStartDate(), getEndDate(),
-                            pt, inst, fovStepSize, threshold, EventHandler.Action.CONTINUE);
+                            pt, inst, fovStepSize, threshold, Action.CONTINUE);
                     prop.addEventDetector(fovDetec);
                     map.put(pt, fovDetec);
 
@@ -515,7 +517,7 @@ public class LinkBudgetEventAnalysis extends AbstractGroundEventAnalysis {
                 prop.clearEventsDetectors();
                 prop.resetInitialState(initialState);
                 for (CoveragePoint pt : cdef.getPoints()) {
-                    LBDetector lbDetec = new LBDetector(initialState, getStartDate(), getEndDate(), pt, lb, lbStepSize, threshold, EventHandler.Action.CONTINUE);
+                    LBDetector lbDetec = new LBDetector(initialState, getStartDate(), getEndDate(), pt, lb, lbStepSize, threshold, Action.CONTINUE);
                     prop.addEventDetector(lbDetec);
                     prop.addEventDetector(lbDetec);
                     map2.put(pt, lbDetec);

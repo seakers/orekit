@@ -5,6 +5,7 @@
  */
 package seakers.orekit.event.detector;
 
+import org.hipparchus.ode.events.Action;
 import seakers.orekit.object.Instrument;
 import org.orekit.errors.OrekitException;
 import org.orekit.frames.TopocentricFrame;
@@ -43,7 +44,7 @@ public class FOVDetector extends AbstractEventDetector<FOVDetector> {
     public FOVDetector(SpacecraftState initialState, AbsoluteDate startDate, AbsoluteDate endDate,
             TopocentricFrame target, Instrument instrument) {
         this(initialState, startDate, endDate, target, instrument,
-                DEFAULT_MAXCHECK, DEFAULT_THRESHOLD, DEFAULT_MAX_ITER, EventHandler.Action.STOP);
+                DEFAULT_MAXCHECK, DEFAULT_THRESHOLD, DEFAULT_MAX_ITER, Action.STOP);
     }
 
     /**
@@ -64,7 +65,7 @@ public class FOVDetector extends AbstractEventDetector<FOVDetector> {
     public FOVDetector(SpacecraftState initialState, AbsoluteDate startDate, AbsoluteDate endDate,
             TopocentricFrame target, Instrument instrument, double maxCheck, double threshold) {
         this(initialState, startDate, endDate, target, instrument,
-                maxCheck, threshold, DEFAULT_MAX_ITER, EventHandler.Action.STOP);
+                maxCheck, threshold, DEFAULT_MAX_ITER, Action.STOP);
     }
 
     /**
@@ -83,7 +84,7 @@ public class FOVDetector extends AbstractEventDetector<FOVDetector> {
      * @param action specifies action after event is detected.
      */
     public FOVDetector(SpacecraftState initialState, AbsoluteDate startDate, AbsoluteDate endDate,
-            TopocentricFrame target, Instrument instrument, double maxCheck, double threshold, EventHandler.Action action) {
+            TopocentricFrame target, Instrument instrument, double maxCheck, double threshold, Action action) {
         this(initialState, startDate, endDate, target, instrument,
                 maxCheck, threshold, DEFAULT_MAX_ITER, action);
     }
@@ -110,7 +111,7 @@ public class FOVDetector extends AbstractEventDetector<FOVDetector> {
     private FOVDetector(final SpacecraftState initialState,
             final AbsoluteDate startDate, final AbsoluteDate endDate,
             final TopocentricFrame target, final Instrument instrument,
-            final double maxCheck, final double threshold, final int maxIter, EventHandler.Action action) {
+            final double maxCheck, final double threshold, final int maxIter, Action action) {
         super(initialState, startDate, endDate, action, maxCheck, threshold, maxIter);
 
         this.instrument = instrument;
@@ -146,7 +147,7 @@ public class FOVDetector extends AbstractEventDetector<FOVDetector> {
     }
 
     @Override
-    protected FOVDetector create(SpacecraftState initialState, AbsoluteDate startDate, AbsoluteDate endDate, EventHandler.Action action, double maxCheck, double threshold, int maxIter) {
+    protected FOVDetector create(SpacecraftState initialState, AbsoluteDate startDate, AbsoluteDate endDate, Action action, double maxCheck, double threshold, int maxIter) {
         return new FOVDetector(initialState, startDate, endDate, target, instrument, maxCheck, threshold, maxIter, action);
     }
 }

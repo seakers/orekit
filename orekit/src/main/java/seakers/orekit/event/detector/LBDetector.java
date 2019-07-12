@@ -5,6 +5,7 @@
  */
 package seakers.orekit.event.detector;
 
+import org.hipparchus.ode.events.Action;
 import seakers.orekit.object.CoveragePoint;
 import seakers.orekit.object.linkbudget.LinkBudget;
 import org.orekit.errors.OrekitException;
@@ -62,7 +63,7 @@ public class LBDetector extends AbstractEventDetector<LBDetector> {
      * @param action specifies action after event is detected.
      */
     public LBDetector(final SpacecraftState initialState,
-            final AbsoluteDate startDate, final AbsoluteDate endDate, CoveragePoint pt, LinkBudget lb, double maxCheck, double threshold, EventHandler.Action action) {
+            final AbsoluteDate startDate, final AbsoluteDate endDate, CoveragePoint pt, LinkBudget lb, double maxCheck, double threshold, Action action) {
         super(initialState, startDate, endDate, action, maxCheck, threshold, DEFAULT_MAX_ITER);
         this.pt = pt;
         this.lb = lb;
@@ -85,7 +86,7 @@ public class LBDetector extends AbstractEventDetector<LBDetector> {
     }
 
     @Override
-    protected LBDetector create(SpacecraftState initialState, AbsoluteDate startDate, AbsoluteDate endDate, EventHandler.Action action, double maxCheck, double threshold, int maxIter) {
+    protected LBDetector create(SpacecraftState initialState, AbsoluteDate startDate, AbsoluteDate endDate, Action action, double maxCheck, double threshold, int maxIter) {
         return new LBDetector(initialState, startDate, endDate, pt, lb, maxCheck, threshold, action);
     }
 

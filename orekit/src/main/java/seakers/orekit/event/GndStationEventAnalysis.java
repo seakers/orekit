@@ -13,6 +13,8 @@ import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import org.hipparchus.ode.events.Action;
 import org.orekit.errors.OrekitException;
 import org.orekit.frames.Frame;
 import org.orekit.frames.TopocentricFrame;
@@ -324,7 +326,7 @@ public class GndStationEventAnalysis extends AbstractEventAnalysis {
                         = new GroundStationDetector(initialState,
                                 getStartDate(), getEndDate(),
                                 sat.getTransmitter(), sat.getReceiver(), station,
-                                EventHandler.Action.CONTINUE, stepSize, threshold);
+                                Action.CONTINUE, stepSize, threshold);
 
                 prop.addEventDetector(gndstatDetec);
                 map.put(station, gndstatDetec);

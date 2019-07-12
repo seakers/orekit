@@ -20,6 +20,8 @@ import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import org.hipparchus.ode.events.Action;
 import org.hipparchus.util.FastMath;
 import org.orekit.errors.OrekitException;
 import org.orekit.frames.Frame;
@@ -543,7 +545,7 @@ public class FieldOfViewAndGndStationEventAnalysis extends AbstractGroundEventAn
 //                    prop.clearEventsDetectors();
 //                    //Next search through intervals with line of sight to compute when point is in field of view 
 //                    FOVDetector fovDetec = new FOVDetector(initialState, getStartDate(), getEndDate(),
-//                            pt, inst, fovStepSize, threshold, EventHandler.Action.CONTINUE);
+//                            pt, inst, fovStepSize, threshold, Action.CONTINUE);
 //                    prop.addEventDetector(fovDetec);
 //                    prop.propagate(getStartDate(), getEndDate());
 //
@@ -577,7 +579,7 @@ public class FieldOfViewAndGndStationEventAnalysis extends AbstractGroundEventAn
                     }
 
                     FOVDetector fovDetec = new FOVDetector(initialState, getStartDate(), getEndDate(),
-                            pt, inst, fovStepSize, threshold, EventHandler.Action.CONTINUE);
+                            pt, inst, fovStepSize, threshold, Action.CONTINUE);
                     prop.addEventDetector(fovDetec);
                     map.put(pt, fovDetec);
                 }
@@ -586,7 +588,7 @@ public class FieldOfViewAndGndStationEventAnalysis extends AbstractGroundEventAn
                             = new GroundStationDetector(initialState,
                             getStartDate(), getEndDate(),
                             sat.getTransmitter(), sat.getReceiver(), station,
-                            EventHandler.Action.CONTINUE, losStepSize, threshold);
+                            Action.CONTINUE, losStepSize, threshold);
 
                     prop.addEventDetector(gndstatDetec);
                     mapGS.put(station, gndstatDetec);
