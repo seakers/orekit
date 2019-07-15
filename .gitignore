@@ -1,3 +1,4 @@
 /orekit/target/
 /orekit/results/
 *.DS_Store
+.idea
