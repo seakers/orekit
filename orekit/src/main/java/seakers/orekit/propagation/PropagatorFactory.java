@@ -166,9 +166,9 @@ public class PropagatorFactory {
         double mass = Double.parseDouble(properties.getProperty("orekit.propagator.mass", "10"));
         SpacecraftState s = new SpacecraftState(orbit, mass);
         NumericalPropagator prop = new NumericalPropagator(integrator);
-        prop.resetInitialState(s);
+        prop.setInitialState(s);
         prop.setOrbitType(orbit.getType());
-        prop.setPositionAngleType(PositionAngle.TRUE);
+        prop.setPositionAngleType(PositionAngle.MEAN);
 
         //Frames and Bodies creation (must use IERS_2003 and EME2000 frames to be consistent with STK)
         final Frame earthFrame = FramesFactory.getITRF(IERSConventions.IERS_2003, true);

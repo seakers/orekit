@@ -10,7 +10,6 @@ import org.orekit.propagation.events.EventDetector;
 import seakers.orekit.coverage.access.TimeIntervalArray;
 import org.orekit.errors.OrekitException;
 import org.orekit.propagation.SpacecraftState;
-import org.orekit.propagation.events.AbstractDetector;
 import org.orekit.propagation.events.handlers.EventHandler;
 import org.orekit.time.AbsoluteDate;
 
@@ -25,7 +24,7 @@ import org.orekit.time.AbsoluteDate;
  *
  * @author nozomihitomi
  */
-public class HandlerTimeInterval<T extends EventDetector> implements EventHandler<T> {
+public class TimeIntervalHandler<T extends EventDetector> implements EventHandler<T> {
 
     private final TimeIntervalArray timeArray;
     
@@ -39,7 +38,7 @@ public class HandlerTimeInterval<T extends EventDetector> implements EventHandle
      * @param startDate the start date of the simulation
      * @param endDate the end date of the simulation
      */
-    public HandlerTimeInterval(AbsoluteDate startDate, AbsoluteDate endDate) {
+    public TimeIntervalHandler(AbsoluteDate startDate, AbsoluteDate endDate) {
         this(startDate, endDate, Action.CONTINUE);
     }
 
@@ -53,7 +52,7 @@ public class HandlerTimeInterval<T extends EventDetector> implements EventHandle
      * @param action set the action to execute after event is detected
      * {CONTINUE, STOP, RESET_DERIVATIVES, RESET_STATE}
      */
-    public HandlerTimeInterval(AbsoluteDate startDate, AbsoluteDate endDate, Action action) {
+    public TimeIntervalHandler(AbsoluteDate startDate, AbsoluteDate endDate, Action action) {
         this.timeArray = new TimeIntervalArray(startDate, endDate);
         this.action = action;
     }
@@ -70,7 +69,7 @@ public class HandlerTimeInterval<T extends EventDetector> implements EventHandle
      * @param action set the action to execute after event is detected
      * {CONTINUE, STOP, RESET_DERIVATIVES, RESET_STATE}
      */
-    public HandlerTimeInterval(AbsoluteDate startDate, AbsoluteDate endDate, double initGVal, Action action) {
+    public TimeIntervalHandler(AbsoluteDate startDate, AbsoluteDate endDate, double initGVal, Action action) {
         if(initGVal > 0){
             this.timeArray = new TimeIntervalArray(startDate, endDate, true);
         }else{

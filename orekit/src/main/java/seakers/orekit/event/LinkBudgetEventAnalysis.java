@@ -32,6 +32,7 @@ import seakers.orekit.coverage.access.TimeIntervalMerger;
 import seakers.orekit.event.detector.FOVDetector;
 import seakers.orekit.event.detector.LBDetector;
 import seakers.orekit.event.detector.LOSDetector;
+import seakers.orekit.event.detector.TimeIntervalHandler;
 import seakers.orekit.object.Constellation;
 import seakers.orekit.object.CoverageDefinition;
 import seakers.orekit.object.CoveragePoint;
@@ -197,7 +198,7 @@ public class LinkBudgetEventAnalysis extends AbstractGroundEventAnalysis {
      *
      * @param sat the satellite
      * @param cdef the coverage definition that the satellite is assigned to
-     * @param satAccesses the accesses computed for the satellite to its
+     * @param satLinkBudgetIntervals the accesses computed for the satellite to its
      * assigned coverage definition
      */
     private void processLinkBudgetIntervals(Satellite sat, CoverageDefinition cdef,
@@ -433,9 +434,10 @@ public class LinkBudgetEventAnalysis extends AbstractGroundEventAnalysis {
                     //need to reset initial state of the propagators or will progate from the last stop time
                     prop.resetInitialState(initialState);
                     prop.clearEventsDetectors();
-                    //Next search through intervals with line of sight to compute when point is in field of view 
-                    FOVDetector fovDetec = new FOVDetector(initialState, getStartDate(), getEndDate(),
-                            pt, inst, fovStepSize, threshold, Action.STOP);
+                    //Next search through intervals with line of sight to compute when point is in field of view
+                    FOVDetector fovDetec = new FOVDetector(pt, inst).withMaxCheck(fovStepSize).withThreshold(threshold);
+                    TimeIntervalHandler<FOVDetector> fovHandler = new TimeIntervalHandler<>(getStartDate(), getEndDate(), fovDetec.g(initialState), Action.STOP);
+                    fovDetec = fovDetec.withHandler(fovHandler);
                     prop.addEventDetector(fovDetec);
 
                     double date0 = 0;
@@ -456,7 +458,7 @@ public class LinkBudgetEventAnalysis extends AbstractGroundEventAnalysis {
                             }
 
                             //check to see if the first access was closing an access
-                            if (!fovDetec.isOpen()) {
+                            if (!fovHandler.getTimeArray().isAccessing()) {
                                 break;
                             }
 
@@ -466,7 +468,7 @@ public class LinkBudgetEventAnalysis extends AbstractGroundEventAnalysis {
                             date1 = Double.NaN;
                         }
                     }
-                    TimeIntervalArray fovTimeArray = fovDetec.getTimeIntervalArray();
+                    TimeIntervalArray fovTimeArray = fovHandler.getTimeArray().createImmutable();
                     if (fovTimeArray == null || fovTimeArray.isEmpty()) {
                         continue;
                     }
@@ -502,15 +504,16 @@ public class LinkBudgetEventAnalysis extends AbstractGroundEventAnalysis {
         private void singlePropagate() throws OrekitException {
             SpacecraftState initialState = prop.getInitialState();
             Logger.getGlobal().finer(String.format("Propagating satellite %s...", sat));
-            HashMap<CoveragePoint, FOVDetector> map = new HashMap<>();
+            HashMap<CoveragePoint, TimeIntervalHandler<FOVDetector>> map = new HashMap<>();
             HashMap<CoveragePoint, LBDetector> map2 = new HashMap<>();
 
             for (Instrument inst : sat.getPayload()) {
                 for (CoveragePoint pt : cdef.getPoints()) {
-                    FOVDetector fovDetec = new FOVDetector(initialState, getStartDate(), getEndDate(),
-                            pt, inst, fovStepSize, threshold, Action.CONTINUE);
+                    FOVDetector fovDetec = new FOVDetector(pt, inst).withMaxCheck(fovStepSize).withThreshold(threshold);
+                    TimeIntervalHandler<FOVDetector> fovHandler = new TimeIntervalHandler<>(getStartDate(), getEndDate(), fovDetec.g(initialState), Action.CONTINUE);
+                    fovDetec = fovDetec.withHandler(fovHandler);
                     prop.addEventDetector(fovDetec);
-                    map.put(pt, fovDetec);
+                    map.put(pt, fovHandler);
 
                 }
                 prop.propagate(getStartDate(), getEndDate());
@@ -525,7 +528,7 @@ public class LinkBudgetEventAnalysis extends AbstractGroundEventAnalysis {
                 prop.propagate(getStartDate(), getEndDate());
 
                 for (CoveragePoint pt : map.keySet()) {
-                    TimeIntervalArray fovTimeArray = map.get(pt).getTimeIntervalArray();
+                    TimeIntervalArray fovTimeArray = map.get(pt).getTimeArray().createImmutable();
                     TimeIntervalArray lbTimeArray = map2.get(pt).getTimeIntervalArray();
                     if (fovTimeArray == null || fovTimeArray.isEmpty()) {
                         continue;

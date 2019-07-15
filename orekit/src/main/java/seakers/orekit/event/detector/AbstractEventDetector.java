@@ -13,10 +13,6 @@ import seakers.orekit.coverage.access.TimeIntervalArray;
 import org.orekit.errors.OrekitException;
 import org.orekit.propagation.SpacecraftState;
 import org.orekit.propagation.events.AbstractDetector;
-import static org.orekit.propagation.events.AbstractDetector.DEFAULT_MAXCHECK;
-import static org.orekit.propagation.events.AbstractDetector.DEFAULT_MAX_ITER;
-import static org.orekit.propagation.events.AbstractDetector.DEFAULT_THRESHOLD;
-import org.orekit.propagation.events.EventDetector;
 import org.orekit.propagation.events.handlers.EventHandler;
 import org.orekit.propagation.events.handlers.StopOnIncreasing;
 import org.orekit.time.AbsoluteDate;
@@ -64,7 +60,7 @@ public abstract class AbstractEventDetector<T extends AbstractEventDetector<T>> 
     /**
      * Event handler for the time intervals
      */
-    private HandlerTimeInterval<? super T> handlerTimeInterval;
+    private TimeIntervalHandler<? super T> timeIntervalHandler;
 
     /**
      * Constructor for the detector.
@@ -128,7 +124,7 @@ public abstract class AbstractEventDetector<T extends AbstractEventDetector<T>> 
                 throw new IllegalArgumentException("Spacecraft state must be given at the provided start date");
             }
             try {
-                this.handlerTimeInterval = new HandlerTimeInterval<>(startDate, endDate, g(initialState), action);
+                this.timeIntervalHandler = new TimeIntervalHandler<>(startDate, endDate, g(initialState), action);
             } catch (OrekitException ex) {
                 Logger.getLogger(AbstractEventDetector.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -139,7 +135,7 @@ public abstract class AbstractEventDetector<T extends AbstractEventDetector<T>> 
 
     /**
      * Abstract Event Detector does not utilize the given event handler. It is
-     * set up to use a default time interval handler (HandlerTimeInterval)
+     * set up to use a default time interval handler (TimeIntervalHandler)
      *
      * @param newMaxCheck
      * @param newThreshold
@@ -158,10 +154,10 @@ public abstract class AbstractEventDetector<T extends AbstractEventDetector<T>> 
 
     @Override
     public EventHandler<? super T> getHandler() {
-        if (this.handlerTimeInterval == null) {
+        if (this.timeIntervalHandler == null) {
             return super.getHandler();
         } else {
-            return this.handlerTimeInterval;
+            return this.timeIntervalHandler;
         }
     }
 
@@ -172,10 +168,10 @@ public abstract class AbstractEventDetector<T extends AbstractEventDetector<T>> 
      * @return
      */
     public TimeIntervalArray getTimeIntervalArray() {
-        if (this.handlerTimeInterval == null) {
+        if (this.timeIntervalHandler == null) {
             return null;
         } else {
-            return this.handlerTimeInterval.getTimeArray().createImmutable();
+            return this.timeIntervalHandler.getTimeArray().createImmutable();
         }
     }
 
@@ -185,7 +181,7 @@ public abstract class AbstractEventDetector<T extends AbstractEventDetector<T>> 
      * @return true if the latest time interval in the time interval array is open or closed
      */
     public boolean isOpen() {
-        return handlerTimeInterval.getTimeArray().isAccessing();
+        return timeIntervalHandler.getTimeArray().isAccessing();
     }
 
 }

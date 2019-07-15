@@ -36,6 +36,7 @@ import seakers.orekit.coverage.access.TimeIntervalArray;
 import seakers.orekit.coverage.access.TimeIntervalMerger;
 import seakers.orekit.event.detector.FOVDetector;
 import seakers.orekit.event.detector.GroundStationDetector;
+import seakers.orekit.event.detector.TimeIntervalHandler;
 import seakers.orekit.object.Constellation;
 import seakers.orekit.object.CoverageDefinition;
 import seakers.orekit.object.CoveragePoint;
@@ -569,7 +570,7 @@ public class FieldOfViewAndGndStationEventAnalysis extends AbstractGroundEventAn
          */
         private void singlePropagate() throws OrekitException {
             SpacecraftState initialState = prop.getInitialState();
-            HashMap<CoveragePoint, FOVDetector> map = new HashMap<>();
+            HashMap<CoveragePoint, TimeIntervalHandler<FOVDetector>> map = new HashMap<>();
             HashMap<GndStation, GroundStationDetector> mapGS = new HashMap<>();
             for (Instrument inst : sat.getPayload()) {
                 for (CoveragePoint pt : cdef.getPoints()) {
@@ -578,10 +579,11 @@ public class FieldOfViewAndGndStationEventAnalysis extends AbstractGroundEventAn
                         continue;
                     }
 
-                    FOVDetector fovDetec = new FOVDetector(initialState, getStartDate(), getEndDate(),
-                            pt, inst, fovStepSize, threshold, Action.CONTINUE);
+                    FOVDetector fovDetec = new FOVDetector(pt, inst).withMaxCheck(fovStepSize).withThreshold(threshold);
+                    TimeIntervalHandler<FOVDetector> fovHandler = new TimeIntervalHandler<>(getStartDate(), getEndDate(), fovDetec.g(initialState), Action.CONTINUE);
+                    fovDetec = fovDetec.withHandler(fovHandler);
                     prop.addEventDetector(fovDetec);
-                    map.put(pt, fovDetec);
+                    map.put(pt, fovHandler);
                 }
                 for (GndStation station : stations) {
                     GroundStationDetector gndstatDetec
@@ -596,7 +598,7 @@ public class FieldOfViewAndGndStationEventAnalysis extends AbstractGroundEventAn
                 }
                 prop.propagate(getStartDate(), getEndDate());
                 for (CoveragePoint pt : map.keySet()) {
-                    TimeIntervalArray fovTimeArray = map.get(pt).getTimeIntervalArray();
+                    TimeIntervalArray fovTimeArray = map.get(pt).getTimeArray().createImmutable();
                     if (fovTimeArray == null || fovTimeArray.isEmpty()) {
                         continue;
                     }
