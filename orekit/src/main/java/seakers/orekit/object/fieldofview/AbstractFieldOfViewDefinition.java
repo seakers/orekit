@@ -188,7 +188,7 @@ public abstract class AbstractFieldOfViewDefinition implements FieldOfViewDefini
      * @return
      * @throws OrekitException
      */
-    protected Rotation alignWithNadirAndNormal(Vector3D v1, Vector3D v2,
+    public Rotation alignWithNadirAndNormal(Vector3D v1, Vector3D v2,
             final SpacecraftState s, final PVCoordinatesProvider pvProv, final BodyShape shape,
             final Frame frame) throws OrekitException {
         final Vector3D nadirRef = getSpacecraftToNadirPosition(s, pvProv, shape, frame).normalize();
