@@ -51,7 +51,7 @@ public class Satellite implements OrekitObject, Serializable {
     /**
      * The name of the satellite
      */
-    private final String name;
+    private String name;
 
     /**
      * The attitude provider that computes the attitude of the satellite at each
@@ -149,6 +149,10 @@ public class Satellite implements OrekitObject, Serializable {
 
     public String getName() {
         return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public double getWetMass() {

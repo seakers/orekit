@@ -7,10 +7,7 @@ package seakers.orekit.parallel;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorCompletionService;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
@@ -146,17 +143,17 @@ public class ParallelRoutine {
             throw new IllegalStateException("Executor has already been shutdown and cannot accept any futher tasks until it is reset.");
         }
 
-        ParallelRoutine.lock.lock();
-        int i = 0;
+        //ParallelRoutine.lock.lock();
+        //System.out.println("Lock acquired");
+        ArrayList<Future<SubRoutine>> pendingTasks = new ArrayList<>();
         for (SubRoutine sr : subroutines) {
-            ParallelRoutine.ecs.submit(sr);
-            i++;
+            pendingTasks.add(ParallelRoutine.ecs.submit(sr));
         }
-        ArrayList<SubRoutine> completedTasks = new ArrayList<>(i);
-        for (int j = 0; j < i; j++) {
-            completedTasks.add(ParallelRoutine.ecs.take().get());
+        ArrayList<SubRoutine> completedTasks = new ArrayList<>();
+        for (Future<SubRoutine> pendingTask : pendingTasks) {
+            completedTasks.add(pendingTask.get());
         }
-        ParallelRoutine.lock.unlock();
+        //ParallelRoutine.lock.unlock();
         return completedTasks;
     }
 
