@@ -12,10 +12,12 @@ import java.util.Locale;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import org.hipparchus.geometry.euclidean.threed.Vector3D;
+import org.orekit.geometry.fov.CircularFieldOfView;
 import seakers.orekit.constellations.Walker;
 import seakers.orekit.object.CoverageDefinition;
 import seakers.orekit.object.Instrument;
-import seakers.orekit.object.fieldofview.NadirSimpleConicalFOV;
 import seakers.orekit.propagation.PropagatorFactory;
 import seakers.orekit.propagation.PropagatorType;
 import seakers.orekit.scenario.Scenario;
@@ -87,13 +89,13 @@ public class CoverageExample {
         double i = FastMath.toRadians(45);
 
         //define instruments and payload
-        NadirSimpleConicalFOV fov = new NadirSimpleConicalFOV(FastMath.toRadians(45), earthShape);
+        CircularFieldOfView fov = new CircularFieldOfView(Vector3D.PLUS_K, FastMath.toRadians(45), 0.);
         ArrayList<Instrument> payload = new ArrayList<>();
         Instrument view1 = new Instrument("view1", fov, 100, 100);
         payload.add(view1);
 
         //Create a walker constellation
-        Walker walker = new Walker("walker1", payload, a, i, 2, 2, 0, inertialFrame, startDate, mu);
+        Walker walker = new Walker("walker1", payload, a, i, 2, 2, 0, inertialFrame, earthShape, startDate, mu);
 
         //create a coverage definition
         CoverageDefinition covDef1 = new CoverageDefinition("covdef1", 10, earthShape, CoverageDefinition.GridStyle.UNIFORM);

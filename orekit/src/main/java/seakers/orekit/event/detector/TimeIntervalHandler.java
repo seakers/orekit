@@ -28,7 +28,7 @@ public class TimeIntervalHandler<T extends EventDetector> implements EventHandle
 
     private final TimeIntervalArray timeArray;
     
-    private Action action;
+    private final Action action;
 
     /**
      * Creates a field of view handler for a specific coverage point. Default
@@ -83,11 +83,11 @@ public class TimeIntervalHandler<T extends EventDetector> implements EventHandle
             final boolean increasing) throws OrekitException {
 
         if (increasing) {
-            //Access begins
-            timeArray.addRiseTime(s.getDate());
-        } else {
             //Access ends
             timeArray.addSetTime(s.getDate());
+        } else {
+            //Access begins
+            timeArray.addRiseTime(s.getDate());
         }
 
         return action;

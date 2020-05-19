@@ -8,10 +8,15 @@ package seakers.orekit;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+
+import org.orekit.bodies.BodyShape;
+import org.orekit.bodies.OneAxisEllipsoid;
 import org.orekit.errors.OrekitException;
 import org.orekit.frames.Frame;
 import org.orekit.frames.FramesFactory;
 import org.orekit.time.AbsoluteDate;
+import org.orekit.utils.Constants;
+import org.orekit.utils.IERSConventions;
 import seakers.orekit.constellations.EnumerateConstellations;
 import seakers.orekit.constellations.Walker;
 import seakers.orekit.constellations.WalkerParameters;
@@ -43,13 +48,16 @@ public class EnumerateUniqueSats {
         }
              
         ArrayList<Instrument> payload=new ArrayList<>();
-        Frame inertialFrame=FramesFactory.getEME2000();
+        Frame inertialFrame = FramesFactory.getEME2000();
+        Frame earthFrame = FramesFactory.getITRF(IERSConventions.IERS_2003, true);
+        BodyShape earthShape = new OneAxisEllipsoid(Constants.WGS84_EARTH_EQUATORIAL_RADIUS,
+                Constants.WGS84_EARTH_FLATTENING, earthFrame);
         AbsoluteDate date=new AbsoluteDate();
         ArrayList<WalkerParameters> constell = EnumerateConstellations.fullFactWalker(alt,inc,sats);
         HashMap<String,Satellite> map=new HashMap<>();
         for (WalkerParameters params:constell){
             Walker w = new Walker("", payload, params.getA(), params.getI(), 
-                    params.getT(), params.getP(), params.getF(), inertialFrame, date, 0);
+                    params.getT(), params.getP(), params.getF(), inertialFrame, earthShape, date, 0);
         for(Satellite sat:w.getSatellites()){
                 map.put(String.valueOf(sat.hashCode()), sat);
             }

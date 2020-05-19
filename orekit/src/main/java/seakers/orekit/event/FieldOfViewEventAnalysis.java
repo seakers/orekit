@@ -25,15 +25,16 @@ import org.hipparchus.util.FastMath;
 import org.orekit.errors.OrekitException;
 import org.orekit.frames.Frame;
 import org.orekit.frames.TopocentricFrame;
+import org.orekit.geometry.fov.FieldOfView;
 import org.orekit.orbits.Orbit;
 import org.orekit.propagation.Propagator;
 import org.orekit.propagation.SpacecraftState;
-import org.orekit.propagation.events.handlers.EventHandler;
+import org.orekit.propagation.analytical.tle.TLEPropagator;
+import org.orekit.propagation.events.FieldOfViewDetector;
 import org.orekit.propagation.numerical.NumericalPropagator;
 import org.orekit.time.AbsoluteDate;
 import seakers.orekit.coverage.access.TimeIntervalArray;
 import seakers.orekit.coverage.access.TimeIntervalMerger;
-import seakers.orekit.event.detector.FOVDetector;
 import seakers.orekit.event.detector.TimeIntervalHandler;
 import seakers.orekit.object.Constellation;
 import seakers.orekit.object.CoverageDefinition;
@@ -80,6 +81,11 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
     private HashMap<CoverageDefinition, HashMap<Satellite, HashMap<TopocentricFrame, TimeIntervalArray>>> allAccesses;
 
     /**
+     * Stores all the accesses of each satellite if saveAllAccesses is true.
+     */
+    private HashMap<CoverageDefinition, HashMap<Instrument, HashMap<TopocentricFrame, TimeIntervalArray>>> allInstrumentAccesses;
+
+    /**
      * Creates a new event analysis.
      *
      * @param startDate of analysis
@@ -103,8 +109,10 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
         this.saveAllAccesses = saveAllAccesses;
         if (saveAllAccesses) {
             this.allAccesses = new HashMap<>();
+            this.allInstrumentAccesses = new HashMap<>();
             for (CoverageDefinition cdef : covDefs) {
                 allAccesses.put(cdef, new HashMap<>());
+                allInstrumentAccesses.put(cdef, new HashMap<>());
             }
         }
 
@@ -144,9 +152,22 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
                 }
 
                 //if no precomuted times available, then propagate
-                Propagator prop = propagatorFactory.createPropagator(sat.getOrbit(), sat.getGrossMass());
+                Propagator prop = null;
+                if (sat.getOrbit() != null) {
+                    prop = propagatorFactory.createPropagator(sat.getOrbit(), sat.getAttProv(), sat.getGrossMass());
+                }
+                else {
+                    prop = propagatorFactory.createPropagator(sat.getTLE(), sat.getAttProv(), sat.getGrossMass());
+                }
+
                 //Set stepsizes and threshold for detectors
-                double fovStepSize = sat.getOrbit().getKeplerianPeriod() / 100.;
+                double fovStepSize;
+                if (sat.getOrbit() != null) {
+                    fovStepSize = sat.getOrbit().getKeplerianPeriod() / 100.;
+                }
+                else {
+                    fovStepSize = (2.*FastMath.PI/sat.getTLE().getMeanMotion()) / 100.;
+                }
                 double threshold = 1e-3;
 
                 FieldOfViewSubRoutine subRoutine = new FieldOfViewSubRoutine(sat, prop, cdef, fovStepSize, threshold);
@@ -391,14 +412,12 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
                         continue;
                     }
 
-                    prop.resetInitialState(initialState);
-                    prop.clearEventsDetectors();
-
-                    //need to reset initial state of the propagators or will progate from the last stop time
-                    prop.resetInitialState(initialState);
-                    prop.clearEventsDetectors();
+                    //need to reset initial state of the propagators or will propagate from the last stop time
+                    if (!(prop instanceof TLEPropagator)) {
+                        prop.resetInitialState(initialState);
+                    }
                     //Next search through intervals with line of sight to compute when point is in field of view 
-                    TimeIntervalHandler<FOVDetector> fovHandler = addFOVDetector(pt, inst, initialState);
+                    TimeIntervalHandler<FieldOfViewDetector> fovHandler = addFOVDetector(pt, inst.getFOV(), initialState);
                     prop.propagate(getStartDate(), getEndDate());
 
                     TimeIntervalArray fovTimeArray = fovHandler.getTimeArray().createImmutable();
@@ -421,7 +440,7 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
          */
         private void singlePropagate() throws OrekitException {
             SpacecraftState initialState = prop.getInitialState();
-            HashMap<CoveragePoint, TimeIntervalHandler<FOVDetector>> map = new HashMap<>();
+            HashMap<CoveragePoint, TimeIntervalHandler<FieldOfViewDetector>> map = new HashMap<>();
             for (Instrument inst : sat.getPayload()) {
                 for (CoveragePoint pt : cdef.getPoints()) {
                     if (!lineOfSightPotential(pt, initialState.getOrbit(), FastMath.toRadians(2.0))) {
@@ -429,7 +448,7 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
                         continue;
                     }
 
-                    TimeIntervalHandler<FOVDetector> fovHandler = addFOVDetector(pt, inst, initialState);
+                    TimeIntervalHandler<FieldOfViewDetector> fovHandler = addFOVDetector(pt, inst.getFOV(), initialState);
                     map.put(pt, fovHandler);
                 }
                 prop.propagate(getStartDate(), getEndDate());
@@ -477,9 +496,11 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
             return FastMath.abs(pt.getPoint().getLatitude()) - latitudeMargin < subtendedAngle + orbit.getI();
         }
 
-        private TimeIntervalHandler<FOVDetector> addFOVDetector(CoveragePoint pt, Instrument inst, SpacecraftState initialState) {
-            FOVDetector fovDetec = new FOVDetector(pt, inst).withMaxCheck(fovStepSize).withThreshold(threshold);
-            TimeIntervalHandler<FOVDetector> fovHandler = new TimeIntervalHandler<>(getStartDate(), getEndDate(), fovDetec.g(initialState), Action.CONTINUE);
+        private TimeIntervalHandler<FieldOfViewDetector> addFOVDetector(CoveragePoint pt, FieldOfView fov, SpacecraftState initialState) {
+            FieldOfViewDetector fovDetec =
+                    new FieldOfViewDetector(pt, fov).withMaxCheck(fovStepSize).withThreshold(threshold);
+            TimeIntervalHandler<FieldOfViewDetector> fovHandler =
+                    new TimeIntervalHandler<>(getStartDate(), getEndDate(), fovDetec.g(initialState), Action.CONTINUE);
             fovDetec = fovDetec.withHandler(fovHandler);
             prop.addEventDetector(fovDetec);
             return fovHandler;
