@@ -30,11 +30,13 @@ import org.orekit.orbits.Orbit;
 import org.orekit.propagation.Propagator;
 import org.orekit.propagation.SpacecraftState;
 import org.orekit.propagation.analytical.tle.TLEPropagator;
+import org.orekit.propagation.events.EventEnablingPredicateFilter;
 import org.orekit.propagation.events.FieldOfViewDetector;
 import org.orekit.propagation.numerical.NumericalPropagator;
 import org.orekit.time.AbsoluteDate;
 import seakers.orekit.coverage.access.TimeIntervalArray;
 import seakers.orekit.coverage.access.TimeIntervalMerger;
+import seakers.orekit.event.detector.FilteredFOVBuilder;
 import seakers.orekit.event.detector.TimeIntervalHandler;
 import seakers.orekit.object.Constellation;
 import seakers.orekit.object.CoverageDefinition;
@@ -417,7 +419,7 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
                         prop.resetInitialState(initialState);
                     }
                     //Next search through intervals with line of sight to compute when point is in field of view 
-                    TimeIntervalHandler<FieldOfViewDetector> fovHandler = addFOVDetector(pt, inst.getFOV(), initialState);
+                    TimeIntervalHandler<EventEnablingPredicateFilter<FieldOfViewDetector>> fovHandler = addFOVDetector(pt, inst.getFOV(), initialState);
                     prop.propagate(getStartDate(), getEndDate());
 
                     TimeIntervalArray fovTimeArray = fovHandler.getTimeArray().createImmutable();
@@ -440,7 +442,7 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
          */
         private void singlePropagate() throws OrekitException {
             SpacecraftState initialState = prop.getInitialState();
-            HashMap<CoveragePoint, TimeIntervalHandler<FieldOfViewDetector>> map = new HashMap<>();
+            HashMap<CoveragePoint, TimeIntervalHandler<EventEnablingPredicateFilter<FieldOfViewDetector>>> map = new HashMap<>();
             for (Instrument inst : sat.getPayload()) {
                 for (CoveragePoint pt : cdef.getPoints()) {
                     if (!lineOfSightPotential(pt, initialState.getOrbit(), FastMath.toRadians(2.0))) {
@@ -448,7 +450,7 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
                         continue;
                     }
 
-                    TimeIntervalHandler<FieldOfViewDetector> fovHandler = addFOVDetector(pt, inst.getFOV(), initialState);
+                    TimeIntervalHandler<EventEnablingPredicateFilter<FieldOfViewDetector>> fovHandler = addFOVDetector(pt, inst.getFOV(), initialState);
                     map.put(pt, fovHandler);
                 }
                 prop.propagate(getStartDate(), getEndDate());
@@ -496,10 +498,12 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
             return FastMath.abs(pt.getPoint().getLatitude()) - latitudeMargin < subtendedAngle + orbit.getI();
         }
 
-        private TimeIntervalHandler<FieldOfViewDetector> addFOVDetector(CoveragePoint pt, FieldOfView fov, SpacecraftState initialState) {
-            FieldOfViewDetector fovDetec =
-                    new FieldOfViewDetector(pt, fov).withMaxCheck(fovStepSize).withThreshold(threshold);
-            TimeIntervalHandler<FieldOfViewDetector> fovHandler =
+        private TimeIntervalHandler<EventEnablingPredicateFilter<FieldOfViewDetector>> addFOVDetector(CoveragePoint pt, FieldOfView fov, SpacecraftState initialState) {
+
+            EventEnablingPredicateFilter<FieldOfViewDetector> fovDetec =
+                    FilteredFOVBuilder.createFilteredFOV(pt, fov).withMaxCheck(fovStepSize).withThreshold(threshold);
+            fovDetec.init(initialState, initialState.getDate());
+            TimeIntervalHandler<EventEnablingPredicateFilter<FieldOfViewDetector>> fovHandler =
                     new TimeIntervalHandler<>(getStartDate(), getEndDate(), fovDetec.g(initialState), Action.CONTINUE);
             fovDetec = fovDetec.withHandler(fovHandler);
             prop.addEventDetector(fovDetec);

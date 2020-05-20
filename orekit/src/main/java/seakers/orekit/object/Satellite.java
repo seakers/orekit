@@ -20,7 +20,9 @@ import org.orekit.orbits.Orbit;
 import org.orekit.orbits.OrbitType;
 import org.orekit.propagation.Propagator;
 import org.orekit.propagation.analytical.tle.TLE;
+import org.orekit.propagation.analytical.tle.TLEPropagator;
 import org.orekit.time.AbsoluteDate;
+import org.orekit.utils.PVCoordinatesProvider;
 import org.orekit.utils.TimeStampedPVCoordinates;
 import seakers.orekit.object.communications.Receiver;
 import seakers.orekit.object.communications.ReceiverAntenna;
@@ -183,6 +185,15 @@ public class Satellite implements OrekitObject, Serializable {
         return tle;
     }
 
+    public PVCoordinatesProvider getSatelliteCoordinatesProvider() {
+        if (this.orbit != null) {
+            return orbit;
+        }
+        else {
+            return TLEPropagator.selectExtrapolator(tle).getPvProvider();
+        }
+    }
+
     public AttitudeProvider getAttProv() {
         return attProv;
     }
@@ -261,8 +272,9 @@ public class Satellite implements OrekitObject, Serializable {
 
             //get hash for attitude provider based on rotation matrix at specific time in specific frame
             if (attProv != null) {
-                double[][] rotMmatrix = attProv.getAttitude(orbit, AbsoluteDate.GPS_EPOCH, FramesFactory.getEME2000()).getRotation().getMatrix();
-                hash = 23 * hash + Objects.hashCode(rotMmatrix);
+                hash = 23 * hash + attProv.hashCode();
+//                double[][] rotMmatrix = attProv.getAttitude(getSatelliteCoordinatesProvider(), AbsoluteDate.GPS_EPOCH, FramesFactory.getEME2000()).getRotation().getMatrix();
+//                hash = 23 * hash + Objects.hashCode(rotMmatrix);
             }
         } catch (OrekitException ex) {
             Logger.getLogger(Satellite.class.getName()).log(Level.SEVERE, null, ex);
@@ -308,8 +320,8 @@ public class Satellite implements OrekitObject, Serializable {
                 return false;
             }
             if (this.getAttProv() != null && other.getAttProv() != null) {
-                double[][] rotMmatrixThis = attProv.getAttitude(orbit, AbsoluteDate.GPS_EPOCH, FramesFactory.getEME2000()).getRotation().getMatrix();
-                double[][] rotMmatrixOther = other.getAttProv().getAttitude(orbit, AbsoluteDate.GPS_EPOCH, FramesFactory.getEME2000()).getRotation().getMatrix();
+                double[][] rotMmatrixThis = attProv.getAttitude(getSatelliteCoordinatesProvider(), AbsoluteDate.GPS_EPOCH, FramesFactory.getEME2000()).getRotation().getMatrix();
+                double[][] rotMmatrixOther = other.getAttProv().getAttitude(getSatelliteCoordinatesProvider(), AbsoluteDate.GPS_EPOCH, FramesFactory.getEME2000()).getRotation().getMatrix();
                 if (!Objects.equals(rotMmatrixThis, rotMmatrixOther)) {
                     return false;
                 }

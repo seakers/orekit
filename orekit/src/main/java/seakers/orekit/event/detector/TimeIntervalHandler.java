@@ -70,9 +70,10 @@ public class TimeIntervalHandler<T extends EventDetector> implements EventHandle
      * {CONTINUE, STOP, RESET_DERIVATIVES, RESET_STATE}
      */
     public TimeIntervalHandler(AbsoluteDate startDate, AbsoluteDate endDate, double initGVal, Action action) {
-        if(initGVal > 0){
+        if(initGVal < 0) {
             this.timeArray = new TimeIntervalArray(startDate, endDate, true);
-        }else{
+        }
+        else {
             this.timeArray = new TimeIntervalArray(startDate, endDate, false);
         }
         this.action = action;
