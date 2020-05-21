@@ -12,6 +12,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.sql.Time;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -22,6 +23,7 @@ import java.util.logging.Logger;
 
 import org.hipparchus.ode.events.Action;
 import org.hipparchus.util.FastMath;
+import org.hipparchus.util.Pair;
 import org.orekit.errors.OrekitException;
 import org.orekit.frames.Frame;
 import org.orekit.frames.TopocentricFrame;
@@ -85,7 +87,7 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
     /**
      * Stores all the accesses of each satellite if saveAllAccesses is true.
      */
-    private HashMap<CoverageDefinition, HashMap<Instrument, HashMap<TopocentricFrame, TimeIntervalArray>>> allInstrumentAccesses;
+    private HashMap<CoverageDefinition, HashMap<Satellite, HashMap<Instrument, HashMap<TopocentricFrame, TimeIntervalArray>>>> allInstrumentAccesses;
 
     /**
      * Creates a new event analysis.
@@ -140,20 +142,20 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
                             getStartDate(), getEndDate(),
                             getEndDate().durationFrom(getStartDate()) / 86400.));
 
-            //propogate each satellite individually
+            // propogate each satellite individually
             ArrayList<SubRoutine> subRoutines = new ArrayList<>();
             for (Satellite sat : getUniqueSatellites(cdef)) {
-                //first check if the satellite accesses are already saved in the database
+                // first check if the satellite accesses are already saved in the database
                 File file = new File(
                         System.getProperty("orekit.coveragedatabase"),
                         String.valueOf(sat.hashCode()));
                 if (file.canRead()) {
-                    HashMap<TopocentricFrame, TimeIntervalArray> satAccesses = readAccesses(file);
+                    HashMap<Instrument, HashMap<TopocentricFrame, TimeIntervalArray>> satAccesses = readAccesses(file);
                     processAccesses(sat, cdef, satAccesses);
                     break;
                 }
 
-                //if no precomuted times available, then propagate
+                // if no precomuted times available, then propagate
                 Propagator prop = null;
                 if (sat.getOrbit() != null) {
                     prop = propagatorFactory.createPropagator(sat.getOrbit(), sat.getAttProv(), sat.getGrossMass());
@@ -162,7 +164,7 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
                     prop = propagatorFactory.createPropagator(sat.getTLE(), sat.getAttProv(), sat.getGrossMass());
                 }
 
-                //Set stepsizes and threshold for detectors
+                // Set stepsizes and threshold for detectors
                 double fovStepSize;
                 if (sat.getOrbit() != null) {
                     fovStepSize = sat.getOrbit().getKeplerianPeriod() / 100.;
@@ -183,7 +185,7 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
                     }
                     FieldOfViewSubRoutine fovsr = (FieldOfViewSubRoutine)sr;
                     Satellite sat = fovsr.getSat();
-                    HashMap<TopocentricFrame, TimeIntervalArray> satAccesses = fovsr.getSatAccesses();
+                    HashMap<Instrument, HashMap<TopocentricFrame, TimeIntervalArray>> satAccesses = fovsr.getSatAccesses();
                     processAccesses(sat, cdef, satAccesses);
                     
                     if (saveToDB) {
@@ -218,23 +220,40 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
      * assigned coverage definition
      */
     protected void processAccesses(Satellite sat, CoverageDefinition cdef,
-            HashMap<TopocentricFrame, TimeIntervalArray> satAccesses) {
-        //save the satellite accesses 
+                                   HashMap<Instrument, HashMap<TopocentricFrame, TimeIntervalArray>> satAccesses) {
+        // merge all instruments for backwards compatibility
+        HashMap<TopocentricFrame, TimeIntervalArray> satMergedAccesses = new HashMap<>();
+        HashMap<TopocentricFrame, ArrayList<TimeIntervalArray>> arrays = new HashMap<>();
+        satAccesses.forEach((instrument, instrAccesses) -> {
+            instrAccesses.forEach((topoFrame, timeArray) -> {
+                if (!arrays.containsKey(topoFrame)) {
+                    arrays.put(topoFrame, new ArrayList<>());
+                }
+                arrays.get(topoFrame).add(timeArray);
+            });
+        });
+        arrays.forEach((topoFrame, timeArrays) -> {
+            TimeIntervalMerger merger = new TimeIntervalMerger(timeArrays);
+            satMergedAccesses.put(topoFrame, merger.orCombine());
+        });
+
+        // save the satellite accesses
         if (saveAllAccesses) {
-            allAccesses.get(cdef).put(sat, satAccesses);
+            allInstrumentAccesses.get(cdef).put(sat, satAccesses);
+            allAccesses.get(cdef).put(sat, satMergedAccesses);
         }
 
-        //merge the time accesses across all satellite for each coverage definition
+        // merge the time accesses across all satellites for each coverage definition
         if (getEvents().containsKey(cdef)) {
             Map<TopocentricFrame, TimeIntervalArray> mergedAccesses
-                    = EventIntervalMerger.merge(getEvents().get(cdef), satAccesses, false);
+                    = EventIntervalMerger.merge(getEvents().get(cdef), satMergedAccesses, false);
             getEvents().put(cdef, mergedAccesses);
         } else {
-            getEvents().put(cdef, satAccesses);
+            getEvents().put(cdef, satMergedAccesses);
         }
     }
 
-    private void writeAccesses(File file, HashMap<TopocentricFrame, TimeIntervalArray> accesses) {
+    private void writeAccesses(File file, HashMap<Instrument, HashMap<TopocentricFrame, TimeIntervalArray>> accesses) {
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(file))) {
             oos.writeObject(accesses);
         } catch (FileNotFoundException ex) {
@@ -244,8 +263,8 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
         }
     }
 
-    private HashMap<TopocentricFrame, TimeIntervalArray> readAccesses(File file) {
-        HashMap<TopocentricFrame, TimeIntervalArray> out = new HashMap<>();
+    private HashMap<Instrument, HashMap<TopocentricFrame, TimeIntervalArray>> readAccesses(File file) {
+        HashMap<Instrument, HashMap<TopocentricFrame, TimeIntervalArray>> out = new HashMap<>();
         try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file))) {
             out = RawSafety.castHashMap(ois.readObject());
         } catch (FileNotFoundException ex) {
@@ -290,6 +309,16 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
      */
     public HashMap<CoverageDefinition, HashMap<Satellite, HashMap<TopocentricFrame, TimeIntervalArray>>> getAllAccesses() {
         return allAccesses;
+    }
+
+    /**
+     * Returns the computed accesses for each coverage definition by each of the
+     * satellites assigned to that coverage definition
+     *
+     * @return
+     */
+    public HashMap<CoverageDefinition, HashMap<Satellite, HashMap<Instrument, HashMap<TopocentricFrame, TimeIntervalArray>>>> getAllInstrumentAccesses() {
+        return allInstrumentAccesses;
     }
 
     /**
@@ -358,7 +387,7 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
          * The times, for each point, when it is being accessed by the given
          * satellite and its payload.
          */
-        private final HashMap<TopocentricFrame, TimeIntervalArray> satAccesses;
+        private final HashMap<Instrument, HashMap<TopocentricFrame, TimeIntervalArray>> satAccesses;
 
         /**
          *
@@ -380,10 +409,14 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
             this.fovStepSize = fovStepSize;
             this.threshold = threshold;
 
-            this.satAccesses = new HashMap<>(cdef.getNumberOfPoints());
-            for (CoveragePoint pt : cdef.getPoints()) {
-                satAccesses.put(pt, getEmptyTimeArray());
+            this.satAccesses = new HashMap<>(this.sat.getPayload().size());
+            for (Instrument inst: this.sat.getPayload()) {
+                satAccesses.put(inst, new HashMap<>(cdef.getNumberOfPoints()));
+                for (CoveragePoint pt : cdef.getPoints()) {
+                    satAccesses.get(inst).put(pt, getEmptyTimeArray());
+                }
             }
+
         }
 
         //NOTE: this implementation of in the field of view is a bit fragile if propagating highly elliptical orbits (>0.75). Maybe need to use smaller time steps los and fov detectors
@@ -426,8 +459,7 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
                     if (fovTimeArray == null || fovTimeArray.isEmpty()) {
                         continue;
                     }
-                    TimeIntervalMerger merger = new TimeIntervalMerger(satAccesses.get(pt), fovTimeArray);
-                    satAccesses.put(pt, merger.orCombine());
+                    satAccesses.get(inst).put(pt, fovTimeArray);
                     prop.clearEventsDetectors();
                 }
             }
@@ -459,8 +491,7 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
                     if (fovTimeArray == null || fovTimeArray.isEmpty()) {
                         continue;
                     }
-                    TimeIntervalMerger merger = new TimeIntervalMerger(satAccesses.get(pt), fovTimeArray);
-                    satAccesses.put(pt, merger.orCombine());
+                    satAccesses.get(inst).put(pt, fovTimeArray);
                 }
                 prop.clearEventsDetectors();
             }
@@ -470,7 +501,7 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
             return sat;
         }
 
-        public HashMap<TopocentricFrame, TimeIntervalArray> getSatAccesses() {
+        public HashMap<Instrument, HashMap<TopocentricFrame, TimeIntervalArray>> getSatAccesses() {
             return satAccesses;
         }
 
@@ -499,7 +530,6 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
         }
 
         private TimeIntervalHandler<EventEnablingPredicateFilter<FieldOfViewDetector>> addFOVDetector(CoveragePoint pt, FieldOfView fov, SpacecraftState initialState) {
-
             EventEnablingPredicateFilter<FieldOfViewDetector> fovDetec =
                     FilteredFOVBuilder.createFilteredFOV(pt, fov).withMaxCheck(fovStepSize).withThreshold(threshold);
             fovDetec.init(initialState, initialState.getDate());

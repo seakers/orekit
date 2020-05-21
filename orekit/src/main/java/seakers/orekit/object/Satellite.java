@@ -273,8 +273,6 @@ public class Satellite implements OrekitObject, Serializable {
             //get hash for attitude provider based on rotation matrix at specific time in specific frame
             if (attProv != null) {
                 hash = 23 * hash + attProv.hashCode();
-//                double[][] rotMmatrix = attProv.getAttitude(getSatelliteCoordinatesProvider(), AbsoluteDate.GPS_EPOCH, FramesFactory.getEME2000()).getRotation().getMatrix();
-//                hash = 23 * hash + Objects.hashCode(rotMmatrix);
             }
         } catch (OrekitException ex) {
             Logger.getLogger(Satellite.class.getName()).log(Level.SEVERE, null, ex);
