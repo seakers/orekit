@@ -94,9 +94,9 @@ public class LinkBudgetEventAnalysis extends AbstractGroundEventAnalysis {
      * @param lb object containing all the communications parameters
      */
     public LinkBudgetEventAnalysis(AbsoluteDate startDate, AbsoluteDate endDate,
-            Frame inertialFrame, HashSet<CoverageDefinition> covDefs,
-            PropagatorFactory propagatorFactory, boolean saveAllLinkIntervals,
-            int numThreads, LinkBudget lb) {
+                                   Frame inertialFrame, HashSet<CoverageDefinition> covDefs,
+                                   PropagatorFactory propagatorFactory, boolean saveAllLinkIntervals,
+                                   int numThreads, LinkBudget lb) {
         super(startDate, endDate, inertialFrame, covDefs);
         this.propagatorFactory = propagatorFactory;
         this.saveAllLinkIntervals = saveAllLinkIntervals;
@@ -202,8 +202,8 @@ public class LinkBudgetEventAnalysis extends AbstractGroundEventAnalysis {
      * assigned coverage definition
      */
     private void processLinkBudgetIntervals(Satellite sat, CoverageDefinition cdef,
-            HashMap<TopocentricFrame, TimeIntervalArray> satLinkBudgetIntervals) {
-        //save the satellite link intervals 
+                                            HashMap<TopocentricFrame, TimeIntervalArray> satLinkBudgetIntervals) {
+        //save the satellite link intervals
         if (saveAllLinkIntervals) {
             allLinkIntervals.get(cdef).put(sat, satLinkBudgetIntervals);
         }
@@ -376,8 +376,8 @@ public class LinkBudgetEventAnalysis extends AbstractGroundEventAnalysis {
          * finding to determine when an event occurred.
          */
         public LinkBudgetSubRoutine(Satellite sat, Propagator prop,
-                CoverageDefinition cdef, double losStepSize,
-                double fovStepSize, double threshold, LinkBudget lb, double lbStepSize) {
+                                    CoverageDefinition cdef, double losStepSize,
+                                    double fovStepSize, double threshold, LinkBudget lb, double lbStepSize) {
             this.sat = sat;
             this.prop = prop;
             this.cdef = cdef;
@@ -479,7 +479,7 @@ public class LinkBudgetEventAnalysis extends AbstractGroundEventAnalysis {
                     //link budget
                     prop.resetInitialState(initialState);
 
-                    //Next search through intervals with line of sight to compute when point is in field of view 
+                    //Next search through intervals with line of sight to compute when point is in field of view
                     LBDetector lbDetec = new LBDetector(initialState, getStartDate(), getEndDate(), pt, lb, lbStepSize, threshold, Action.CONTINUE);
                     prop.addEventDetector(lbDetec);
                     prop.propagate(getStartDate(), getEndDate());
@@ -558,3 +558,4 @@ public class LinkBudgetEventAnalysis extends AbstractGroundEventAnalysis {
     }
 
 }
+
