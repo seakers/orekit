@@ -73,7 +73,7 @@ public class CoverageDefinition implements OrekitObject, Serializable {
      * degrees
      * @param minLatitude Minimum latitude where coverage is defined [deg]
      * @param maxLatitude Maximum latitude where coverage is defined [deg]
-     * @param minLongitdue Maximum latitude where coverage is defined [deg].
+     * @param minLongitude Maximum latitude where coverage is defined [deg].
      * Longitudes should be in interval of [-180,180] degrees
      * @param maxLongitude Maximum latitude where coverage is defined [deg].
      * Longitudes should be in interval of [-180,180] degreesÏ
@@ -81,7 +81,7 @@ public class CoverageDefinition implements OrekitObject, Serializable {
      * @param style the style of the grid
      */
     public CoverageDefinition(String name, double granularity, double minLatitude,
-            double maxLatitude, double minLongitdue, double maxLongitude,
+            double maxLatitude, double minLongitude, double maxLongitude,
             BodyShape planet, GridStyle style) {
 
         this.name = name;
@@ -93,9 +93,9 @@ public class CoverageDefinition implements OrekitObject, Serializable {
                     + minLatitude + ") must be less than maximum latitude ("
                     + maxLatitude + ")");
         }
-        if (minLongitdue > maxLongitude) {
+        if (minLongitude > maxLongitude) {
             throw new IllegalArgumentException("Minimum latitude ("
-                    + minLongitdue + ") must be less than maximum latitude ("
+                    + minLongitude + ") must be less than maximum latitude ("
                     + maxLongitude + ")");
         }
 
@@ -106,7 +106,7 @@ public class CoverageDefinition implements OrekitObject, Serializable {
 
             switch (style) {
                 case UNIFORM:
-                    for (double lon = minLongitdue; lon <= maxLongitude; lon += granularity) {
+                    for (double lon = minLongitude; lon <= maxLongitude; lon += granularity) {
                         double longitude = FastMath.toRadians(lon);
                         double latitude = FastMath.toRadians(lat);
                         double altitude = 0.;
@@ -119,7 +119,7 @@ public class CoverageDefinition implements OrekitObject, Serializable {
                     //weigh the number of points by their latitude to get even 
                     //distribution of points within spherical grid
                     int ptsAtLat = (int) (360 / granularity * FastMath.cos(FastMath.toRadians(lat)));
-                    for (double lon = minLongitdue; lon < maxLongitude; lon += 360.0 / ptsAtLat) {
+                    for (double lon = minLongitude; lon < maxLongitude; lon += 360.0 / ptsAtLat) {
                         double longitude = FastMath.toRadians(lon);
                         double latitude = FastMath.toRadians(lat);
                         double altitude = 0.;

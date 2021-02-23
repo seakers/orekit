@@ -12,11 +12,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -46,6 +42,7 @@ import seakers.orekit.object.Satellite;
 import seakers.orekit.parallel.ParallelRoutine;
 import seakers.orekit.parallel.SubRoutine;
 import seakers.orekit.propagation.PropagatorFactory;
+import seakers.orekit.propagation.PropagatorType;
 import seakers.orekit.util.RawSafety;
 
 /**
@@ -150,7 +147,15 @@ public class FieldOfViewAndGndStationEventAnalysis extends AbstractGroundEventAn
             for (Satellite sat : getUniqueSatellites(cdef)) {
                 allAccessesGS.put(sat, new HashMap<>());
                 //if no precomuted times available, then propagate
-                Propagator prop = propagatorFactory.createPropagator(sat.getOrbit(), sat.getGrossMass());
+                Propagator prop;
+                if(FastMath.abs(FastMath.toDegrees(sat.getOrbit().getI())) <= 1.0
+                    && propagatorFactory.getPropType().equals(PropagatorType.J2)) {
+                    prop = new PropagatorFactory(PropagatorType.KEPLERIAN, new Properties()).createPropagator(sat.getOrbit(), sat.getGrossMass());
+                }
+                else{
+                    prop = propagatorFactory.createPropagator(sat.getOrbit(), sat.getGrossMass());
+                }
+
                 //Set stepsizes and threshold for detectors
                 double fovStepSize = sat.getOrbit().getKeplerianPeriod() / 100.;
                 double losStepSize = sat.getOrbit().getKeplerianPeriod() / 100.;
@@ -163,7 +168,7 @@ public class FieldOfViewAndGndStationEventAnalysis extends AbstractGroundEventAn
             }
 
             try {
-                for (SubRoutine sr : ParallelRoutine.submit(subRoutines)) {
+                for (SubRoutine sr : Objects.requireNonNull(ParallelRoutine.submit(subRoutines))) {
                     if (sr == null) {
                         throw new IllegalStateException("Subroutine failed in event analysis.");
                     }

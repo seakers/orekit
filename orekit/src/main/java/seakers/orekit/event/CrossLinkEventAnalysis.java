@@ -12,11 +12,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -47,6 +43,7 @@ import seakers.orekit.object.Satellite;
 import seakers.orekit.parallel.ParallelRoutine;
 import seakers.orekit.parallel.SubRoutine;
 import seakers.orekit.propagation.PropagatorFactory;
+import seakers.orekit.propagation.PropagatorType;
 import seakers.orekit.util.RawSafety;
 
 /**
@@ -61,7 +58,7 @@ public class CrossLinkEventAnalysis extends AbstractEventAnalysis {
      * Propagator factory that will create the necessary propagator for each
      * satellite
      */
-    private final PropagatorFactory propagatorFactory;
+    private final PropagatorFactory pf;
 
     /**
      * a flag set by the user to toggle whether to save the access of each
@@ -82,6 +79,7 @@ public class CrossLinkEventAnalysis extends AbstractEventAnalysis {
 
 
     private final ArrayList<Constellation> constellations;
+    private final ArrayList<Satellite> uniqueSatellites;
 
     /**
      * Creates a new event analysis.
@@ -89,8 +87,7 @@ public class CrossLinkEventAnalysis extends AbstractEventAnalysis {
      * @param startDate of analysis
      * @param endDate of analysis
      * @param inertialFrame the inertial frame used in the simulation
-     * @param propagatorFactory the factory to create propagtors for each
-     * satellite
+     * @param pf the factory used to create propagators for each satellite
      * @param constellations
      * @param saveAllAccesses true if user wants to maintain all the accesses
      * from each individual satellite. false if user would like to only get the
@@ -99,12 +96,27 @@ public class CrossLinkEventAnalysis extends AbstractEventAnalysis {
      * individual satellites should be saved to the coverage database
      */
     public CrossLinkEventAnalysis(AbsoluteDate startDate, AbsoluteDate endDate, Frame inertialFrame,
-                                  ArrayList<Constellation> constellations, PropagatorFactory propagatorFactory,
+                                  ArrayList<Constellation> constellations, PropagatorFactory pf,
                                   boolean saveAllAccesses, boolean saveToDB) {
         super(startDate, endDate, inertialFrame);
-        this.propagatorFactory = propagatorFactory;
+        this.pf = pf;
         this.saveAllAccesses = saveAllAccesses;
         this.constellations = constellations;
+
+        uniqueSatellites = new ArrayList<>();
+        for(Constellation cons : constellations){
+            for(Satellite sat : cons.getSatellites()){
+                boolean found = false;
+                for(Satellite unique : uniqueSatellites){
+                    if(unique.getOrbit().equals(sat.getOrbit())
+                            && unique.getPayload().equals(sat.getPayload())){
+                        found = true;
+                        break;
+                    }
+                }
+                if(!found) uniqueSatellites.add(sat);
+            }
+        }
 
         if (saveAllAccesses) {
             this.allAccesses = new HashMap<>();
@@ -127,61 +139,60 @@ public class CrossLinkEventAnalysis extends AbstractEventAnalysis {
      * @throws org.orekit.errors.OrekitException
      */
     @Override
-    public CrossLinkEventAnalysis call() throws OrekitException {
-        for (Constellation cons : constellations) {
-            Logger.getGlobal().finer("Acquiring inter-satellite accesses...");
-            Logger.getGlobal().finer(String.format("Acquiring access times for %s...", cons));
-            Logger.getGlobal().finer(
-                    String.format("Simulation dates %s to %s (%.2f days)",
-                            getStartDate(), getEndDate(),
-                            getEndDate().durationFrom(getStartDate()) / 86400.));
+    public CrossLinkEventAnalysis call() throws Exception {
+        Constellation uniqueSatCons = new Constellation("UniqueSats", uniqueSatellites);
+        ArrayList<SubRoutine> subRoutines = new ArrayList<>();
 
+        Logger.getGlobal().finer("Acquiring inter-satellite accesses...");
+        Logger.getGlobal().finer(String.format("Acquiring access times..."));
+        Logger.getGlobal().finer(
+                String.format("Simulation dates %s to %s (%.2f days)",
+                        getStartDate(), getEndDate(),
+                        getEndDate().durationFrom(getStartDate()) / 86400.));
+
+        for (Satellite sat : uniqueSatellites) {
             //propagate each satellite individually
-            ArrayList<SubRoutine> subRoutines = new ArrayList<>();
-            for (Satellite sat : cons.getSatellites()) {
 
-                //if no precomputed times available, then propagate
-                Propagator prop = propagatorFactory.createPropagator(sat.getOrbit(), sat.getGrossMass());
+            //Set step-sizes and threshold for detectors
+            double fovStepSize = sat.getOrbit().getKeplerianPeriod() / 100.;
+            double losStepSize = sat.getOrbit().getKeplerianPeriod() / 100.;
+            double threshold = 1e-3;
 
-                //Set step-sizes and threshold for detectors
-                double fovStepSize = sat.getOrbit().getKeplerianPeriod() / 100.;
-                double losStepSize = sat.getOrbit().getKeplerianPeriod() / 100.;
-                double threshold = 1e-3;
+            CrossLinkSubroutine subRoutine = new CrossLinkSubroutine(sat, pf,
+                    uniqueSatCons,fovStepSize, losStepSize, threshold);
 
-                CrossLinkSubroutine subRoutine = new CrossLinkSubroutine(sat, propagatorFactory,
-                        cons,fovStepSize, losStepSize, threshold);
+            subRoutines.add(subRoutine);
+        }
 
-                subRoutines.add(subRoutine);
-            }
-
-            try {
-                for (SubRoutine sr : ParallelRoutine.submit(subRoutines)) {
-                    if (sr == null) {
-                        throw new IllegalStateException("Subroutine failed in event analysis.");
-                    }
-                    CrossLinkSubroutine subr = (CrossLinkSubroutine)sr;
-                    Satellite sat = subr.getSat();
-                    HashMap<Satellite, TimeIntervalArray> satAccesses = subr.getSatAccesses();
-                    processAccesses(sat, cons, satAccesses);
-
-                    if (saveToDB) {
-                        File file = new File(
-                                System.getProperty("orekit.coveragedatabase"),
-                                String.valueOf(sat.hashCode()));
-                        writeAccesses(file, satAccesses);
-                    }
+        try {
+            for (SubRoutine sr : Objects.requireNonNull(ParallelRoutine.submit(subRoutines))) {
+                if (sr == null) {
+                    throw new IllegalStateException("Subroutine failed in event analysis.");
                 }
-            } catch (InterruptedException ex) {
-                Logger.getLogger(FieldOfViewAndGndStationEventAnalysis.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (ExecutionException ex) {
-                Logger.getLogger(FieldOfViewAndGndStationEventAnalysis.class.getName()).log(Level.SEVERE, null, ex);
-            }
+                CrossLinkSubroutine subr = (CrossLinkSubroutine)sr;
+                Satellite sat = subr.getSat();
+                HashMap<Satellite, TimeIntervalArray> satAccesses = subr.getSatAccesses();
 
-            //Make all time intervals stored in finalAccesses immutable
-            for (Satellite target : getEvents().keySet()) {
-                getEvents().put(target, getEvents().get(target).createImmutable());
-            }
+                Constellation constellation = null;
+                for(Constellation cons : constellations){
+                    if(cons.getSatellites().contains(sat)) constellation = cons;
+                }
+                processAccesses(sat, constellation, satAccesses);
 
+                if (saveToDB) {
+                    File file = new File(
+                            System.getProperty("orekit.coveragedatabase"),
+                            String.valueOf(sat.hashCode()));
+                    writeAccesses(file, satAccesses);
+                }
+            }
+        } catch (InterruptedException | ExecutionException ex) {
+            Logger.getLogger(FieldOfViewAndGndStationEventAnalysis.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        //Make all time intervals stored in finalAccesses immutable
+        for (Satellite target : getEvents().keySet()) {
+            getEvents().put(target, getEvents().get(target).createImmutable());
         }
 
         return this;
@@ -273,9 +284,11 @@ public class CrossLinkEventAnalysis extends AbstractEventAnalysis {
         Map<Satellite, TimeIntervalArray> out = new HashMap<>();
 
         Map<Satellite, Collection<TimeIntervalArray>> timeArrays = new HashMap<>();
+
         for(Constellation cons : allAccesses.keySet()){
             for (Satellite sat : cons.getSatellites()) {
-                for (Satellite target : allAccesses.get(cons).get(sat).keySet()) {
+//                for (Satellite target : allAccesses.get(cons).get(sat).keySet()) {
+                for (Satellite target : uniqueSatellites) {
                     if(sat == target) continue;
 
                     //check if the ground station was already added to results
@@ -333,7 +346,9 @@ public class CrossLinkEventAnalysis extends AbstractEventAnalysis {
          * The propagator
          */
 //        private final Propagator prop;
-        private final PropagatorFactory pf;
+//        private PropagatorFactory pfJ2;   // J2 propagator
+//        private PropagatorFactory pfKep;  // Keplerian propagator
+        private PropagatorFactory pf;  // Keplerian propagator
 
         /**
          * The coverage definition to access
@@ -369,7 +384,7 @@ public class CrossLinkEventAnalysis extends AbstractEventAnalysis {
         /**
          *
          * @param sat The satellite to propagate
-         * @param pf The propagator factory used for the constellation
+         * @param pf The propagator factorie used for the constellation
          * @param constellation The constellation accessing itself
          * @param fovStepSize The step size during propagation when computing
          * the field of view events. Generally, this should be a small step for
@@ -378,9 +393,8 @@ public class CrossLinkEventAnalysis extends AbstractEventAnalysis {
          * finding to determine when an event occurred.
          */
         public CrossLinkSubroutine(Satellite sat, PropagatorFactory pf, Constellation constellation,
-                                   double fovStepSize, double losStepSize, double threshold) {
+                                   double fovStepSize, double losStepSize, double threshold) throws Exception {
             this.sat = sat;
-            this.pf = pf;
             this.constellation = constellation;
             this.fovStepSize = fovStepSize;
             this.losStepSize = losStepSize;
@@ -392,6 +406,14 @@ public class CrossLinkEventAnalysis extends AbstractEventAnalysis {
                 satAccesses.put(target, getEmptyTimeArray());
             }
 
+
+            if(pf.getPropType().equals(PropagatorType.J2)
+                && Math.abs( Math.toDegrees(sat.getOrbit().getI()) ) < 1.0){
+                this.pf = new PropagatorFactory(PropagatorType.KEPLERIAN, new Properties());
+            }
+            else {
+                this.pf = pf;
+            }
         }
 
         //NOTE: this implementation of in the field of view is a bit fragile if propagating highly elliptical orbits (>0.75). Maybe need to use smaller time steps los and fov detectors
@@ -454,6 +476,7 @@ public class CrossLinkEventAnalysis extends AbstractEventAnalysis {
          */
         private void singlePropagate() throws OrekitException {
             Propagator prop = pf.createPropagator(sat.getOrbit(), sat.getGrossMass());
+
             SpacecraftState initialState = prop.getInitialState();
 
             HashMap<Satellite, TimeIntervalHandler<SatLOSDetector>> map = new HashMap<>();
@@ -462,7 +485,18 @@ public class CrossLinkEventAnalysis extends AbstractEventAnalysis {
                 // skip if trying to compute access to oneself
                 if(sat == target) continue;
 
-                Propagator pfTarget = pf.createPropagator(target.getOrbit(), target.getGrossMass());
+                Propagator pfTarget;
+                if(pf.getPropType().equals(PropagatorType.J2)
+                    && Math.abs( Math.toDegrees(target.getOrbit().getI()) ) <= 1.0){
+                    // if orbit is equatorial and original propagator chosen uses J2, change to Keplerian propagator
+                    pfTarget = new PropagatorFactory(PropagatorType.KEPLERIAN, new Properties())
+                                    .createPropagator(target.getOrbit(), target.getGrossMass());
+                }
+                else{
+                    // else use J2 propagator
+                    pfTarget = pf.createPropagator(target.getOrbit(), target.getGrossMass());
+                }
+
                 SatLOSDetector losDetec = new SatLOSDetector(target,pfTarget,getInertialFrame()).withMaxCheck(fovStepSize).withThreshold(threshold);
 
                 TimeIntervalHandler<SatLOSDetector> losHandler = new TimeIntervalHandler<>(getStartDate(), getEndDate(),
