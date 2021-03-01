@@ -7,7 +7,8 @@ package seakers.orekit.object;
 
 import java.io.Serializable;
 import java.util.Objects;
-import seakers.orekit.object.fieldofview.FieldOfViewDefinition;
+
+import org.orekit.geometry.fov.FieldOfView;
 
 /**
  * The sensor or instrument to install aboard a satellite or at a ground
@@ -22,7 +23,7 @@ public class Instrument implements OrekitObject, Serializable {
 
     private final String name;
     
-    private final FieldOfViewDefinition fov;
+    private final FieldOfView fov;
     
     private final double mass;
     
@@ -37,7 +38,7 @@ public class Instrument implements OrekitObject, Serializable {
      * @param averagePower the average power required by the instrument
      * 
      */
-    public Instrument(String name, FieldOfViewDefinition fov, double mass, double averagePower) {
+    public Instrument(String name, FieldOfView fov, double mass, double averagePower) {
         this.name = name;
         this.fov = fov;
         this.mass = mass;
@@ -49,7 +50,7 @@ public class Instrument implements OrekitObject, Serializable {
      *
      * @return
      */
-    public FieldOfViewDefinition getFOV() {
+    public FieldOfView getFOV() {
         return fov;
     }
     

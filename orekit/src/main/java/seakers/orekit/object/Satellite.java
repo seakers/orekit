@@ -19,7 +19,10 @@ import org.orekit.orbits.KeplerianOrbit;
 import org.orekit.orbits.Orbit;
 import org.orekit.orbits.OrbitType;
 import org.orekit.propagation.Propagator;
+import org.orekit.propagation.analytical.tle.TLE;
+import org.orekit.propagation.analytical.tle.TLEPropagator;
 import org.orekit.time.AbsoluteDate;
+import org.orekit.utils.PVCoordinatesProvider;
 import org.orekit.utils.TimeStampedPVCoordinates;
 import seakers.orekit.object.communications.Receiver;
 import seakers.orekit.object.communications.ReceiverAntenna;
@@ -47,6 +50,11 @@ public class Satellite implements OrekitObject, Serializable {
      * initial orbit to position satellite
      */
     private final Orbit orbit;
+
+    /**
+     * initial TLE of satellite
+     */
+    private final TLE tle;
 
     /**
      * The name of the satellite
@@ -93,6 +101,14 @@ public class Satellite implements OrekitObject, Serializable {
                 Propagator.DEFAULT_MASS, Propagator.DEFAULT_MASS);
     }
 
+    public Satellite(String name, TLE tle) {
+        this(name, tle, null, new ArrayList<>(),
+                new ReceiverAntenna(1., new HashSet<>()),
+                new TransmitterAntenna(1, new HashSet<>()),
+                Propagator.DEFAULT_MASS, Propagator.DEFAULT_MASS);
+    }
+
+
     /**
      * Constructor for new satellite instance with default wet mass and default
      * dry mass
@@ -104,6 +120,13 @@ public class Satellite implements OrekitObject, Serializable {
      */
     public Satellite(String name, Orbit orbit, AttitudeProvider attProv, Collection<Instrument> instruments) {
         this(name, orbit, attProv, instruments,
+                new ReceiverAntenna(1., new HashSet<>()),
+                new TransmitterAntenna(1, new HashSet<>()),
+                Propagator.DEFAULT_MASS, Propagator.DEFAULT_MASS);
+    }
+
+    public Satellite(String name, TLE tle, AttitudeProvider attProv, Collection<Instrument> instruments) {
+        this(name, tle, attProv, instruments,
                 new ReceiverAntenna(1., new HashSet<>()),
                 new TransmitterAntenna(1, new HashSet<>()),
                 Propagator.DEFAULT_MASS, Propagator.DEFAULT_MASS);
@@ -125,6 +148,21 @@ public class Satellite implements OrekitObject, Serializable {
     public Satellite(String name, Orbit orbit, AttitudeProvider attProv, Collection<Instrument> instruments,
             Receiver receiver, Transmitter transmitter, double wetMass, double dryMass) {
         this.orbit = orbit;
+        this.tle = null;
+        this.name = name;
+        this.payload = new ArrayList<>(instruments);
+        this.attProv = attProv;
+        this.transmitter = transmitter;
+        this.receiver = receiver;
+        this.wetMass = wetMass;
+        this.dryMass = dryMass;
+        this.grossMass = wetMass + dryMass;
+    }
+
+    public Satellite(String name, TLE tle, AttitudeProvider attProv, Collection<Instrument> instruments,
+                     Receiver receiver, Transmitter transmitter, double wetMass, double dryMass) {
+        this.orbit = null;
+        this.tle = tle;
         this.name = name;
         this.payload = new ArrayList<>(instruments);
         this.attProv = attProv;
@@ -141,6 +179,19 @@ public class Satellite implements OrekitObject, Serializable {
 
     public Orbit getOrbit() {
         return orbit;
+    }
+
+    public TLE getTLE() {
+        return tle;
+    }
+
+    public PVCoordinatesProvider getSatelliteCoordinatesProvider() {
+        if (this.orbit != null) {
+            return orbit;
+        }
+        else {
+            return TLEPropagator.selectExtrapolator(tle).getPvProvider();
+        }
     }
 
     public AttitudeProvider getAttProv() {
@@ -212,15 +263,16 @@ public class Satellite implements OrekitObject, Serializable {
         hash = 23 * hash + Objects.hashCode(this.payload);
         try {
             //create hash for orbit
-            TimeStampedPVCoordinates pv = this.orbit.getPVCoordinates(FramesFactory.getEME2000());
-            hash = 23 * hash + Objects.hashCode(pv.getPosition());
-            hash = 23 * hash + Objects.hashCode(pv.getVelocity());
-            hash = 23 * hash + Objects.hashCode(pv.getAcceleration());
+            if (this.orbit != null) {
+                hash = 23 * hash + this.orbit.hashCode();
+            }
+            else if (this.tle != null) {
+                hash = 23 * hash + this.tle.hashCode();
+            }
 
             //get hash for attitude provider based on rotation matrix at specific time in specific frame
             if (attProv != null) {
-                double[][] rotMmatrix = attProv.getAttitude(orbit, AbsoluteDate.GPS_EPOCH, FramesFactory.getEME2000()).getRotation().getMatrix();
-                hash = 23 * hash + Objects.hashCode(rotMmatrix);
+                hash = 23 * hash + attProv.hashCode();
             }
         } catch (OrekitException ex) {
             Logger.getLogger(Satellite.class.getName()).log(Level.SEVERE, null, ex);
@@ -266,8 +318,8 @@ public class Satellite implements OrekitObject, Serializable {
                 return false;
             }
             if (this.getAttProv() != null && other.getAttProv() != null) {
-                double[][] rotMmatrixThis = attProv.getAttitude(orbit, AbsoluteDate.GPS_EPOCH, FramesFactory.getEME2000()).getRotation().getMatrix();
-                double[][] rotMmatrixOther = other.getAttProv().getAttitude(orbit, AbsoluteDate.GPS_EPOCH, FramesFactory.getEME2000()).getRotation().getMatrix();
+                double[][] rotMmatrixThis = attProv.getAttitude(getSatelliteCoordinatesProvider(), AbsoluteDate.GPS_EPOCH, FramesFactory.getEME2000()).getRotation().getMatrix();
+                double[][] rotMmatrixOther = other.getAttProv().getAttitude(getSatelliteCoordinatesProvider(), AbsoluteDate.GPS_EPOCH, FramesFactory.getEME2000()).getRotation().getMatrix();
                 if (!Objects.equals(rotMmatrixThis, rotMmatrixOther)) {
                     return false;
                 }

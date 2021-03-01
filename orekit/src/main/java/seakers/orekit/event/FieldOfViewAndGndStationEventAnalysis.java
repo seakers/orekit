@@ -29,12 +29,10 @@ import org.orekit.frames.TopocentricFrame;
 import org.orekit.orbits.Orbit;
 import org.orekit.propagation.Propagator;
 import org.orekit.propagation.SpacecraftState;
-import org.orekit.propagation.events.handlers.EventHandler;
-import org.orekit.propagation.numerical.NumericalPropagator;
+import org.orekit.propagation.events.FieldOfViewDetector;
 import org.orekit.time.AbsoluteDate;
 import seakers.orekit.coverage.access.TimeIntervalArray;
 import seakers.orekit.coverage.access.TimeIntervalMerger;
-import seakers.orekit.event.detector.FOVDetector;
 import seakers.orekit.event.detector.GroundStationDetector;
 import seakers.orekit.event.detector.TimeIntervalHandler;
 import seakers.orekit.object.Constellation;
@@ -570,7 +568,7 @@ public class FieldOfViewAndGndStationEventAnalysis extends AbstractGroundEventAn
          */
         private void singlePropagate() throws OrekitException {
             SpacecraftState initialState = prop.getInitialState();
-            HashMap<CoveragePoint, TimeIntervalHandler<FOVDetector>> map = new HashMap<>();
+            HashMap<CoveragePoint, TimeIntervalHandler<FieldOfViewDetector>> map = new HashMap<>();
             HashMap<GndStation, GroundStationDetector> mapGS = new HashMap<>();
             for (Instrument inst : sat.getPayload()) {
                 for (CoveragePoint pt : cdef.getPoints()) {
@@ -579,8 +577,8 @@ public class FieldOfViewAndGndStationEventAnalysis extends AbstractGroundEventAn
                         continue;
                     }
 
-                    FOVDetector fovDetec = new FOVDetector(pt, inst).withMaxCheck(fovStepSize).withThreshold(threshold);
-                    TimeIntervalHandler<FOVDetector> fovHandler = new TimeIntervalHandler<>(getStartDate(), getEndDate(), fovDetec.g(initialState), Action.CONTINUE);
+                    FieldOfViewDetector fovDetec = new FieldOfViewDetector(pt, inst.getFOV()).withMaxCheck(fovStepSize).withThreshold(threshold);
+                    TimeIntervalHandler<FieldOfViewDetector> fovHandler = new TimeIntervalHandler<>(getStartDate(), getEndDate(), fovDetec.g(initialState), Action.CONTINUE);
                     fovDetec = fovDetec.withHandler(fovHandler);
                     prop.addEventDetector(fovDetec);
                     map.put(pt, fovHandler);

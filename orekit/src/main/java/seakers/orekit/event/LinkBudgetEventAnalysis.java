@@ -23,13 +23,12 @@ import org.orekit.frames.Frame;
 import org.orekit.frames.TopocentricFrame;
 import org.orekit.propagation.Propagator;
 import org.orekit.propagation.SpacecraftState;
-import org.orekit.propagation.events.handlers.EventHandler;
+import org.orekit.propagation.events.FieldOfViewDetector;
 import org.orekit.propagation.numerical.NumericalPropagator;
 import org.orekit.time.AbsoluteDate;
 import seakers.orekit.coverage.access.RiseSetTime;
 import seakers.orekit.coverage.access.TimeIntervalArray;
 import seakers.orekit.coverage.access.TimeIntervalMerger;
-import seakers.orekit.event.detector.FOVDetector;
 import seakers.orekit.event.detector.LBDetector;
 import seakers.orekit.event.detector.LOSDetector;
 import seakers.orekit.event.detector.TimeIntervalHandler;
@@ -435,8 +434,8 @@ public class LinkBudgetEventAnalysis extends AbstractGroundEventAnalysis {
                     prop.resetInitialState(initialState);
                     prop.clearEventsDetectors();
                     //Next search through intervals with line of sight to compute when point is in field of view
-                    FOVDetector fovDetec = new FOVDetector(pt, inst).withMaxCheck(fovStepSize).withThreshold(threshold);
-                    TimeIntervalHandler<FOVDetector> fovHandler = new TimeIntervalHandler<>(getStartDate(), getEndDate(), fovDetec.g(initialState), Action.STOP);
+                    FieldOfViewDetector fovDetec = new FieldOfViewDetector(pt, inst.getFOV()).withMaxCheck(fovStepSize).withThreshold(threshold);
+                    TimeIntervalHandler<FieldOfViewDetector> fovHandler = new TimeIntervalHandler<>(getStartDate(), getEndDate(), fovDetec.g(initialState), Action.STOP);
                     fovDetec = fovDetec.withHandler(fovHandler);
                     prop.addEventDetector(fovDetec);
 
@@ -504,13 +503,13 @@ public class LinkBudgetEventAnalysis extends AbstractGroundEventAnalysis {
         private void singlePropagate() throws OrekitException {
             SpacecraftState initialState = prop.getInitialState();
             Logger.getGlobal().finer(String.format("Propagating satellite %s...", sat));
-            HashMap<CoveragePoint, TimeIntervalHandler<FOVDetector>> map = new HashMap<>();
+            HashMap<CoveragePoint, TimeIntervalHandler<FieldOfViewDetector>> map = new HashMap<>();
             HashMap<CoveragePoint, LBDetector> map2 = new HashMap<>();
 
             for (Instrument inst : sat.getPayload()) {
                 for (CoveragePoint pt : cdef.getPoints()) {
-                    FOVDetector fovDetec = new FOVDetector(pt, inst).withMaxCheck(fovStepSize).withThreshold(threshold);
-                    TimeIntervalHandler<FOVDetector> fovHandler = new TimeIntervalHandler<>(getStartDate(), getEndDate(), fovDetec.g(initialState), Action.CONTINUE);
+                    FieldOfViewDetector fovDetec = new FieldOfViewDetector(pt, inst.getFOV()).withMaxCheck(fovStepSize).withThreshold(threshold);
+                    TimeIntervalHandler<FieldOfViewDetector> fovHandler = new TimeIntervalHandler<>(getStartDate(), getEndDate(), fovDetec.g(initialState), Action.CONTINUE);
                     fovDetec = fovDetec.withHandler(fovHandler);
                     prop.addEventDetector(fovDetec);
                     map.put(pt, fovHandler);

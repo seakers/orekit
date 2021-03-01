@@ -24,6 +24,7 @@ import org.hipparchus.util.FastMath;
 import org.orekit.errors.OrekitException;
 import org.orekit.frames.Frame;
 import org.orekit.frames.TopocentricFrame;
+import org.orekit.geometry.fov.CircularFieldOfView;
 import org.orekit.orbits.KeplerianOrbit;
 import org.orekit.orbits.Orbit;
 import org.orekit.orbits.PositionAngle;
@@ -34,6 +35,7 @@ import seakers.orekit.coverage.access.TimeIntervalArray;
 import seakers.orekit.event.FieldOfViewEventAnalysis;
 import seakers.orekit.object.CoverageDefinition;
 import seakers.orekit.object.CoveragePoint;
+import seakers.orekit.object.Instrument;
 import seakers.orekit.object.Satellite;
 import seakers.orekit.parallel.ParallelRoutine;
 import seakers.orekit.parallel.SubRoutine;
@@ -101,6 +103,13 @@ public class FastCoverageAnalysis extends FieldOfViewEventAnalysis {
                             getEndDate().durationFrom(getStartDate()) / 86400.));
 
             for (Satellite sat : getUniqueSatellites(cdef)) {
+                sat.getPayload().add(
+                        new Instrument(
+                                "filler",
+                                new CircularFieldOfView(Vector3D.PLUS_K, halfAngle, 0.),
+                                0.,
+                                0.)
+                );
                 KeplerianOrbit orb = new KeplerianOrbit(sat.getOrbit());
                 double losTimeStep = orb.getKeplerianPeriod() / 10;
                 double fovTimeStep = orb.getKeplerianPeriod() / 500;
@@ -118,7 +127,7 @@ public class FastCoverageAnalysis extends FieldOfViewEventAnalysis {
                     Task subRoutine = (Task)sr;
                     
                     Satellite sat = subRoutine.getSat();
-                    HashMap<TopocentricFrame, TimeIntervalArray> satAccesses = subRoutine.getSatAccesses();
+                    HashMap<Instrument, HashMap<TopocentricFrame, TimeIntervalArray>> satAccesses = subRoutine.getSatAccesses();
                     processAccesses(sat, cdef, satAccesses);
                 }
             } catch (InterruptedException ex) {
@@ -239,7 +248,7 @@ public class FastCoverageAnalysis extends FieldOfViewEventAnalysis {
          * The times, for each point, when it is being accessed by the given
          * satellite and its payload.
          */
-        private final HashMap<TopocentricFrame, TimeIntervalArray> satAccesses;
+        private final HashMap<Instrument, HashMap<TopocentricFrame, TimeIntervalArray>> satAccesses;
 
         /**
          *
@@ -260,8 +269,11 @@ public class FastCoverageAnalysis extends FieldOfViewEventAnalysis {
             this.fovStepSize = fovStepSize;
 
             this.satAccesses = new HashMap<>(cdef.getNumberOfPoints());
-            for (CoveragePoint pt : cdef.getPoints()) {
-                satAccesses.put(pt, getEmptyTimeArray());
+            for (Instrument inst: this.sat.getPayload()) {
+                satAccesses.put(inst, new HashMap<>(cdef.getNumberOfPoints()));
+                for (CoveragePoint pt : cdef.getPoints()) {
+                    satAccesses.get(inst).put(pt, getEmptyTimeArray());
+                }
             }
         }
 
@@ -271,6 +283,7 @@ public class FastCoverageAnalysis extends FieldOfViewEventAnalysis {
             KeplerianOrbit orb = new KeplerianOrbit(sat.getOrbit());
             Logger.getGlobal().finer(String.format("Propagating satellite %s...", sat));
             //identify accesses and create time interval array for each coverage point
+            satAccesses.put(sat.getPayload().get(0), new HashMap<>());
             for (CoveragePoint pt : cdef.getPoints()) {
                 if (!lineOfSightPotential(pt, orb, FastMath.toRadians(2.0))) {
                     //if a point is not within 2 deg latitude of what is accessible to the satellite via line of sight, don't compute the accesses
@@ -346,7 +359,7 @@ public class FastCoverageAnalysis extends FieldOfViewEventAnalysis {
                         date1 = Double.NaN;
                     }
                 }
-                satAccesses.put(pt, array);
+                satAccesses.get(sat.getPayload().get(0)).put(pt, array);
             }
             return this;
         }
@@ -355,7 +368,7 @@ public class FastCoverageAnalysis extends FieldOfViewEventAnalysis {
             return sat;
         }
 
-        public HashMap<TopocentricFrame, TimeIntervalArray> getSatAccesses() {
+        public HashMap<Instrument, HashMap<TopocentricFrame, TimeIntervalArray>>  getSatAccesses() {
             return satAccesses;
         }
 

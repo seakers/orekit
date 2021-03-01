@@ -12,6 +12,9 @@ import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.hipparchus.geometry.euclidean.threed.Vector3D;
+import org.orekit.bodies.BodyShape;
+import org.orekit.bodies.OneAxisEllipsoid;
+import org.orekit.utils.IERSConventions;
 import seakers.orekit.analysis.Analysis;
 import seakers.orekit.constellations.Walker;
 import seakers.orekit.object.Instrument;
@@ -67,6 +70,9 @@ public class PositionVectorExample {
         //define the scenario parameters
         double mu = Constants.WGS84_EARTH_MU; // gravitation coefficient
         Frame inertialFrame = FramesFactory.getEME2000();
+        Frame earthFrame = FramesFactory.getITRF(IERSConventions.IERS_2003, true);
+        BodyShape earthShape = new OneAxisEllipsoid(Constants.WGS84_EARTH_EQUATORIAL_RADIUS,
+                Constants.WGS84_EARTH_FLATTENING, earthFrame);
 
         //Enter satellite orbital parameters
         double a = Constants.WGS84_EARTH_EQUATORIAL_RADIUS + 600000;
@@ -74,7 +80,7 @@ public class PositionVectorExample {
 
         //Create a walker constellation
         ArrayList<Instrument> payload = new ArrayList<>();
-        Walker walker = new Walker("walker1", payload, a, i, 2, 1, 0, inertialFrame, startDate, mu);
+        Walker walker = new Walker("walker1", payload, a, i, 2, 1, 0, inertialFrame, earthShape, startDate, mu);
 
         //set parameters for numerical propagator
         Properties propertiesPropagator = new Properties();
