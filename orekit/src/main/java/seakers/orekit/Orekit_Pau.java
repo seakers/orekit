@@ -270,7 +270,7 @@ public class Orekit_Pau {
         //set the event analyses
         ArrayList<EventAnalysis> eventanalyses2 = new ArrayList<>();
         FieldOfViewAndGndStationEventAnalysis Event2 = new FieldOfViewAndGndStationEventAnalysis(startDate, endDate,
-            inertialFrame, covDefs, stationAssignment,pf, true, false);
+            inertialFrame, covDefs, stationAssignment,pf, true, false, false);
         eventanalyses2.add(Event2);
         Scenario scen2 = new Scenario.Builder(startDate, endDate, utc).
                 eventAnalysis(eventanalyses2).analysis(analyses).

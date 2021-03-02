@@ -50,7 +50,7 @@ public class LatencyGroundEventAnalyzer implements Serializable {
     private final AbsoluteDate endDate;
     
     /**
-     * True if saellites communicate with each other, false otherwise.
+     * True if satellites communicate with each other, false otherwise.
      */
     private final boolean allowCrossLinks;
 

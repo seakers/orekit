@@ -83,11 +83,15 @@ public class FieldOfViewAndGndStationEventAnalysis extends AbstractGroundEventAn
      * Stores all the accesses of each satellite if saveAllAccesses is true.
      */
     private HashMap<CoverageDefinition, HashMap<Satellite, HashMap<TopocentricFrame, TimeIntervalArray>>> allAccesses;
-    
+    private HashMap<CoverageDefinition, HashMap<Satellite, HashMap<Instrument, HashMap<TopocentricFrame, TimeIntervalArray>>>> allAccessesInst;
+
+
     /**
      * Stores all the accesses of each satellite if saveAllAccesses is true.
      */
     private final HashMap<Satellite, HashMap<GndStation, TimeIntervalArray>> allAccessesGS;
+
+    private final boolean saveIns;
 
     /**
      * Creates a new event analysis.
@@ -107,19 +111,22 @@ public class FieldOfViewAndGndStationEventAnalysis extends AbstractGroundEventAn
      */
     public FieldOfViewAndGndStationEventAnalysis(AbsoluteDate startDate, AbsoluteDate endDate,
             Frame inertialFrame, Set<CoverageDefinition> covDefs, Map<Satellite, Set<GndStation>> stationAssignment,
-            PropagatorFactory propagatorFactory, boolean saveAllAccesses, boolean saveToDB) {
+            PropagatorFactory propagatorFactory, boolean saveAllAccesses, boolean saveToDB, boolean saveIns) {
         super(startDate, endDate, inertialFrame, covDefs);
         this.propagatorFactory = propagatorFactory;
         this.saveAllAccesses = saveAllAccesses;
         if (saveAllAccesses) {
             this.allAccesses = new HashMap<>();
+            this.allAccessesInst = new HashMap<>();
             for (CoverageDefinition cdef : covDefs) {
                 allAccesses.put(cdef, new HashMap<>());
+                allAccessesInst.put(cdef, new HashMap<>());
             }
         }
         this.allAccessesGS = new HashMap<>();
         this.stationAssignment = stationAssignment;
         this.saveToDB = saveToDB;
+        this.saveIns = saveIns;
     }
 
     /**
@@ -178,7 +185,12 @@ public class FieldOfViewAndGndStationEventAnalysis extends AbstractGroundEventAn
                     processAccesses(sat, cdef, satAccesses);
                     HashMap<GndStation, TimeIntervalArray> satAccessesGS = subr.getSatAccessesGS();
                     processAccessesGS(sat, satAccessesGS);
-                    
+
+                    if(saveIns){
+                        HashMap<Instrument, HashMap<TopocentricFrame, TimeIntervalArray>> satAccessesIns = subr.getSatInsAccesses();
+                        processInstrumentAccesses(sat, cdef, satAccessesIns);
+                    }
+
                     if (saveToDB) {
                         File file = new File(
                                 System.getProperty("orekit.coveragedatabase"),
@@ -233,6 +245,35 @@ public class FieldOfViewAndGndStationEventAnalysis extends AbstractGroundEventAn
         } else {
             getEvents().put(cdef, satAccesses);
         }
+    }
+
+    /**
+     * Saves the computed accesses from the satellite assigned to the coverage
+     * definition and specifies which instrument was used in the access.
+     *
+     * @param sat the satellite
+     * @param cdef the coverage definition that the satellite is assigned to
+     * @param satAccessesIns the accesses computed for the satellite to its
+     * assigned coverage definition
+     */
+    protected void processInstrumentAccesses(Satellite sat, CoverageDefinition cdef,
+                                   HashMap<Instrument, HashMap<TopocentricFrame, TimeIntervalArray>> satAccessesIns) {
+        //save the satellite accesses
+        if (saveAllAccesses) {
+            this.allAccessesInst.get(cdef).put(sat, new HashMap<>());
+            for(Instrument inst : sat.getPayload()) {
+                this.allAccessesInst.get(cdef).put(sat, satAccessesIns);
+            }
+        }
+
+//        //merge the time accesses across all satellite for each coverage definition
+//        if (getEvents().containsKey(cdef)) {
+//            Map<TopocentricFrame, TimeIntervalArray> mergedAccesses
+//                    = EventIntervalMerger.merge(getEvents().get(cdef), satAccesses, false);
+//            getEvents().put(cdef, mergedAccesses);
+//        } else {
+//            getEvents().put(cdef, satAccesses);
+//        }
     }
     
     /**
@@ -315,6 +356,16 @@ public class FieldOfViewAndGndStationEventAnalysis extends AbstractGroundEventAn
      */
     public HashMap<CoverageDefinition, HashMap<Satellite, HashMap<TopocentricFrame, TimeIntervalArray>>> getAllAccesses() {
         return allAccesses;
+    }
+
+    /**
+     * Returns the computed accesses for each coverage definition by each of the
+     * satellites assigned to that coverage definition separated by instrument used to calculate coverage
+     *
+     * @return
+     */
+    public HashMap<CoverageDefinition, HashMap<Satellite, HashMap<Instrument, HashMap<TopocentricFrame, TimeIntervalArray>>>> getAllAccessesInst() {
+        return allAccessesInst;
     }
     
         /**
@@ -475,6 +526,7 @@ public class FieldOfViewAndGndStationEventAnalysis extends AbstractGroundEventAn
          * satellite and its payload.
          */
         private final HashMap<TopocentricFrame, TimeIntervalArray> satAccesses;
+        private final HashMap<Instrument, HashMap<TopocentricFrame, TimeIntervalArray>> satAccessesIns;
         
         /**
          * The times, for each ground station, when it is being accessed by the
@@ -507,6 +559,13 @@ public class FieldOfViewAndGndStationEventAnalysis extends AbstractGroundEventAn
             this.satAccesses = new HashMap<>(cdef.getNumberOfPoints());
             for (CoveragePoint pt : cdef.getPoints()) {
                 satAccesses.put(pt, getEmptyTimeArray());
+            }
+            this.satAccessesIns = new HashMap<>(sat.getPayload().size());
+            for(Instrument inst : sat.getPayload()){
+                satAccessesIns.put(inst, new HashMap<>());
+                for (CoveragePoint pt : cdef.getPoints()) {
+                    satAccessesIns.get(inst).put(pt, getEmptyTimeArray());
+                }
             }
             
             this.accessesGS = new HashMap<>(stations.size());
@@ -602,6 +661,9 @@ public class FieldOfViewAndGndStationEventAnalysis extends AbstractGroundEventAn
 
                 }
                 prop.propagate(getStartDate(), getEndDate());
+
+//                HashMap<Instrument, HashMap<TopocentricFrame, TimeIntervalArray>> satAccesesIns
+
                 for (CoveragePoint pt : map.keySet()) {
                     TimeIntervalArray fovTimeArray = map.get(pt).getTimeArray().createImmutable();
                     if (fovTimeArray == null || fovTimeArray.isEmpty()) {
@@ -609,6 +671,11 @@ public class FieldOfViewAndGndStationEventAnalysis extends AbstractGroundEventAn
                     }
                     TimeIntervalMerger merger = new TimeIntervalMerger(satAccesses.get(pt), fovTimeArray);
                     satAccesses.put(pt, merger.orCombine());
+
+                    if(saveIns) {
+                        TimeIntervalMerger mergerInst = new TimeIntervalMerger(satAccessesIns.get(inst).get(pt), fovTimeArray);
+                        satAccessesIns.get(inst).put(pt, mergerInst.orCombine());
+                    }
                 }
                 for (GndStation station : mapGS.keySet()) {
                     TimeIntervalArray gndTimeArray = mapGS.get(station).getTimeIntervalArray();
@@ -628,6 +695,10 @@ public class FieldOfViewAndGndStationEventAnalysis extends AbstractGroundEventAn
 
         public HashMap<TopocentricFrame, TimeIntervalArray> getSatAccesses() {
             return satAccesses;
+        }
+
+        public HashMap<Instrument, HashMap<TopocentricFrame, TimeIntervalArray>> getSatInsAccesses() {
+            return satAccessesIns;
         }
         
         public HashMap<GndStation, TimeIntervalArray> getSatAccessesGS() {

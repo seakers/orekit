@@ -21,10 +21,10 @@ import org.orekit.data.DataContext;
 import org.orekit.data.DataProvidersManager;
 import org.orekit.data.DirectoryCrawler;
 import seakers.orekit.analysis.Analysis;
+import seakers.orekit.coverage.access.TimeIntervalArray;
+import seakers.orekit.coverage.analysis.LatencyGroundEventAnalyzer;
 import seakers.orekit.event.*;
-import seakers.orekit.object.CoverageDefinition;
-import seakers.orekit.object.Instrument;
-import seakers.orekit.object.Satellite;
+import seakers.orekit.object.*;
 import seakers.orekit.object.fieldofview.NadirSimpleConicalFOV;
 import seakers.orekit.object.fieldofview.OffNadirRectangularFOV;
 import seakers.orekit.propagation.PropagatorFactory;
@@ -52,10 +52,9 @@ import org.orekit.utils.Constants;
 import org.orekit.utils.IERSConventions;
 import seakers.orekit.coverage.analysis.AnalysisMetric;
 import seakers.orekit.coverage.analysis.GroundEventAnalyzer;
-import seakers.orekit.object.Constellation;
+
 import static seakers.orekit.object.CoverageDefinition.GridStyle.EQUAL_AREA;
-import seakers.orekit.object.CommunicationBand;
-import seakers.orekit.object.GndStation;
+
 import seakers.orekit.object.communications.ReceiverAntenna;
 import seakers.orekit.object.communications.TransmitterAntenna;
 import seakers.orekit.object.fieldofview.NadirRectangularFOV;
@@ -118,11 +117,17 @@ public class Orekit_Alan {
         //define instruments
 //        NadirSimpleConicalFOV fov = new NadirSimpleConicalFOV(FastMath.toRadians(45), earthShape);
 //        NadirRectangularFOV fov = new NadirRectangularFOV(FastMath.toRadians(57), FastMath.toRadians(20), 0, earthShape);
-        OffNadirRectangularFOV fov = new OffNadirRectangularFOV(FastMath.toRadians(70),
+        OffNadirRectangularFOV fov1 = new OffNadirRectangularFOV(FastMath.toRadians(35),
                 FastMath.toRadians(2),FastMath.toRadians(2),0,earthShape);
+        OffNadirRectangularFOV fov2 = new OffNadirRectangularFOV(FastMath.toRadians(-35),
+                FastMath.toRadians(2),FastMath.toRadians(2),0,earthShape);
+
+        Instrument view1 = new Instrument("view1", fov1, 100, 100);
+        Instrument view2 = new Instrument("view2", fov2, 100, 100);
+
         ArrayList<Instrument> payload = new ArrayList<>();
-        Instrument view1 = new Instrument("view1", fov, 100, 100);
         payload.add(view1);
+        payload.add(view2);
 
 //        //number of total satellites
 //        int t=10;
@@ -191,9 +196,6 @@ public class Orekit_Alan {
 
         PropagatorFactory pf = new PropagatorFactory(PropagatorType.KEPLERIAN,propertiesPropagator);
         PropagatorFactory pfJ2 = new PropagatorFactory(PropagatorType.J2,propertiesPropagator);
-        ArrayList<PropagatorFactory> pfs = new ArrayList<>(); pfs.add(pf); pfs.add(pfJ2);
-        //PropagatorFactory pf = new PropagatorFactory(PropagatorType.J2MODIFIED,propertiesPropagator);
-        //PropagatorFactory pf = new PropagatorFactory(PropagatorType.NUMERICAL,propertiesPropagator);
 
         Properties propertiesEventAnalysis = new Properties();
         propertiesEventAnalysis.setProperty("fov.numThreads", "4");
@@ -245,21 +247,21 @@ public class Orekit_Alan {
                 eventAnalysis(eventAnalyses1).analysis(analyses).
                 covDefs(covDefs).name("CrossLinks_trial").properties(propertiesEventAnalysis).
                 propagatorFactory(pf).build();
-        try {
-            long start1 = System.nanoTime();
-            scen1.call();
-            long end1 = System.nanoTime();
-            Logger.getGlobal().finest(String.format("Took %.4f sec", (end1 - start1) / Math.pow(10, 9)));
-
-        } catch (Exception ex) {
-            Logger.getLogger(Orekit_Pau.class.getName()).log(Level.SEVERE, null, ex);
-            throw new IllegalStateException("scenario failed to complete.");
-        }
+//        try {
+//        long start1 = System.nanoTime();
+//            scen1.call();
+//            long end1 = System.nanoTime();
+//            Logger.getGlobal().finest(String.format("Took %.4f sec", (end1 - start1) / Math.pow(10, 9)));
+//
+//        } catch (Exception ex) {
+//            Logger.getLogger(Orekit_Pau.class.getName()).log(Level.SEVERE, null, ex);
+//            throw new IllegalStateException("scenario failed to complete.");
+//        }
 
         //set the event analyses
         ArrayList<EventAnalysis> eventanalyses2 = new ArrayList<>();
         FieldOfViewAndGndStationEventAnalysis Event2 = new FieldOfViewAndGndStationEventAnalysis(startDate, endDate,
-                inertialFrame, covDefs, stationAssignment,pf, true, false);
+                inertialFrame, covDefs, stationAssignment,pf, true, false, true);
         eventanalyses2.add(Event2);
         Scenario scen2 = new Scenario.Builder(startDate, endDate, utc).
                 eventAnalysis(eventanalyses2).analysis(analyses).
@@ -276,28 +278,41 @@ public class Orekit_Alan {
             throw new IllegalStateException("scenario failed to complete.");
         }
 
+        HashMap<CoverageDefinition, HashMap<Satellite, HashMap<TopocentricFrame, TimeIntervalArray>>> access =  ((FieldOfViewAndGndStationEventAnalysis) ( (ArrayList) scen2.getEventAnalyses()).get(0)).getAllAccesses();
+
+        for(CoverageDefinition cdef : covDefs){
+            HashMap<TopocentricFrame, TimeIntervalArray> cov = access.get(cdef).get(sat1);
+            for(TopocentricFrame frame : cov.keySet()){
+                TimeIntervalArray interval = cov.get(frame);
+                if(!interval.isEmpty()){
+                    int x = 1;
+                }
+            }
+        }
+
         Logger.getGlobal().finer(String.format("Done Running Scenario %s", scen2));
 
 //        //without crosslinks
-//        LatencyGroundEventAnalyzer latencyAnalyzer=new LatencyGroundEventAnalyzer(Event2.getAllAccesses().get(covDef1),Event2.getAllAccessesGS(),false);
-//        DescriptiveStatistics latencyStats = latencyAnalyzer.getStatistics(new double[]{FastMath.toRadians(-30), FastMath.toRadians(30)}, new double[]{-Math.PI, Math.PI});
-//        System.out.println("Without crosslinks:");
-//        System.out.println(String.format("Max latency time %s mins", latencyStats.getMax()/60));
-//        System.out.println(String.format("Mean latency time %s mins", latencyStats.getMean()/60));
-//        System.out.println(String.format("Min latency time %s mins", latencyStats.getMin()/60));
-//        System.out.println(String.format("50th latency time %s mins", latencyStats.getPercentile(50)/60));
-//        System.out.println(String.format("80th latency time %s mins", latencyStats.getPercentile(80)/60));
-//        System.out.println(String.format("90th latency time %s mins", latencyStats.getPercentile(90)/60));
-//        //with crosslinks
-//        LatencyGroundEventAnalyzer latencyAnalyzer2=new LatencyGroundEventAnalyzer(Event2.getAllAccesses().get(covDef1),Event2.getAllAccessesGS(),true);
-//        DescriptiveStatistics latencyStats2 = latencyAnalyzer2.getStatistics(new double[]{FastMath.toRadians(-30), FastMath.toRadians(30)}, new double[]{-Math.PI, Math.PI});
-//       System.out.println("With crosslinks:");
-//        System.out.println(String.format("Max latency time %s mins", latencyStats2.getMax()/60));
-//        System.out.println(String.format("Mean latency time %s mins", latencyStats2.getMean()/60));
-//        System.out.println(String.format("Min latency time %s mins", latencyStats2.getMin()/60));
-//        System.out.println(String.format("50th latency time %s mins", latencyStats2.getPercentile(50)/60));
-//        System.out.println(String.format("80th latency time %s mins", latencyStats2.getPercentile(80)/60));
-//        System.out.println(String.format("90th latency time %s mins", latencyStats2.getPercentile(90)/60));
+        LatencyGroundEventAnalyzer latencyAnalyzer=new LatencyGroundEventAnalyzer(Event2.getAllAccesses().get(covDef1),Event2.getAllAccessesGS(),false);
+        DescriptiveStatistics latencyStats = latencyAnalyzer.getStatistics(new double[]{FastMath.toRadians(-30), FastMath.toRadians(30)}, new double[]{-Math.PI, Math.PI});
+        System.out.println("Without crosslinks:");
+        System.out.println(String.format("Max latency time %s mins", latencyStats.getMax()/60));
+        System.out.println(String.format("Mean latency time %s mins", latencyStats.getMean()/60));
+        System.out.println(String.format("Min latency time %s mins", latencyStats.getMin()/60));
+        System.out.println(String.format("50th latency time %s mins", latencyStats.getPercentile(50)/60));
+        System.out.println(String.format("80th latency time %s mins", latencyStats.getPercentile(80)/60));
+        System.out.println(String.format("90th latency time %s mins", latencyStats.getPercentile(90)/60));
+
+        //with crosslinks
+        LatencyGroundEventAnalyzer latencyAnalyzer2=new LatencyGroundEventAnalyzer(Event2.getAllAccesses().get(covDef1),Event2.getAllAccessesGS(),true);
+        DescriptiveStatistics latencyStats2 = latencyAnalyzer2.getStatistics(new double[]{FastMath.toRadians(-30), FastMath.toRadians(30)}, new double[]{-Math.PI, Math.PI});
+       System.out.println("With crosslinks:");
+        System.out.println(String.format("Max latency time %s mins", latencyStats2.getMax()/60));
+        System.out.println(String.format("Mean latency time %s mins", latencyStats2.getMean()/60));
+        System.out.println(String.format("Min latency time %s mins", latencyStats2.getMin()/60));
+        System.out.println(String.format("50th latency time %s mins", latencyStats2.getPercentile(50)/60));
+        System.out.println(String.format("80th latency time %s mins", latencyStats2.getPercentile(80)/60));
+        System.out.println(String.format("90th latency time %s mins", latencyStats2.getPercentile(90)/60));
 
 
 //        Properties props=new Properties();
