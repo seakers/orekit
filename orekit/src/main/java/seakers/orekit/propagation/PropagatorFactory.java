@@ -12,6 +12,8 @@ import org.hipparchus.ode.nonstiff.DormandPrince853Integrator;
 import org.orekit.attitudes.AttitudeProvider;
 import org.orekit.bodies.CelestialBodyFactory;
 import org.orekit.bodies.OneAxisEllipsoid;
+import org.orekit.data.DataContext;
+import org.orekit.data.DataProvidersManager;
 import org.orekit.errors.OrekitException;
 import org.orekit.forces.drag.DragForce;
 import org.orekit.forces.drag.DragSensitive;
@@ -105,10 +107,10 @@ public class PropagatorFactory {
 
                 //set integrator steps and tolerances
                 final double dP = 0.001;
-                final double minStep = 0.00000001;
+                final double minStep = 0.00001;
                 final double maxStep = 1000;
                 final double initStep = 60;
-                final double[][] tolerance = NumericalPropagator.tolerances(dP, orbit, OrbitType.EQUINOCTIAL);
+                final double[][] tolerance = NumericalPropagator.tolerances(dP, orbit, orbit.getType());
                 double[] absTolerance = tolerance[0];
                 double[] relTolerance = tolerance[1];
 
@@ -218,11 +220,12 @@ public class PropagatorFactory {
             double dragArea = Double.parseDouble(properties.getProperty("orekit.propagator.dragarea", "10"));
             double dragCoeff = Double.parseDouble(properties.getProperty("orekit.propagator.dragcoeff", "2.2"));
 
-            String supportedNames = "(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\\p{Digit}\\p{Digit}\\p{Digit}\\p{Digit}F10\\.(?:txt|TXT)";
-            MarshallSolarActivityFutureEstimation.StrengthLevel strengthlevel = MarshallSolarActivityFutureEstimation.StrengthLevel.AVERAGE;
-            DTM2000InputParameters parameters = new MarshallSolarActivityFutureEstimation(supportedNames, strengthlevel);
-
-            Atmosphere atmosphere = new DTM2000(parameters, CelestialBodyFactory.getSun(), earth);
+            MarshallSolarActivityFutureEstimation msafe =
+                            new MarshallSolarActivityFutureEstimation(MarshallSolarActivityFutureEstimation.DEFAULT_SUPPORTED_NAMES,
+                                                                      MarshallSolarActivityFutureEstimation.StrengthLevel.AVERAGE);
+            final DataProvidersManager manager = DataContext.getDefault().getDataProvidersManager();
+            manager.feed(msafe.getSupportedNames(), msafe);
+            Atmosphere atmosphere = new DTM2000(msafe, CelestialBodyFactory.getSun(), earth);
             DragSensitive spacecraft = new IsotropicDrag(dragArea, dragCoeff);
             prop.addForceModel(new DragForce(atmosphere, spacecraft));
         }
