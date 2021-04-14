@@ -6,6 +6,7 @@
 package seakers.orekit;
 
 import java.io.File;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -20,6 +21,7 @@ import org.orekit.data.DataContext;
 import org.orekit.data.DataProvidersManager;
 import org.orekit.data.DirectoryCrawler;
 import seakers.orekit.analysis.Analysis;
+import seakers.orekit.analysis.ephemeris.OrbitalElementsAnalysis;
 import seakers.orekit.event.*;
 import seakers.orekit.object.CoverageDefinition;
 import seakers.orekit.object.Instrument;
@@ -27,6 +29,7 @@ import seakers.orekit.object.Satellite;
 import seakers.orekit.propagation.PropagatorFactory;
 import seakers.orekit.propagation.PropagatorType;
 import seakers.orekit.scenario.Scenario;
+import seakers.orekit.scenario.ScenarioIO;
 import seakers.orekit.util.OrekitConfig;
 import org.hipparchus.stat.descriptive.DescriptiveStatistics;
 import org.hipparchus.util.FastMath;
@@ -243,7 +246,7 @@ public class Orekit_Pau {
 //        double analysisTimeStep = 60;
         ArrayList<Analysis<?>> analyses = new ArrayList<>();
 //        for (Satellite sat : walker.getSatellites()) {
-//            analyses.add(new OrbitalElementsAnalysis(startDate, endDate, analysisTimeStep, sat, pf));
+//            analyses.add(new OrbitalElementsAnalysis(startDate, endDate, 0.1, sat, pf));
 //        }
         
         Scenario scen = new Scenario.Builder(startDate, endDate, utc).
@@ -374,11 +377,11 @@ public class Orekit_Pau {
 //        ScenarioIO.saveReadMe(Paths.get(path, ""), filename, scenComp);
         
 
-//        for (Analysis<?> analysis : analyses) {
-//            ScenarioIO.saveAnalysis(Paths.get(System.getProperty("results"), ""),
-//                    String.format("%s_%s",scen.toString(),analysis.getName()), analysis);
-//        }
-//        long end = System.nanoTime();
+        for (Analysis<?> analysis : analyses) {
+            ScenarioIO.saveAnalysis(Paths.get(System.getProperty("results"), ""),
+                    String.format("%s_%s",scen.toString(),analysis.getName()), analysis);
+        }
+        long end = System.nanoTime();
 //        Logger.getGlobal().finest(String.format("Took %.4f sec", (end - start) / Math.pow(10, 9)));
 //        
         OrekitConfig.end();

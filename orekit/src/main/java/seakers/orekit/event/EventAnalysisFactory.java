@@ -16,6 +16,7 @@ import org.orekit.bodies.CelestialBodyFactory;
 import org.orekit.errors.OrekitException;
 import org.orekit.frames.Frame;
 import org.orekit.time.AbsoluteDate;
+import seakers.orekit.object.Constellation;
 import seakers.orekit.object.CoverageDefinition;
 import seakers.orekit.object.GndStation;
 import seakers.orekit.object.Satellite;
@@ -143,6 +144,22 @@ public class EventAnalysisFactory {
             case ACCESS:
                 ea = new GndStationEventAnalysis(startDate, endDate, inertialFrame,
                         stationAssignment, propagatorFactory);
+                break;
+            default:
+                throw new UnsupportedOperationException(
+                        String.format("Analysis type %s is unsupported.", type));
+        }
+
+        return ea;
+    }
+
+    public EventAnalysis createReflectionAnalysis(EventAnalysisEnum type,
+                                                  Constellation rxConstel, Constellation txConstel, Set<CoverageDefinition> covDefs, Properties prop) {
+        EventAnalysis ea = null;
+
+        switch (type) {
+            case REFLECTOR:
+                ea = new ReflectionEventAnalysis(startDate, endDate, inertialFrame, rxConstel, txConstel, covDefs, propagatorFactory, false, false);
                 break;
             default:
                 throw new UnsupportedOperationException(

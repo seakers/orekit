@@ -5,14 +5,11 @@
  */
 package seakers.orekit;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Locale;
-import java.util.Properties;
-import java.util.Set;
+import java.util.*;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -53,6 +50,8 @@ import org.orekit.utils.IERSConventions;
 import seakers.orekit.coverage.analysis.AnalysisMetric;
 import seakers.orekit.coverage.analysis.GroundEventAnalyzer;
 
+import static java.lang.Double.parseDouble;
+import static java.lang.Integer.parseInt;
 import static seakers.orekit.object.CoverageDefinition.GridStyle.EQUAL_AREA;
 
 import seakers.orekit.object.communications.ReceiverAntenna;
@@ -71,6 +70,9 @@ public class Orekit_Alan {
      * @throws org.orekit.errors.OrekitException
      */
     public static void main(String[] args) throws OrekitException {
+        //initializes the look up tables for planteary position (required!)
+        OrekitConfig.init(4);
+
         //if running on a non-US machine, need the line below
         Locale.setDefault(new Locale("en", "US"));
 
@@ -85,7 +87,6 @@ public class Orekit_Alan {
             filename = "tropics";
         }
 
-        OrekitConfig.init(4);
         //setup logger
         Level level = Level.FINER;
         Logger.getGlobal().setLevel(level);
@@ -119,8 +120,8 @@ public class Orekit_Alan {
 //        NadirRectangularFOV fov = new NadirRectangularFOV(FastMath.toRadians(57), FastMath.toRadians(20), 0, earthShape);
         OffNadirRectangularFOV fov1 = new OffNadirRectangularFOV(FastMath.toRadians(35),
                 FastMath.toRadians(2),FastMath.toRadians(2),0,earthShape);
-        OffNadirRectangularFOV fov2 = new OffNadirRectangularFOV(FastMath.toRadians(-35),
-                FastMath.toRadians(2),FastMath.toRadians(2),0,earthShape);
+        OffNadirRectangularFOV fov2 = new OffNadirRectangularFOV(FastMath.toRadians(35),
+                FastMath.toRadians(20),FastMath.toRadians(2),0,earthShape);
 
         Instrument view1 = new Instrument("view1", fov1, 100, 100);
         Instrument view2 = new Instrument("view2", fov2, 100, 100);
@@ -172,7 +173,45 @@ public class Orekit_Alan {
         Constellation constel = new Constellation ("TestAlan",satellites);
         Constellation constel2 = new Constellation ("TestAlan",satellites2);
 
-        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", 9, earthShape, EQUAL_AREA);
+// Set Coverage Definition
+        List<List<String>> records = new ArrayList<>();
+        try (BufferedReader br = new BufferedReader(new FileReader("./CoverageDatabase/CoverageDefinition1_Grid_Point_Information.csv"))) { // CHANGE THIS FOR YOUR IMPLEMENTATION
+            String line;
+            while ((line = br.readLine()) != null) {
+                String[] values = line.split(",");
+                records.add(Arrays.asList(values));
+            }
+        }
+        catch (Exception err) {
+            System.out.println(err);
+        }
+
+//        System.out.println(records.size());
+
+        ArrayList<CoveragePoint> points = new ArrayList<>();
+        for(int idx = 1; idx < records.size()-1; idx++) {
+//            System.out.println(idx);
+
+            int id = parseInt(records.get(idx).get(0));
+            double lat = parseDouble(records.get(idx).get(1));
+            double lon = parseDouble(records.get(idx).get(2));
+
+//            if(lon < 0){
+//                lon = 360 + lon;
+//            }
+
+            lat = Math.toRadians(lat);
+            lon = Math.toRadians(lon);
+            GeodeticPoint landPoint = new GeodeticPoint(lat,lon,0.0);
+            CoveragePoint point = new CoveragePoint(earthShape, landPoint, String.valueOf(id));
+
+            points.add(point);
+        }
+
+
+        //create a coverage definition
+        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", points);
+//        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", 9, earthShape, EQUAL_AREA);
 
         ArrayList<Constellation> constellations = new ArrayList<>();
         constellations.add(constel);
@@ -204,8 +243,6 @@ public class Orekit_Alan {
 
         //set the event analyses
         EventAnalysisFactory eaf = new EventAnalysisFactory(startDate, endDate, inertialFrame, pf);
-        ArrayList<EventAnalysis> eventanalyses = new ArrayList<>();
-        FieldOfViewEventAnalysis fovEvent = (FieldOfViewEventAnalysis) eaf.createGroundPointAnalysis(EventAnalysisEnum.FOV, covDefs, propertiesEventAnalysis);
 
         Set<GndStation> gndStations = new HashSet<>();
         TopocentricFrame wallopsTopo = new TopocentricFrame(earthShape, new GeodeticPoint(FastMath.toRadians(37.94019444), FastMath.toRadians(-75.46638889), 0.), "Wallops");
@@ -240,8 +277,9 @@ public class Orekit_Alan {
         //crosslink event analysis
         ArrayList<EventAnalysis> eventAnalyses1 = new ArrayList<>();
 
-        CrossLinkEventAnalysis Event1 = new CrossLinkEventAnalysis(startDate,endDate,inertialFrame,
-                                                                    constellations,pfJ2,true,false);
+        CrossLinkEventAnalysis Event1 =
+                new CrossLinkEventAnalysis(startDate,endDate,inertialFrame,
+                        constellations,pfJ2,true,false);
         eventAnalyses1.add(Event1);
         Scenario scen1 = new Scenario.Builder(startDate, endDate, utc).
                 eventAnalysis(eventAnalyses1).analysis(analyses).
@@ -260,8 +298,9 @@ public class Orekit_Alan {
 
         //set the event analyses
         ArrayList<EventAnalysis> eventanalyses2 = new ArrayList<>();
-        FieldOfViewAndGndStationEventAnalysis Event2 = new FieldOfViewAndGndStationEventAnalysis(startDate, endDate,
-                inertialFrame, covDefs, stationAssignment,pf, true, false, true);
+        FieldOfViewAndGndStationEventAnalysis Event2 = new FieldOfViewAndGndStationEventAnalysis(startDate, endDate, inertialFrame, covDefs, stationAssignment,pf, true, false, true);
+//        FieldOfViewEventAnalysis Event2 = (FieldOfViewEventAnalysis) eaf.createGroundPointAnalysis(EventAnalysisEnum.FOV, covDefs, propertiesEventAnalysis);
+
         eventanalyses2.add(Event2);
         Scenario scen2 = new Scenario.Builder(startDate, endDate, utc).
                 eventAnalysis(eventanalyses2).analysis(analyses).
@@ -293,26 +332,26 @@ public class Orekit_Alan {
         Logger.getGlobal().finer(String.format("Done Running Scenario %s", scen2));
 
 //        //without crosslinks
-        LatencyGroundEventAnalyzer latencyAnalyzer=new LatencyGroundEventAnalyzer(Event2.getAllAccesses().get(covDef1),Event2.getAllAccessesGS(),false);
-        DescriptiveStatistics latencyStats = latencyAnalyzer.getStatistics(new double[]{FastMath.toRadians(-30), FastMath.toRadians(30)}, new double[]{-Math.PI, Math.PI});
-        System.out.println("Without crosslinks:");
-        System.out.println(String.format("Max latency time %s mins", latencyStats.getMax()/60));
-        System.out.println(String.format("Mean latency time %s mins", latencyStats.getMean()/60));
-        System.out.println(String.format("Min latency time %s mins", latencyStats.getMin()/60));
-        System.out.println(String.format("50th latency time %s mins", latencyStats.getPercentile(50)/60));
-        System.out.println(String.format("80th latency time %s mins", latencyStats.getPercentile(80)/60));
-        System.out.println(String.format("90th latency time %s mins", latencyStats.getPercentile(90)/60));
-
-        //with crosslinks
-        LatencyGroundEventAnalyzer latencyAnalyzer2=new LatencyGroundEventAnalyzer(Event2.getAllAccesses().get(covDef1),Event2.getAllAccessesGS(),true);
-        DescriptiveStatistics latencyStats2 = latencyAnalyzer2.getStatistics(new double[]{FastMath.toRadians(-30), FastMath.toRadians(30)}, new double[]{-Math.PI, Math.PI});
-       System.out.println("With crosslinks:");
-        System.out.println(String.format("Max latency time %s mins", latencyStats2.getMax()/60));
-        System.out.println(String.format("Mean latency time %s mins", latencyStats2.getMean()/60));
-        System.out.println(String.format("Min latency time %s mins", latencyStats2.getMin()/60));
-        System.out.println(String.format("50th latency time %s mins", latencyStats2.getPercentile(50)/60));
-        System.out.println(String.format("80th latency time %s mins", latencyStats2.getPercentile(80)/60));
-        System.out.println(String.format("90th latency time %s mins", latencyStats2.getPercentile(90)/60));
+//        LatencyGroundEventAnalyzer latencyAnalyzer=new LatencyGroundEventAnalyzer(Event2.getAllAccesses().get(covDef1),Event2.getAllAccessesGS(),false);
+//        DescriptiveStatistics latencyStats = latencyAnalyzer.getStatistics(new double[]{FastMath.toRadians(-30), FastMath.toRadians(30)}, new double[]{-Math.PI, Math.PI});
+//        System.out.println("Without crosslinks:");
+//        System.out.println(String.format("Max latency time %s mins", latencyStats.getMax()/60));
+//        System.out.println(String.format("Mean latency time %s mins", latencyStats.getMean()/60));
+//        System.out.println(String.format("Min latency time %s mins", latencyStats.getMin()/60));
+//        System.out.println(String.format("50th latency time %s mins", latencyStats.getPercentile(50)/60));
+//        System.out.println(String.format("80th latency time %s mins", latencyStats.getPercentile(80)/60));
+//        System.out.println(String.format("90th latency time %s mins", latencyStats.getPercentile(90)/60));
+//
+//        //with crosslinks
+//        LatencyGroundEventAnalyzer latencyAnalyzer2=new LatencyGroundEventAnalyzer(Event2.getAllAccesses().get(covDef1),Event2.getAllAccessesGS(),true);
+//        DescriptiveStatistics latencyStats2 = latencyAnalyzer2.getStatistics(new double[]{FastMath.toRadians(-30), FastMath.toRadians(30)}, new double[]{-Math.PI, Math.PI});
+//       System.out.println("With crosslinks:");
+//        System.out.println(String.format("Max latency time %s mins", latencyStats2.getMax()/60));
+//        System.out.println(String.format("Mean latency time %s mins", latencyStats2.getMean()/60));
+//        System.out.println(String.format("Min latency time %s mins", latencyStats2.getMin()/60));
+//        System.out.println(String.format("50th latency time %s mins", latencyStats2.getPercentile(50)/60));
+//        System.out.println(String.format("80th latency time %s mins", latencyStats2.getPercentile(80)/60));
+//        System.out.println(String.format("90th latency time %s mins", latencyStats2.getPercentile(90)/60));
 
 
 //        Properties props=new Properties();
@@ -353,23 +392,23 @@ public class Orekit_Alan {
 //        System.out.println(String.format("80th gap time %s", gapStats.getPercentile(80)));
 //        System.out.println(String.format("90th gap time %s", gapStats.getPercentile(90)));
 
-        GroundEventAnalyzer ea2 = new GroundEventAnalyzer(Event2.getEventsGS());
-        DescriptiveStatistics accessStats2 = ea2.getStatistics(AnalysisMetric.DURATION, true,props);
-        DescriptiveStatistics gapStats2 = ea2.getStatistics(AnalysisMetric.DURATION, false,props);
-        System.out.println("---------------------------------");
-        System.out.println(String.format("Max access time %s", accessStats2.getMax()));
-        System.out.println(String.format("Mean access time %s", accessStats2.getMean()));
-        System.out.println(String.format("Min access time %s", accessStats2.getMin()));
-        System.out.println(String.format("50th access time %s", accessStats2.getPercentile(50)));
-        System.out.println(String.format("80th access time %s", accessStats2.getPercentile(80)));
-        System.out.println(String.format("90th access time %s", accessStats2.getPercentile(90)));
-
-        System.out.println(String.format("Max gap time %s", gapStats2.getMax()));
-        System.out.println(String.format("Mean gap time %s", gapStats2.getMean()));
-        System.out.println(String.format("Min gap time %s", gapStats2.getMin()));
-        System.out.println(String.format("50th gap time %s", gapStats2.getPercentile(50)));
-        System.out.println(String.format("80th gap time %s", gapStats2.getPercentile(80)));
-        System.out.println(String.format("90th gap time %s", gapStats2.getPercentile(90)));
+//        GroundEventAnalyzer ea2 = new GroundEventAnalyzer(Event2.getEvents());
+//        DescriptiveStatistics accessStats2 = ea2.getStatistics(AnalysisMetric.DURATION, true,props);
+//        DescriptiveStatistics gapStats2 = ea2.getStatistics(AnalysisMetric.DURATION, false,props);
+//        System.out.println("---------------------------------");
+//        System.out.println(String.format("Max access time %s", accessStats2.getMax()));
+//        System.out.println(String.format("Mean access time %s", accessStats2.getMean()));
+//        System.out.println(String.format("Min access time %s", accessStats2.getMin()));
+//        System.out.println(String.format("50th access time %s", accessStats2.getPercentile(50)));
+//        System.out.println(String.format("80th access time %s", accessStats2.getPercentile(80)));
+//        System.out.println(String.format("90th access time %s", accessStats2.getPercentile(90)));
+//
+//        System.out.println(String.format("Max gap time %s", gapStats2.getMax()));
+//        System.out.println(String.format("Mean gap time %s", gapStats2.getMean()));
+//        System.out.println(String.format("Min gap time %s", gapStats2.getMin()));
+//        System.out.println(String.format("50th gap time %s", gapStats2.getPercentile(50)));
+//        System.out.println(String.format("80th gap time %s", gapStats2.getPercentile(80)));
+//        System.out.println(String.format("90th gap time %s", gapStats2.getPercentile(90)));
 
 //         ScenarioIO.saveGroundEventAnalysis(Paths.get(System.getProperty("results"), ""), filename, scen1, covDef1, fovEvent);
 //        ScenarioIO.saveGroundEventAnalysisMetrics(Paths.get(System.getProperty("results"), ""), filename, scen1, covDef1, fovEvent);
@@ -385,6 +424,9 @@ public class Orekit_Alan {
 //        long end = System.nanoTime();
 //        Logger.getGlobal().finest(String.format("Took %.4f sec", (end - start) / Math.pow(10, 9)));
 //
+        ScenarioIO.saveGroundEventAnalysis(Paths.get(System.getProperty("results"), ""),
+                String.format("%s_%s",scen2.toString(),"coverage"), scen2, covDef1, Event2);
+
         OrekitConfig.end();
     }
 
