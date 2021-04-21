@@ -83,6 +83,8 @@ public class ReflectionDetector extends AbstractDetector<ReflectionDetector> {
         this.txConstel = txConstel;
         this.th_g = th_g;
         this.th_err = Math.acos( Math.pow( Math.cos(th_g/2) , 2) );
+        double x = Math.toDegrees(th_err);
+        int t = 1;
     }
 
     /**
@@ -173,18 +175,22 @@ public class ReflectionDetector extends AbstractDetector<ReflectionDetector> {
 
     private boolean checkCoplanar(SpacecraftState sRx, SpacecraftState sTx){
         AbsoluteDate date = sRx.getDate();
-        Vector3D rxPosInert = sRx.getPVCoordinates(inertialFrame).getPosition().normalize();
-        Vector3D txPosInert = sTx.getPVCoordinates(inertialFrame).getPosition().normalize();
-        Vector3D targetPosInert = target.getPVCoordinates(date,inertialFrame).getPosition().normalize();
+        Vector3D rxPosInert = sRx.getPVCoordinates(inertialFrame).getPosition();
+        Vector3D txPosInert = sTx.getPVCoordinates(inertialFrame).getPosition();
+        Vector3D targetPosInert = target.getPVCoordinates(date,inertialFrame).getPosition();
 
-        final double coplanar
-                = Math.abs(targetPosInert.normalize().dotProduct(txPosInert.crossProduct(rxPosInert)));
+        Vector3D planeN = rxPosInert.normalize().crossProduct(txPosInert.normalize()).normalize();
+        Vector3D targetPosPlane = targetPosInert.normalize()
+                .subtract( planeN.scalarMultiply(targetPosInert.normalize().dotProduct(planeN) / (planeN.getNorm() * planeN.getNorm())) )
+                .scalarMultiply(targetPosInert.getNorm());
+
+        final boolean coplanar = Vector3D.angle(targetPosInert.normalize(), targetPosPlane) < th_err;
         boolean inView = false;
-        if(coplanar < th_err) {
+        if(coplanar) {
             final Vector3D targetToTX
-                    = txPosInert.subtract(targetPosInert);
+                    = txPosInert.subtract(targetPosPlane);
             final Vector3D targetToRX
-                    = rxPosInert.subtract(targetPosInert);
+                    = rxPosInert.subtract(targetPosPlane);
             final double thetaRX
                     = Vector3D.angle(targetToRX,targetPosInert);
             final double thetaTX
@@ -197,6 +203,6 @@ public class ReflectionDetector extends AbstractDetector<ReflectionDetector> {
 //                System.out.println(date);
             }
         }
-        return inView;
+        return coplanar && inView;
     }
 }

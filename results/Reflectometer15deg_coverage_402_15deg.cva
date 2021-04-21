@@ -1521,7 +1521,8 @@ PointNumber:        251
 Lat:                -9.33483241776785e-01
 Lon:                -1.19264164971169e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.75437883257058e+06   1.75440613004955e+06
 
 PointNumber:        252
 Lat:                -8.98031538051623e-01
@@ -1539,7 +1540,8 @@ PointNumber:        254
 Lat:                -8.62579816873169e-01
 Lon:                -1.30261158211416e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+5.29199189501069e+05   5.29201264448342e+05
 
 PointNumber:        255
 Lat:                -8.62579816873169e-01
@@ -1557,7 +1559,8 @@ PointNumber:        257
 Lat:                -8.27128113148007e-01
 Lon:                -1.25152877942130e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.69079315086806e+06   1.69081125257544e+06
 
 PointNumber:        258
 Lat:                -8.27128113148007e-01
@@ -1575,13 +1578,15 @@ PointNumber:        260
 Lat:                -7.91676409422845e-01
 Lon:                -1.25152877942130e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+4.80590546452005e+05   4.80602939660353e+05
 
 PointNumber:        261
 Lat:                -7.91676409422845e-01
 Lon:                -1.20044597672845e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+3.53995596809355e+05   3.54000067694446e+05
 
 PointNumber:        262
 Lat:                -7.91676409422845e-01
@@ -1593,7 +1598,8 @@ PointNumber:        263
 Lat:                -7.56224688244390e-01
 Lon:                -1.23336601056042e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+2.32079956270791e+06   2.32080395849001e+06
 
 PointNumber:        264
 Lat:                -7.56224688244390e-01
@@ -1605,7 +1611,8 @@ PointNumber:        265
 Lat:                -7.56224688244390e-01
 Lon:                -1.14028177215186e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+2.06039064797822e+06   2.06040328514139e+06
 
 PointNumber:        266
 Lat:                -7.56224688244390e-01
@@ -1707,7 +1714,8 @@ PointNumber:        282
 Lat:                -6.49869559615612e-01
 Lon:                -1.13268306237429e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+7.39195310621930e+05   7.39200054001831e+05
 
 PointNumber:        283
 Lat:                -6.49869559615612e-01
@@ -1857,7 +1865,8 @@ PointNumber:        307
 Lat:                -5.78966152165288e-01
 Lon:                -1.00445478688111e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+2.35797498333276e+06   2.35800375512845e+06
 
 PointNumber:        308
 Lat:                -5.78966152165288e-01
@@ -1923,7 +1932,9 @@ PointNumber:        318
 Lat:                -5.78966152165288e-01
 Lon:                2.41496578239950e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   2
+1.71599834468039e+05   1.71626697753854e+05
+1.92479721666739e+06   1.92480691470850e+06
 
 PointNumber:        319
 Lat:                -5.78966152165288e-01
@@ -1941,7 +1952,8 @@ PointNumber:        321
 Lat:                -5.78966152165288e-01
 Lon:                2.54319405789268e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.40399273483345e+06   1.40401227348602e+06
 
 PointNumber:        322
 Lat:                -5.78966152165288e-01
@@ -2025,7 +2037,8 @@ PointNumber:        335
 Lat:                -5.43514430986833e-01
 Lon:                4.22906699340174e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.49579937443237e+06   1.49580128479196e+06
 
 PointNumber:        336
 Lat:                -5.43514430986833e-01
@@ -2085,7 +2098,8 @@ PointNumber:        345
 Lat:                -5.43514430986833e-01
 Lon:                2.31591766667041e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+6.91799299711890e+05   6.91809721140877e+05
 
 PointNumber:        346
 Lat:                -5.43514430986833e-01
@@ -2133,7 +2147,8 @@ PointNumber:        353
 Lat:                -5.43514430986833e-01
 Lon:                2.63813228975246e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.46519708314851e+06   1.46520025501167e+06
 
 PointNumber:        354
 Lat:                -5.08062727261671e-01
@@ -2205,7 +2220,8 @@ PointNumber:        365
 Lat:                -5.08062727261671e-01
 Lon:                3.42353052296308e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+2.36099375054504e+06   2.36100189530315e+06
 
 PointNumber:        366
 Lat:                -5.08062727261671e-01
@@ -2440,7 +2456,7 @@ Lat:                -4.72611023536509e-01
 Lon:                1.99370302613507e+00
 Alt:                0.00000000000000e+00
 NumberOfEvents  :   1
-3.95999745841823e+05   3.96021176432031e+05
+1.15199110919538e+06   1.15200245352984e+06
 
 PointNumber:        405
 Lat:                -4.72611023536509e-01
@@ -2596,7 +2612,8 @@ PointNumber:        430
 Lat:                -4.37159302358055e-01
 Lon:                -8.56797994846917e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.08119821787384e+06   1.08121134014761e+06
 
 PointNumber:        431
 Lat:                -4.37159302358055e-01
@@ -2632,13 +2649,15 @@ PointNumber:        436
 Lat:                -4.37159302358055e-01
 Lon:                4.75998882147556e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+9.13792226193761e+05   9.13801756109340e+05
 
 PointNumber:        437
 Lat:                -4.37159302358055e-01
 Lon:                5.14078789926833e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.45319436361083e+06   1.45320511315877e+06
 
 PointNumber:        438
 Lat:                -4.37159302358055e-01
@@ -2650,7 +2669,8 @@ PointNumber:        439
 Lat:                -4.37159302358055e-01
 Lon:                5.90238622938681e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+5.87994323755029e+05   5.88001740177161e+05
 
 PointNumber:        440
 Lat:                -4.37159302358055e-01
@@ -2668,13 +2688,15 @@ PointNumber:        442
 Lat:                -4.37159302358055e-01
 Lon:                1.99919533294500e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.95119991328950e+06   1.95120170192736e+06
 
 PointNumber:        443
 Lat:                -4.37159302358055e-01
 Lon:                2.03727524072428e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+7.40999078837446e+05   7.41003684176401e+05
 
 PointNumber:        444
 Lat:                -4.37159302358055e-01
@@ -2734,14 +2756,14 @@ PointNumber:        453
 Lat:                -4.37159302358055e-01
 Lon:                2.41807435342364e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   1
-6.49198455954633e+05   6.49208831458830e+05
+NumberOfEvents  :   0
 
 PointNumber:        454
 Lat:                -4.37159302358055e-01
 Lon:                2.45615426120292e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.87859911990292e+06   1.87862791421487e+06
 
 PointNumber:        455
 Lat:                -4.37159302358055e-01
@@ -2777,7 +2799,8 @@ PointNumber:        460
 Lat:                -4.01707598632893e-01
 Lon:                -1.19951719976700e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+8.71790754611268e+05   8.71802158959825e+05
 
 PointNumber:        461
 Lat:                -4.01707598632893e-01
@@ -2891,7 +2914,8 @@ PointNumber:        479
 Lat:                -4.01707598632893e-01
 Lon:                5.52158715159403e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.29959732569134e+06   1.29960240196559e+06
 
 PointNumber:        480
 Lat:                -4.01707598632893e-01
@@ -3023,7 +3047,8 @@ PointNumber:        501
 Lat:                -3.66255894907731e-01
 Lon:                -1.16143729198772e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.21679280008344e+06   1.21680101780775e+06
 
 PointNumber:        502
 Lat:                -3.66255894907731e-01
@@ -3035,7 +3060,9 @@ PointNumber:        503
 Lat:                -3.66255894907731e-01
 Lon:                -1.08527745897588e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   2
+3.51582348023093e+05   3.51591172802303e+05
+6.75599719003483e+05   6.75600862584334e+05
 
 PointNumber:        504
 Lat:                -3.66255894907731e-01
@@ -3083,7 +3110,8 @@ PointNumber:        511
 Lat:                -3.66255894907731e-01
 Lon:                -7.80638179288362e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.12498696603844e+06   1.12500345567754e+06
 
 PointNumber:        512
 Lat:                -3.66255894907731e-01
@@ -3137,7 +3165,8 @@ PointNumber:        520
 Lat:                -3.66255894907731e-01
 Lon:                5.14078789926833e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+5.44196342029362e+05   5.44205726661301e+05
 
 PointNumber:        521
 Lat:                -3.66255894907731e-01
@@ -3155,19 +3184,22 @@ PointNumber:        523
 Lat:                -3.66255894907731e-01
 Lon:                7.80638179288362e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+2.18279939261816e+06   2.18282240569325e+06
 
 PointNumber:        524
 Lat:                -3.66255894907731e-01
 Lon:                8.18718087067639e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.25458512734080e+06   1.25459310540173e+06
 
 PointNumber:        525
 Lat:                -3.66255894907731e-01
 Lon:                9.71037735638042e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+7.33793816177845e+05   7.33803333272348e+05
 
 PointNumber:        526
 Lat:                -3.66255894907731e-01
@@ -3185,7 +3217,8 @@ PointNumber:        528
 Lat:                -3.66255894907731e-01
 Lon:                2.11343505628283e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.53779248674716e+06   1.53780218905442e+06
 
 PointNumber:        529
 Lat:                -3.66255894907731e-01
@@ -3197,7 +3230,8 @@ PointNumber:        530
 Lat:                -3.66255894907731e-01
 Lon:                2.18959487184139e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+2.84995934067561e+05   2.85004529234913e+05
 
 PointNumber:        531
 Lat:                -3.66255894907731e-01
@@ -3245,7 +3279,8 @@ PointNumber:        538
 Lat:                -3.66255894907731e-01
 Lon:                2.49423416898220e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+2.35796436146364e+05   2.35804201833147e+05
 
 PointNumber:        539
 Lat:                -3.66255894907731e-01
@@ -3317,7 +3352,8 @@ PointNumber:        550
 Lat:                -3.30804173729276e-01
 Lon:                -9.00222449861652e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.53718891049115e+06   1.53720005014145e+06
 
 PointNumber:        551
 Lat:                -3.30804173729276e-01
@@ -3341,13 +3377,15 @@ PointNumber:        554
 Lat:                -3.30804173729276e-01
 Lon:                -7.53247365979998e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+2.35499357364912e+06   2.35500210029875e+06
 
 PointNumber:        555
 Lat:                -3.30804173729276e-01
 Lon:                -7.16503595009585e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.46998355498513e+06   1.46999220140505e+06
 
 PointNumber:        556
 Lat:                -3.30804173729276e-01
@@ -3377,7 +3415,8 @@ PointNumber:        560
 Lat:                -3.30804173729276e-01
 Lon:                3.85809621369279e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+2.27459769837450e+06   2.27460095164218e+06
 
 PointNumber:        561
 Lat:                -3.30804173729276e-01
@@ -3389,7 +3428,8 @@ PointNumber:        562
 Lat:                -3.30804173729276e-01
 Lon:                4.59297163310106e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.99196119311059e+05   1.99201402770059e+05
 
 PointNumber:        563
 Lat:                -3.30804173729276e-01
@@ -3419,7 +3459,8 @@ PointNumber:        567
 Lat:                -3.30804173729276e-01
 Lon:                7.89991136950412e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+8.64594106514846e+05   8.64603207642762e+05
 
 PointNumber:        568
 Lat:                -3.30804173729276e-01
@@ -3431,7 +3472,8 @@ PointNumber:        569
 Lat:                -3.30804173729276e-01
 Lon:                2.14951076757546e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.92779641526024e+06   1.92780207283199e+06
 
 PointNumber:        570
 Lat:                -3.30804173729276e-01
@@ -3455,7 +3497,8 @@ PointNumber:        573
 Lat:                -3.30804173729276e-01
 Lon:                2.29648585145712e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+2.60399781886825e+05   2.60400374878649e+05
 
 PointNumber:        574
 Lat:                -3.30804173729276e-01
@@ -3509,7 +3552,8 @@ PointNumber:        582
 Lat:                -2.95352470004114e-01
 Lon:                -1.23091642350196e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+8.50197582247836e+05   8.50207994038912e+05
 
 PointNumber:        583
 Lat:                -2.95352470004114e-01
@@ -3539,13 +3583,15 @@ PointNumber:        587
 Lat:                -2.95352470004114e-01
 Lon:                -1.04719755119660e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.90679644646031e+06   1.90681189544624e+06
 
 PointNumber:        588
 Lat:                -2.95352470004114e-01
 Lon:                -1.01045378022618e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+2.51999766974901e+04   2.52012225421836e+04
 
 PointNumber:        589
 Lat:                -2.95352470004114e-01
@@ -3635,7 +3681,8 @@ PointNumber:        603
 Lat:                -2.95352470004114e-01
 Lon:                4.59297163310106e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.90618519595318e+06   1.90620029016395e+06
 
 PointNumber:        604
 Lat:                -2.95352470004114e-01
@@ -3947,7 +3994,8 @@ PointNumber:        655
 Lat:                -2.59900766278952e-01
 Lon:                2.18625453854588e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.62358228683867e+06   1.62360034451355e+06
 
 PointNumber:        656
 Lat:                -2.59900766278952e-01
@@ -3965,7 +4013,8 @@ PointNumber:        658
 Lat:                -2.59900766278952e-01
 Lon:                2.33322963988082e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.10279258080553e+06   1.10280145692614e+06
 
 PointNumber:        659
 Lat:                -2.59900766278952e-01
@@ -4049,7 +4098,8 @@ PointNumber:        672
 Lat:                -2.24449045100498e-01
 Lon:                -9.40702883494122e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.51499898399948e+06   1.51501049665588e+06
 
 PointNumber:        673
 Lat:                -2.24449045100498e-01
@@ -4367,7 +4417,8 @@ PointNumber:        725
 Lat:                -1.88997341375336e-01
 Lon:                5.50222446887241e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+4.57799168745029e+05   4.57806394850388e+05
 
 PointNumber:        726
 Lat:                -1.88997341375336e-01
@@ -4385,7 +4436,9 @@ PointNumber:        728
 Lat:                -1.88997341375336e-01
 Lon:                6.56717114589716e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   2
+8.87987900018010e+04   8.88081068740920e+04
+1.36438989985518e+06   1.36440029300315e+06
 
 PointNumber:        729
 Lat:                -1.88997341375336e-01
@@ -4445,7 +4498,8 @@ PointNumber:        738
 Lat:                -1.53545637650174e-01
 Lon:                -1.11819400214935e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.64819636945013e+06   1.64820691531039e+06
 
 PointNumber:        739
 Lat:                -1.53545637650174e-01
@@ -4565,7 +4619,8 @@ PointNumber:        758
 Lat:                -1.53545637650174e-01
 Lon:                4.43727779184765e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.35590056291144e+05   1.35617654540216e+05
 
 PointNumber:        759
 Lat:                -1.53545637650174e-01
@@ -4697,7 +4752,8 @@ PointNumber:        780
 Lat:                -1.18093916471719e-01
 Lon:                -1.09955742875643e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.99319820175984e+06   1.99321687228556e+06
 
 PointNumber:        781
 Lat:                -1.18093916471719e-01
@@ -4709,7 +4765,8 @@ PointNumber:        782
 Lat:                -1.18093916471719e-01
 Lon:                -1.02974425867665e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.12799248676388e+06   1.12800408547252e+06
 
 PointNumber:        783
 Lat:                -1.18093916471719e-01
@@ -4769,7 +4826,8 @@ PointNumber:        792
 Lat:                -1.18093916471719e-01
 Lon:                -6.80678408277789e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.90139582903302e+06   1.90140543591454e+06
 
 PointNumber:        793
 Lat:                -1.18093916471719e-01
@@ -4811,7 +4869,8 @@ PointNumber:        799
 Lat:                -1.18093916471719e-01
 Lon:                3.66519142918809e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.84317055082347e+06   1.84318133094475e+06
 
 PointNumber:        800
 Lat:                -1.18093916471719e-01
@@ -4895,13 +4954,15 @@ PointNumber:        813
 Lat:                -1.18093916471719e-01
 Lon:                2.49582083035189e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.93796445096477e+05   1.93806745898381e+05
 
 PointNumber:        814
 Lat:                -1.18093916471719e-01
 Lon:                2.53072741539178e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.01399942240335e+06   1.01400669943415e+06
 
 PointNumber:        815
 Lat:                -8.26422127465575e-02
@@ -4985,7 +5046,8 @@ PointNumber:        828
 Lat:                -8.26422127465575e-02
 Lon:                -9.59931088596881e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.47299110655216e+06   1.47300945148031e+06
 
 PointNumber:        829
 Lat:                -8.26422127465575e-02
@@ -5129,7 +5191,8 @@ PointNumber:        852
 Lat:                -8.26422127465575e-02
 Lon:                2.14675497995303e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.55939313353110e+06   1.55940335425830e+06
 
 PointNumber:        853
 Lat:                -8.26422127465575e-02
@@ -5249,13 +5312,15 @@ PointNumber:        872
 Lat:                -4.71905090213955e-02
 Lon:                -8.90117918517108e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.42859648551657e+06   1.42860980704520e+06
 
 PointNumber:        873
 Lat:                -4.71905090213955e-02
 Lon:                -8.55211333477222e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+2.82593733127242e+05   2.82612091217501e+05
 
 PointNumber:        874
 Lat:                -4.71905090213955e-02
@@ -5273,7 +5338,8 @@ PointNumber:        876
 Lat:                -4.71905090213955e-02
 Lon:                -7.50491578357561e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+2.38188960523709e+05   2.38212208651407e+05
 
 PointNumber:        877
 Lat:                -4.71905090213955e-02
@@ -5399,7 +5465,8 @@ PointNumber:        897
 Lat:                -4.71905090213955e-02
 Lon:                2.07694180987325e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.60379190363109e+06   1.60380124006329e+06
 
 PointNumber:        898
 Lat:                -4.71905090213955e-02
@@ -5495,7 +5562,8 @@ PointNumber:        913
 Lat:                -1.17387878429410e-02
 Lon:                -1.02974425867665e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.94879875868223e+06   1.94882206321293e+06
 
 PointNumber:        914
 Lat:                -1.17387878429410e-02
@@ -5675,7 +5743,8 @@ PointNumber:        943
 Lat:                2.37129158822210e-02
 Lon:                -1.34390352403563e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+4.62595997873254e+05   4.62606625815906e+05
 
 PointNumber:        944
 Lat:                2.37129158822210e-02
@@ -5777,7 +5846,8 @@ PointNumber:        960
 Lat:                2.37129158822210e-02
 Lon:                2.96705972839036e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.88759950676697e+06   1.88762611330255e+06
 
 PointNumber:        961
 Lat:                2.37129158822210e-02
@@ -5933,7 +6003,8 @@ PointNumber:        986
 Lat:                5.91646196073829e-02
 Lon:                -1.16937059883620e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+2.12399857789067e+06   2.12400142549687e+06
 
 PointNumber:        987
 Lat:                5.91646196073829e-02
@@ -6072,7 +6143,7 @@ Lat:                5.91646196073829e-02
 Lon:                7.15584993317675e-01
 Alt:                0.00000000000000e+00
 NumberOfEvents  :   1
-2.14079938446755e+06   2.14082226469325e+06
+2.14079938446755e+06   2.14080489290262e+06
 
 PointNumber:        1010
 Lat:                5.91646196073829e-02
@@ -6168,7 +6239,8 @@ PointNumber:        1025
 Lat:                9.46163407858374e-02
 Lon:                -1.01169933444687e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.55939828893583e+06   1.55940785902045e+06
 
 PointNumber:        1026
 Lat:                9.46163407858374e-02
@@ -6252,7 +6324,8 @@ PointNumber:        1039
 Lat:                9.46163407858374e-02
 Lon:                3.37233111482290e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.41179597919537e+06   1.41180278720299e+06
 
 PointNumber:        1040
 Lat:                9.46163407858374e-02
@@ -6324,7 +6397,8 @@ PointNumber:        1051
 Lat:                9.46163407858374e-02
 Lon:                7.63211782292192e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+4.43951587712742e+04   4.44157407109369e+04
 
 PointNumber:        1052
 Lat:                9.46163407858374e-02
@@ -6336,7 +6410,8 @@ PointNumber:        1053
 Lat:                9.46163407858374e-02
 Lon:                8.34208215791647e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.62058954597401e+06   1.62060099647596e+06
 
 PointNumber:        1054
 Lat:                9.46163407858374e-02
@@ -6426,7 +6501,8 @@ PointNumber:        1068
 Lat:                1.30068044510999e-01
 Lon:                -1.59741992827066e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+2.02378309050067e+06   2.02381008319771e+06
 
 PointNumber:        1069
 Lat:                1.30068044510999e-01
@@ -6492,8 +6568,7 @@ PointNumber:        1079
 Lat:                1.30068044510999e-01
 Lon:                2.30738443779815e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   1
-1.93199690714175e+06   1.93200336311416e+06
+NumberOfEvents  :   0
 
 PointNumber:        1080
 Lat:                1.30068044510999e-01
@@ -6655,8 +6730,7 @@ PointNumber:        1106
 Lat:                1.65519748236161e-01
 Lon:                -2.30738443779815e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   1
-1.67879652208557e+06   1.67880484841444e+06
+NumberOfEvents  :   0
 
 PointNumber:        1107
 Lat:                1.65519748236161e-01
@@ -6668,7 +6742,8 @@ PointNumber:        1108
 Lat:                1.65519748236161e-01
 Lon:                -1.59741992827066e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+8.13599701182226e+05   8.13602288158331e+05
 
 PointNumber:        1109
 Lat:                1.65519748236161e-01
@@ -6686,7 +6761,8 @@ PointNumber:        1111
 Lat:                1.65519748236161e-01
 Lon:                -5.32473251245911e-02
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.20059431932801e+06   1.20060044632302e+06
 
 PointNumber:        1112
 Lat:                1.65519748236161e-01
@@ -6860,7 +6936,8 @@ PointNumber:        1140
 Lat:                1.65519748236161e-01
 Lon:                1.72166377416118e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+2.12699932554704e+06   2.12700781434441e+06
 
 PointNumber:        1141
 Lat:                1.65519748236161e-01
@@ -7100,7 +7177,8 @@ PointNumber:        1180
 Lat:                2.00971469414616e-01
 Lon:                2.14856048815763e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+2.38019381257924e+06   2.38020168946080e+06
 
 PointNumber:        1181
 Lat:                2.00971469414616e-01
@@ -7232,7 +7310,8 @@ PointNumber:        1202
 Lat:                2.36423173139778e-01
 Lon:                3.79157735257616e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.45379959120100e+06   1.45381881242693e+06
 
 PointNumber:        1203
 Lat:                2.36423173139778e-01
@@ -7370,13 +7449,15 @@ PointNumber:        1225
 Lat:                2.71874876864940e-01
 Lon:                -1.53468605798308e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+9.19197799342679e+05   9.19225365484115e+05
 
 PointNumber:        1226
 Lat:                2.71874876864940e-01
 Lon:                -1.49857580662456e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+3.29872619690739e+04   3.30114883055770e+04
 
 PointNumber:        1227
 Lat:                2.71874876864940e-01
@@ -7478,7 +7559,8 @@ PointNumber:        1243
 Lat:                2.71874876864940e-01
 Lon:                3.06937215087274e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+2.19059659480931e+06   2.19060137518718e+06
 
 PointNumber:        1244
 Lat:                2.71874876864940e-01
@@ -7496,7 +7578,8 @@ PointNumber:        1246
 Lat:                2.71874876864940e-01
 Lon:                4.15267986616140e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.79879924361070e+06   1.79880375298201e+06
 
 PointNumber:        1247
 Lat:                2.71874876864940e-01
@@ -7520,7 +7603,8 @@ PointNumber:        1250
 Lat:                2.71874876864940e-01
 Lon:                5.59709044410116e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.33196064073712e+05   1.33201165585156e+05
 
 PointNumber:        1251
 Lat:                2.71874876864940e-01
@@ -7532,7 +7616,8 @@ PointNumber:        1252
 Lat:                2.71874876864940e-01
 Lon:                6.31929564580457e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.75379849173544e+06   1.75380617544012e+06
 
 PointNumber:        1253
 Lat:                2.71874876864940e-01
@@ -7544,7 +7629,8 @@ PointNumber:        1254
 Lat:                2.71874876864940e-01
 Lon:                7.04150084750799e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+8.88599160271087e+05   8.88617388998539e+05
 
 PointNumber:        1255
 Lat:                2.71874876864940e-01
@@ -7556,7 +7642,8 @@ PointNumber:        1256
 Lat:                2.71874876864940e-01
 Lon:                8.12480856279665e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.70699812336252e+06   1.70701972750928e+06
 
 PointNumber:        1257
 Lat:                2.71874876864940e-01
@@ -7568,7 +7655,8 @@ PointNumber:        1258
 Lat:                2.71874876864940e-01
 Lon:                8.84701376450006e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+7.78196152783165e+05   7.78202377418237e+05
 
 PointNumber:        1259
 Lat:                2.71874876864940e-01
@@ -7586,7 +7674,8 @@ PointNumber:        1261
 Lat:                2.71874876864940e-01
 Lon:                1.39024501764240e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+2.36879727598684e+06   2.36880274249869e+06
 
 PointNumber:        1262
 Lat:                2.71874876864940e-01
@@ -7658,7 +7747,8 @@ PointNumber:        1273
 Lat:                3.07326598043394e-01
 Lon:                -1.56161037968897e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+5.74196762489491e+05   5.74201809568720e+05
 
 PointNumber:        1274
 Lat:                3.07326598043394e-01
@@ -7850,7 +7940,8 @@ PointNumber:        1305
 Lat:                3.07326598043394e-01
 Lon:                9.36966238285358e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.18679203093970e+06   1.18680727884478e+06
 
 PointNumber:        1306
 Lat:                3.07326598043394e-01
@@ -7904,7 +7995,8 @@ PointNumber:        1314
 Lat:                3.07326598043394e-01
 Lon:                1.78207302296474e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.37099049733867e+06   1.37100012490642e+06
 
 PointNumber:        1315
 Lat:                3.07326598043394e-01
@@ -7970,7 +8062,8 @@ PointNumber:        1325
 Lat:                3.42778301768556e-01
 Lon:                -2.75578308458039e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.31278370799476e+06   1.31280529231873e+06
 
 PointNumber:        1326
 Lat:                3.42778301768556e-01
@@ -8018,7 +8111,8 @@ PointNumber:        1333
 Lat:                3.42778301768556e-01
 Lon:                1.83718942118530e-02
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.60979973864275e+06   1.60980756698845e+06
 
 PointNumber:        1334
 Lat:                3.42778301768556e-01
@@ -8072,7 +8166,8 @@ PointNumber:        1342
 Lat:                3.42778301768556e-01
 Lon:                3.49065850398866e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+5.68197042277335e+05   5.68208369808225e+05
 
 PointNumber:        1343
 Lat:                3.42778301768556e-01
@@ -8102,7 +8197,8 @@ PointNumber:        1347
 Lat:                3.42778301768556e-01
 Lon:                5.32784722704225e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+2.27399944438187e+06   2.27400231167636e+06
 
 PointNumber:        1348
 Lat:                3.42778301768556e-01
@@ -8186,7 +8282,8 @@ PointNumber:        1361
 Lat:                3.42778301768556e-01
 Lon:                1.37789150738361e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.43999290350367e+06   1.44000217798747e+06
 
 PointNumber:        1362
 Lat:                3.42778301768556e-01
@@ -8222,7 +8319,8 @@ PointNumber:        1367
 Lat:                3.42778301768556e-01
 Lon:                1.74532925199433e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.34819804730259e+06   1.34820242418083e+06
 
 PointNumber:        1368
 Lat:                3.42778301768556e-01
@@ -8234,7 +8332,8 @@ PointNumber:        1369
 Lat:                3.42778301768556e-01
 Lon:                1.81881679393516e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+4.82999487921124e+05   4.83000935946885e+05
 
 PointNumber:        1370
 Lat:                3.42778301768556e-01
@@ -8294,7 +8393,8 @@ PointNumber:        1379
 Lat:                3.78230005493718e-01
 Lon:                -1.65346978093506e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+3.82178067391751e+05   3.82202726686287e+05
 
 PointNumber:        1380
 Lat:                3.78230005493718e-01
@@ -8481,7 +8581,7 @@ Lat:                3.78230005493718e-01
 Lon:                1.01045378022618e+00
 Alt:                0.00000000000000e+00
 NumberOfEvents  :   1
-1.59598313181309e+06   1.59600847886771e+06
+1.59599630581882e+06   1.59600759559781e+06
 
 PointNumber:        1411
 Lat:                3.78230005493718e-01
@@ -8511,7 +8611,8 @@ PointNumber:        1415
 Lat:                3.78230005493718e-01
 Lon:                1.41463529580732e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.03018885255188e+06   1.03021011873714e+06
 
 PointNumber:        1416
 Lat:                3.78230005493718e-01
@@ -8523,7 +8624,8 @@ PointNumber:        1417
 Lat:                3.78230005493718e-01
 Lon:                1.48812283774814e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+9.19799180769270e+05   9.19800284045303e+05
 
 PointNumber:        1418
 Lat:                3.78230005493718e-01
@@ -8577,7 +8679,8 @@ PointNumber:        1426
 Lat:                3.78230005493718e-01
 Lon:                1.89230435332928e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.19639965607432e+06   1.19640432720592e+06
 
 PointNumber:        1427
 Lat:                3.78230005493718e-01
@@ -8859,7 +8962,8 @@ PointNumber:        1473
 Lat:                4.13681726672173e-01
 Lon:                1.53201123618464e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+9.63597136406496e+05   9.63604722036546e+05
 
 PointNumber:        1474
 Lat:                4.13681726672173e-01
@@ -8967,8 +9071,7 @@ PointNumber:        1491
 Lat:                4.49133430397335e-01
 Lon:                -1.76472179729946e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   1
-1.05059551003971e+06   1.05062436623129e+06
+NumberOfEvents  :   0
 
 PointNumber:        1492
 Lat:                4.49133430397335e-01
@@ -9088,7 +9191,8 @@ PointNumber:        1511
 Lat:                4.49133430397335e-01
 Lon:                4.07243486314246e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.88519573668138e+06   1.88520718681950e+06
 
 PointNumber:        1512
 Lat:                4.49133430397335e-01
@@ -9106,7 +9210,8 @@ PointNumber:        1514
 Lat:                4.49133430397335e-01
 Lon:                5.23598775598299e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.54794141577100e+05   1.54804161538367e+05
 
 PointNumber:        1515
 Lat:                4.49133430397335e-01
@@ -9136,13 +9241,15 @@ PointNumber:        1519
 Lat:                4.49133430397335e-01
 Lon:                7.56309336713112e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.73098752880297e+06   1.73101554870910e+06
 
 PointNumber:        1520
 Lat:                4.49133430397335e-01
 Lon:                7.95094444776658e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+2.03099675911369e+06   2.03100028101335e+06
 
 PointNumber:        1521
 Lat:                4.49133430397335e-01
@@ -9154,7 +9261,8 @@ PointNumber:        1522
 Lat:                4.49133430397335e-01
 Lon:                8.72664625997165e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+9.28199225551790e+05   9.28202467847863e+05
 
 PointNumber:        1523
 Lat:                4.49133430397335e-01
@@ -9232,7 +9340,8 @@ PointNumber:        1535
 Lat:                4.49133430397335e-01
 Lon:                1.49322614557439e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+6.18582806559411e+05   6.18603523003062e+05
 
 PointNumber:        1536
 Lat:                4.49133430397335e-01
@@ -9304,13 +9413,15 @@ PointNumber:        1547
 Lat:                4.49133430397335e-01
 Lon:                1.95864726780402e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+3.07799448992921e+05   3.07806043424232e+05
 
 PointNumber:        1548
 Lat:                4.49133430397335e-01
 Lon:                1.99743235841427e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.58219674479934e+06   1.58221189217993e+06
 
 PointNumber:        1549
 Lat:                4.49133430397335e-01
@@ -9448,7 +9559,8 @@ PointNumber:        1571
 Lat:                4.84585134122497e-01
 Lon:                2.52103106419940e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.82397919791403e+05   1.82405001441400e+05
 
 PointNumber:        1572
 Lat:                4.84585134122497e-01
@@ -9496,13 +9608,15 @@ PointNumber:        1579
 Lat:                4.84585134122497e-01
 Lon:                5.62383866208552e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+4.99794636378498e+05   4.99817502135879e+05
 
 PointNumber:        1580
 Lat:                4.84585134122497e-01
 Lon:                6.39954064882352e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+8.23189785155519e+05   8.23200245626407e+05
 
 PointNumber:        1581
 Lat:                4.84585134122497e-01
@@ -9538,19 +9652,22 @@ PointNumber:        1586
 Lat:                4.84585134122497e-01
 Lon:                9.11449716607418e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.27318703712167e+06   1.27320504066903e+06
 
 PointNumber:        1587
 Lat:                4.84585134122497e-01
 Lon:                9.50234807217672e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+4.07991787035231e+05   4.08005870405225e+05
 
 PointNumber:        1588
 Lat:                4.84585134122497e-01
 Lon:                9.89019915281218e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.23059485332826e+06   1.23060317771972e+06
 
 PointNumber:        1589
 Lat:                4.84585134122497e-01
@@ -9562,7 +9679,8 @@ PointNumber:        1590
 Lat:                4.84585134122497e-01
 Lon:                1.06659009650172e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+3.65390763714558e+05   3.65421448133695e+05
 
 PointNumber:        1591
 Lat:                4.84585134122497e-01
@@ -9604,13 +9722,15 @@ PointNumber:        1597
 Lat:                4.84585134122497e-01
 Lon:                1.33808576568008e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+3.16198995539916e+05   3.16200327505851e+05
 
 PointNumber:        1598
 Lat:                4.84585134122497e-01
 Lon:                1.37687085629034e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.13879710188008e+06   1.13881780625597e+06
 
 PointNumber:        1599
 Lat:                4.84585134122497e-01
@@ -9742,7 +9862,8 @@ PointNumber:        1620
 Lat:                5.20036855300951e-01
 Lon:                -1.82746238710467e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.24194396959434e+05   1.24209754107808e+05
 
 PointNumber:        1621
 Lat:                5.20036855300951e-01
@@ -9766,7 +9887,8 @@ PointNumber:        1624
 Lat:                5.20036855300951e-01
 Lon:                -1.66319611688399e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.00799778920792e+06   1.00800084248479e+06
 
 PointNumber:        1625
 Lat:                5.20036855300951e-01
@@ -9868,7 +9990,8 @@ PointNumber:        1641
 Lat:                5.20036855300951e-01
 Lon:                3.90132417954034e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.39019510433675e+06   1.39020809011311e+06
 
 PointNumber:        1642
 Lat:                5.20036855300951e-01
@@ -9904,7 +10027,8 @@ PointNumber:        1647
 Lat:                5.20036855300951e-01
 Lon:                6.36531840738334e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.12191024613400e+05   1.12218068370453e+05
 
 PointNumber:        1648
 Lat:                5.20036855300951e-01
@@ -9958,7 +10082,9 @@ PointNumber:        1656
 Lat:                5.20036855300951e-01
 Lon:                1.00613098364143e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   2
+2.03947393146878e+04   2.04040216192983e+04
+7.52986426128946e+05   7.53010913955814e+05
 
 PointNumber:        1657
 Lat:                5.20036855300951e-01
@@ -10006,7 +10132,8 @@ PointNumber:        1664
 Lat:                5.20036855300951e-01
 Lon:                1.33466354153607e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.52639758378425e+06   1.52641163240092e+06
 
 PointNumber:        1665
 Lat:                5.20036855300951e-01
@@ -10018,7 +10145,8 @@ PointNumber:        1666
 Lat:                5.20036855300951e-01
 Lon:                1.41679669409969e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+6.61184844825267e+05   6.61200087837560e+05
 
 PointNumber:        1667
 Lat:                5.20036855300951e-01
@@ -10138,7 +10266,8 @@ PointNumber:        1686
 Lat:                5.55488559026113e-01
 Lon:                -1.95066210722346e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+2.37358987246537e+06   2.37361596092408e+06
 
 PointNumber:        1687
 Lat:                5.55488559026113e-01
@@ -10174,7 +10303,8 @@ PointNumber:        1692
 Lat:                5.55488559026113e-01
 Lon:                -1.70426268443916e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+6.62996022280464e+05   6.63001794627252e+05
 
 PointNumber:        1693
 Lat:                5.55488559026113e-01
@@ -10258,7 +10388,8 @@ PointNumber:        1706
 Lat:                5.55488559026113e-01
 Lon:                1.02666427614566e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+2.29979748668971e+06   2.29980457247382e+06
 
 PointNumber:        1707
 Lat:                5.55488559026113e-01
@@ -10426,7 +10557,8 @@ PointNumber:        1734
 Lat:                5.55488559026113e-01
 Lon:                1.45786326165486e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.00619345479366e+06   1.00620198436475e+06
 
 PointNumber:        1735
 Lat:                5.55488559026113e-01
@@ -10444,13 +10576,15 @@ PointNumber:        1737
 Lat:                5.55488559026113e-01
 Lon:                1.58106296432037e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+2.08739371867644e+06   2.08740432048302e+06
 
 PointNumber:        1738
 Lat:                5.55488559026113e-01
 Lon:                1.62212953187553e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+9.41397355979991e+05   9.41404171525681e+05
 
 PointNumber:        1739
 Lat:                5.55488559026113e-01
@@ -10498,7 +10632,8 @@ PointNumber:        1746
 Lat:                5.55488559026113e-01
 Lon:                1.95066210722346e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.62839850039248e+06   1.62841901301740e+06
 
 PointNumber:        1747
 Lat:                5.55488559026113e-01
@@ -10522,7 +10657,8 @@ PointNumber:        1750
 Lat:                5.55488559026113e-01
 Lon:                2.27919466511810e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+5.86790987332984e+05   5.86806538242525e+05
 
 PointNumber:        1751
 Lat:                5.90940262751275e-01
@@ -10642,7 +10778,8 @@ PointNumber:        1770
 Lat:                5.90940262751275e-01
 Lon:                -2.05332925042301e-02
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+2.06339802979063e+06   2.06340007583500e+06
 
 PointNumber:        1771
 Lat:                5.90940262751275e-01
@@ -10888,7 +11025,8 @@ PointNumber:        1811
 Lat:                5.90940262751275e-01
 Lon:                2.27919466511810e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.83719024579772e+06   1.83720493770349e+06
 
 PointNumber:        1812
 Lat:                5.90940262751275e-01
@@ -10900,13 +11038,15 @@ PointNumber:        1813
 Lat:                5.90940262751275e-01
 Lon:                2.36132781768173e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+6.93594211098348e+05   6.93603760274232e+05
 
 PointNumber:        1814
 Lat:                6.26391983929730e-01
 Lon:                -2.11667590581099e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+3.63592293534587e+05   3.63620967017861e+05
 
 PointNumber:        1815
 Lat:                6.26391983929730e-01
@@ -10942,13 +11082,15 @@ PointNumber:        1820
 Lat:                6.26391983929730e-01
 Lon:                -1.84930631715739e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+2.00219742470783e+06   2.00220016882025e+06
 
 PointNumber:        1821
 Lat:                6.26391983929730e-01
 Lon:                -1.80474471032181e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.13699759005576e+06   1.13702385392588e+06
 
 PointNumber:        1822
 Lat:                6.26391983929730e-01
@@ -11026,7 +11168,8 @@ PointNumber:        1834
 Lat:                6.26391983929730e-01
 Lon:                1.11403999635655e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+3.32994950573280e+05   3.33002932321157e+05
 
 PointNumber:        1835
 Lat:                6.26391983929730e-01
@@ -11056,7 +11199,8 @@ PointNumber:        1839
 Lat:                6.26391983929730e-01
 Lon:                7.79827962543001e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+2.16299842482118e+06   2.16301159021348e+06
 
 PointNumber:        1840
 Lat:                6.26391983929730e-01
@@ -11080,7 +11224,8 @@ PointNumber:        1843
 Lat:                6.26391983929730e-01
 Lon:                9.58074354978732e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.64218220359532e+06   1.64221113896388e+06
 
 PointNumber:        1844
 Lat:                6.26391983929730e-01
@@ -11146,7 +11291,8 @@ PointNumber:        1854
 Lat:                6.26391983929730e-01
 Lon:                1.44825192545035e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.80839643273722e+06   1.80840573997014e+06
 
 PointNumber:        1855
 Lat:                6.26391983929730e-01
@@ -11194,7 +11340,8 @@ PointNumber:        1862
 Lat:                6.26391983929730e-01
 Lon:                1.80474471032181e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.67099676666012e+06   1.67100543160033e+06
 
 PointNumber:        1863
 Lat:                6.26391983929730e-01
@@ -11213,13 +11360,14 @@ Lat:                6.26391983929730e-01
 Lon:                1.93842951337525e+00
 Alt:                0.00000000000000e+00
 NumberOfEvents  :   1
-3.94199788483495e+05   3.94229471908978e+05
+3.94199788483495e+05   3.94224915709477e+05
 
 PointNumber:        1866
 Lat:                6.26391983929730e-01
 Lon:                1.98299110275754e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.15019734236205e+06   1.15020405775002e+06
 
 PointNumber:        1867
 Lat:                6.26391983929730e-01
@@ -11315,7 +11463,8 @@ PointNumber:        1882
 Lat:                6.61843687654892e-01
 Lon:                -1.67105992472166e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+6.16791906778156e+05   6.16817424506113e+05
 
 PointNumber:        1883
 Lat:                6.61843687654892e-01
@@ -11399,7 +11548,8 @@ PointNumber:        1896
 Lat:                6.61843687654892e-01
 Lon:                5.57019980724983e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+5.86186798217449e+05   5.86208365435109e+05
 
 PointNumber:        1897
 Lat:                6.61843687654892e-01
@@ -11513,7 +11663,8 @@ PointNumber:        1915
 Lat:                6.61843687654892e-01
 Lon:                1.49281353228593e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.87183821700206e+05   1.87212459842406e+05
 
 PointNumber:        1916
 Lat:                6.61843687654892e-01
@@ -11555,7 +11706,8 @@ PointNumber:        1922
 Lat:                6.61843687654892e-01
 Lon:                1.80474471032181e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+9.60585651287629e+05   9.60591464431601e+05
 
 PointNumber:        1923
 Lat:                6.61843687654892e-01
@@ -11621,7 +11773,8 @@ PointNumber:        1933
 Lat:                6.97295391380054e-01
 Lon:                -2.07211429897541e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.59779492495677e+06   1.59782070832865e+06
 
 PointNumber:        1934
 Lat:                6.97295391380054e-01
@@ -11681,13 +11834,16 @@ PointNumber:        1943
 Lat:                6.97295391380054e-01
 Lon:                -1.62649831788608e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+9.61791984777755e+05   9.61805957331934e+05
 
 PointNumber:        1944
 Lat:                6.97295391380054e-01
 Lon:                -1.58193672850379e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   2
+9.65893345498296e+04   9.66002888814477e+04
+1.26659860445331e+06   1.26660241832280e+06
 
 PointNumber:        1945
 Lat:                6.97295391380054e-01
@@ -11705,7 +11861,8 @@ PointNumber:        1947
 Lat:                6.97295391380054e-01
 Lon:                -1.44825192545035e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.71538866390291e+06   1.71539697623224e+06
 
 PointNumber:        1948
 Lat:                6.97295391380054e-01
@@ -11723,13 +11880,15 @@ PointNumber:        1950
 Lat:                6.97295391380054e-01
 Lon:                -1.31456713985019e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.73519229433390e+06   1.73520070968286e+06
 
 PointNumber:        1951
 Lat:                6.97295391380054e-01
 Lon:                -1.55965589017941e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.45979796678036e+06   1.45980078780758e+06
 
 PointNumber:        1952
 Lat:                6.97295391380054e-01
@@ -11771,7 +11930,8 @@ PointNumber:        1958
 Lat:                6.97295391380054e-01
 Lon:                4.67896784507118e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.82219155014949e+06   1.82221207316068e+06
 
 PointNumber:        1959
 Lat:                6.97295391380054e-01
@@ -11789,14 +11949,16 @@ PointNumber:        1961
 Lat:                6.97295391380054e-01
 Lon:                6.01581570107270e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   2
+9.31188505434407e+05   9.31191853782428e+05
+1.30139020562055e+06   1.30140872807464e+06
 
 PointNumber:        1962
 Lat:                6.97295391380054e-01
 Lon:                6.46143176942849e-01
 Alt:                0.00000000000000e+00
 NumberOfEvents  :   1
-6.59874139121782e+04   6.60166240202419e+04
+6.59874139121782e+04   6.60155067432532e+04
 
 PointNumber:        1963
 Lat:                6.97295391380054e-01
@@ -11826,7 +11988,8 @@ PointNumber:        1967
 Lat:                6.97295391380054e-01
 Lon:                9.58074354978732e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+8.39394796581458e+05   8.39409113146432e+05
 
 PointNumber:        1968
 Lat:                6.97295391380054e-01
@@ -11844,7 +12007,8 @@ PointNumber:        1970
 Lat:                6.97295391380054e-01
 Lon:                1.09175914057888e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.93977614827721e+06   1.93980364390627e+06
 
 PointNumber:        1971
 Lat:                6.97295391380054e-01
@@ -11856,7 +12020,8 @@ PointNumber:        1972
 Lat:                6.97295391380054e-01
 Lon:                1.18088233679675e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.67939939390226e+06   1.67940009357760e+06
 
 PointNumber:        1973
 Lat:                6.97295391380054e-01
@@ -11880,7 +12045,8 @@ PointNumber:        1976
 Lat:                6.97295391380054e-01
 Lon:                1.35912872923248e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+7.07392666820689e+05   7.07406702422773e+05
 
 PointNumber:        1977
 Lat:                6.97295391380054e-01
@@ -11964,7 +12130,8 @@ PointNumber:        1990
 Lat:                6.97295391380054e-01
 Lon:                1.98299110275754e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+3.31796400562006e+05   3.31804757678337e+05
 
 PointNumber:        1991
 Lat:                6.97295391380054e-01
@@ -11994,7 +12161,8 @@ PointNumber:        1995
 Lat:                6.97295391380054e-01
 Lon:                2.47316869068245e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.27194500523533e+05   1.27214277040741e+05
 
 PointNumber:        1996
 Lat:                7.32747112558508e-01
@@ -12012,7 +12180,8 @@ PointNumber:        1998
 Lat:                7.32747112558508e-01
 Lon:                -2.02133479959996e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.01339545239428e+06   1.01340003005400e+06
 
 PointNumber:        1999
 Lat:                7.32747112558508e-01
@@ -12048,8 +12217,7 @@ PointNumber:        2004
 Lat:                7.32747112558508e-01
 Lon:                -1.72909362333363e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   1
-2.28478638200803e+06   2.28480386800318e+06
+NumberOfEvents  :   0
 
 PointNumber:        2005
 Lat:                7.32747112558508e-01
@@ -12067,7 +12235,8 @@ PointNumber:        2007
 Lat:                7.32747112558508e-01
 Lon:                -1.58297303520046e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.76399256220507e+06   1.76400577122728e+06
 
 PointNumber:        2008
 Lat:                7.32747112558508e-01
@@ -12115,7 +12284,9 @@ PointNumber:        2015
 Lat:                7.32747112558508e-01
 Lon:                -7.30603027932304e-02
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   2
+2.73591365536713e+05   2.73610718403718e+05
+5.94599472641424e+05   5.94600919759756e+05
 
 PointNumber:        2016
 Lat:                7.32747112558508e-01
@@ -12193,7 +12364,8 @@ PointNumber:        2028
 Lat:                7.32747112558508e-01
 Lon:                1.09590441972542e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+3.19175793489372e+05   3.19205028553469e+05
 
 PointNumber:        2029
 Lat:                7.32747112558508e-01
@@ -12223,7 +12395,9 @@ PointNumber:        2033
 Lat:                7.32747112558508e-01
 Lon:                1.33943872746294e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   2
+1.15859758767794e+06   1.15860236364848e+06
+1.95778653773263e+06   1.95780409694883e+06
 
 PointNumber:        2034
 Lat:                7.32747112558508e-01
@@ -12241,13 +12415,15 @@ PointNumber:        2036
 Lat:                7.32747112558508e-01
 Lon:                1.48555931559611e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+2.27396786487592e+05   2.27401995196263e+05
 
 PointNumber:        2037
 Lat:                7.32747112558508e-01
 Lon:                1.53426618412493e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.89418609706246e+06   1.89420031822179e+06
 
 PointNumber:        2038
 Lat:                7.32747112558508e-01
@@ -12295,7 +12471,8 @@ PointNumber:        2045
 Lat:                7.32747112558508e-01
 Lon:                1.92392107999562e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+2.32079947236695e+06   2.32080394129028e+06
 
 PointNumber:        2046
 Lat:                7.32747112558508e-01
@@ -12313,7 +12490,8 @@ PointNumber:        2048
 Lat:                7.32747112558508e-01
 Lon:                2.07004166812879e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.04399797249041e+06   1.04400212999155e+06
 
 PointNumber:        2049
 Lat:                7.32747112558508e-01
@@ -12325,7 +12503,8 @@ PointNumber:        2050
 Lat:                7.32747112558508e-01
 Lon:                2.16745540518643e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.53959053117949e+06   1.53961641626032e+06
 
 PointNumber:        2051
 Lat:                7.32747112558508e-01
@@ -12451,7 +12630,8 @@ PointNumber:        2071
 Lat:                7.68198816283670e-01
 Lon:                2.43534342644104e-02
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+2.36819400563693e+06   2.36820574260078e+06
 
 PointNumber:        2072
 Lat:                7.68198816283670e-01
@@ -12547,7 +12727,8 @@ PointNumber:        2087
 Lat:                7.68198816283670e-01
 Lon:                1.14461127080095e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+6.64178552211480e+05   6.64204790801517e+05
 
 PointNumber:        2088
 Lat:                7.68198816283670e-01
@@ -12583,19 +12764,23 @@ PointNumber:        2093
 Lat:                7.68198816283670e-01
 Lon:                1.43685244706729e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+2.28058070310527e+06   2.28060823621182e+06
 
 PointNumber:        2094
 Lat:                7.68198816283670e-01
 Lon:                1.48555931559611e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+5.11795789188420e+05   5.11805032894570e+05
 
 PointNumber:        2095
 Lat:                7.68198816283670e-01
 Lon:                1.53426618412493e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   2
+5.72394870032638e+05   5.72400027804051e+05
+1.65599756444019e+06   1.65600581605066e+06
 
 PointNumber:        2096
 Lat:                7.68198816283670e-01
@@ -12607,7 +12792,8 @@ PointNumber:        2097
 Lat:                7.68198816283670e-01
 Lon:                1.63167990372928e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+7.90796059223794e+05   7.90804060096506e+05
 
 PointNumber:        2098
 Lat:                7.68198816283670e-01
@@ -12643,7 +12829,8 @@ PointNumber:        2103
 Lat:                7.68198816283670e-01
 Lon:                1.92392107999562e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.56419636954689e+06   1.56420431377762e+06
 
 PointNumber:        2104
 Lat:                7.68198816283670e-01
@@ -12697,14 +12884,15 @@ PointNumber:        2112
 Lat:                7.68198816283670e-01
 Lon:                2.36228284439512e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   1
-2.62198264860990e+05   2.62219549317431e+05
+NumberOfEvents  :   0
 
 PointNumber:        2113
 Lat:                7.68198816283670e-01
 Lon:                2.50840343252829e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   2
+1.68239599636569e+06   1.68240269842268e+06
+2.22658686184010e+06   2.22660107443361e+06
 
 PointNumber:        2114
 Lat:                8.03650520008832e-01
@@ -12716,7 +12904,8 @@ PointNumber:        2115
 Lat:                8.03650520008832e-01
 Lon:                -2.07004166812879e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.94399212017045e+06   1.94400541002371e+06
 
 PointNumber:        2116
 Lat:                8.03650520008832e-01
@@ -12746,13 +12935,16 @@ PointNumber:        2120
 Lat:                8.03650520008832e-01
 Lon:                -1.82650736039127e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   2
+7.51798692552233e+05   7.51802557626591e+05
+9.42599300816610e+05   9.42607508622410e+05
 
 PointNumber:        2121
 Lat:                8.03650520008832e-01
 Lon:                -1.77780049186245e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+6.82194307306776e+05   6.82206189691252e+05
 
 PointNumber:        2122
 Lat:                8.03650520008832e-01
@@ -12782,7 +12974,8 @@ PointNumber:        2126
 Lat:                8.03650520008832e-01
 Lon:                -1.53426618412493e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.84979683293189e+06   1.84980705509509e+06
 
 PointNumber:        2127
 Lat:                8.03650520008832e-01
@@ -12818,7 +13011,8 @@ PointNumber:        2132
 Lat:                8.03650520008832e-01
 Lon:                -1.14461127080095e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+5.47787001069834e+05   5.47801974775423e+05
 
 PointNumber:        2133
 Lat:                8.03650520008832e-01
@@ -12831,7 +13025,7 @@ Lat:                8.03650520008832e-01
 Lon:                -1.04719755119660e+00
 Alt:                0.00000000000000e+00
 NumberOfEvents  :   1
-2.87399215655296e+05   2.87403660740086e+05
+2.87374366591969e+05   2.87403557418237e+05
 
 PointNumber:        2135
 Lat:                8.03650520008832e-01
@@ -12849,13 +13043,15 @@ PointNumber:        2137
 Lat:                8.03650520008832e-01
 Lon:                7.30603027932311e-02
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.15799503723782e+06   1.15800079672456e+06
 
 PointNumber:        2138
 Lat:                8.03650520008832e-01
 Lon:                1.21767153868759e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+2.92773993225990e+05   2.92803214082619e+05
 
 PointNumber:        2139
 Lat:                8.03650520008832e-01
@@ -12891,13 +13087,15 @@ PointNumber:        2144
 Lat:                8.03650520008832e-01
 Lon:                4.14008330135099e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.19279742152272e+06   1.19280475664758e+06
 
 PointNumber:        2145
 Lat:                8.03650520008832e-01
 Lon:                4.62715198663919e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.06617792118335e+06   1.06620116501682e+06
 
 PointNumber:        2146
 Lat:                8.03650520008832e-01
@@ -12945,7 +13143,8 @@ PointNumber:        2153
 Lat:                8.03650520008832e-01
 Lon:                1.14461127080095e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.40279385371663e+06   1.40280555979869e+06
 
 PointNumber:        2154
 Lat:                8.03650520008832e-01
@@ -12957,7 +13156,8 @@ PointNumber:        2155
 Lat:                8.03650520008832e-01
 Lon:                1.24202500785859e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.29299195886229e+06   1.29300155742686e+06
 
 PointNumber:        2156
 Lat:                8.03650520008832e-01
@@ -12975,19 +13175,24 @@ PointNumber:        2158
 Lat:                8.03650520008832e-01
 Lon:                1.43685244706729e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   2
+5.51993855186337e+05   5.52000775881285e+05
+2.17618973457843e+06   2.17621936785636e+06
 
 PointNumber:        2159
 Lat:                8.03650520008832e-01
 Lon:                1.48555931559611e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   2
+2.91579578651910e+05   2.91601252586537e+05
+2.24039974822470e+06   2.24042476204992e+06
 
 PointNumber:        2160
 Lat:                8.03650520008832e-01
 Lon:                1.53426618412493e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.31099369797583e+06   1.31100304356006e+06
 
 PointNumber:        2161
 Lat:                8.03650520008832e-01
@@ -13023,13 +13228,15 @@ PointNumber:        2166
 Lat:                8.03650520008832e-01
 Lon:                1.82650736039127e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+9.78597240729046e+05   9.78605704379874e+05
 
 PointNumber:        2167
 Lat:                8.03650520008832e-01
 Lon:                1.87521421146680e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.69079139571344e+06   1.69080158292555e+06
 
 PointNumber:        2168
 Lat:                8.03650520008832e-01
@@ -13041,7 +13248,8 @@ PointNumber:        2169
 Lat:                8.03650520008832e-01
 Lon:                1.97262794852444e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+4.57792336432135e+05   4.57811650930658e+05
 
 PointNumber:        2170
 Lat:                8.03650520008832e-01
@@ -13095,7 +13303,8 @@ PointNumber:        2178
 Lat:                8.39102241187287e-01
 Lon:                -2.12195292625768e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+7.94999715314804e+05   7.95002574827886e+05
 
 PointNumber:        2179
 Lat:                8.39102241187287e-01
@@ -13155,7 +13364,8 @@ PointNumber:        2188
 Lat:                8.39102241187287e-01
 Lon:                -1.57079632679490e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+2.39038692967332e+06   2.39040017241662e+06
 
 PointNumber:        2189
 Lat:                8.39102241187287e-01
@@ -13197,26 +13407,28 @@ PointNumber:        2195
 Lat:                8.39102241187287e-01
 Lon:                -1.01963972733211e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+2.01599829252804e+06   2.01600485035110e+06
 
 PointNumber:        2196
 Lat:                8.39102241187287e-01
 Lon:                -9.64524062149844e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.75559512385135e+06   1.75560159966646e+06
 
 PointNumber:        2197
 Lat:                8.39102241187287e-01
 Lon:                -2.75578238644876e-02
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.67818113089295e+06   1.67818982342033e+06
 
 PointNumber:        2198
 Lat:                8.39102241187287e-01
 Lon:                2.75578238644869e-02
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   1
-1.52159939988591e+06   1.52162331590698e+06
+NumberOfEvents  :   0
 
 PointNumber:        2199
 Lat:                8.39102241187287e-01
@@ -13234,7 +13446,8 @@ PointNumber:        2201
 Lat:                8.39102241187287e-01
 Lon:                1.92904819411286e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.00079040495436e+06   1.00081134109878e+06
 
 PointNumber:        2202
 Lat:                8.39102241187287e-01
@@ -13246,13 +13459,15 @@ PointNumber:        2203
 Lat:                8.39102241187287e-01
 Lon:                3.03136132322526e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+7.40388049927373e+05   7.40400659081872e+05
 
 PointNumber:        2204
 Lat:                8.39102241187287e-01
 Lon:                3.58251797504792e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.04639917885959e+06   1.04640869709057e+06
 
 PointNumber:        2205
 Lat:                8.39102241187287e-01
@@ -13270,13 +13485,15 @@ PointNumber:        2207
 Lat:                8.39102241187287e-01
 Lon:                5.23598775598299e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+5.25589586936073e+05   5.25601804031605e+05
 
 PointNumber:        2208
 Lat:                8.39102241187287e-01
 Lon:                5.78714440780565e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+2.65199424861437e+05   2.65209589878612e+05
 
 PointNumber:        2209
 Lat:                8.39102241187287e-01
@@ -13294,7 +13511,8 @@ PointNumber:        2211
 Lat:                8.39102241187287e-01
 Lon:                7.44061418874072e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+2.84393328082653e+05   2.84402341469355e+05
 
 PointNumber:        2212
 Lat:                8.39102241187287e-01
@@ -13312,7 +13530,8 @@ PointNumber:        2214
 Lat:                8.39102241187287e-01
 Lon:                9.09408396967578e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+5.80784993799705e+05   5.80800218963305e+05
 
 PointNumber:        2215
 Lat:                8.39102241187287e-01
@@ -13324,7 +13543,8 @@ PointNumber:        2216
 Lat:                8.39102241187287e-01
 Lon:                1.01963972733211e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.92299754379712e+06   1.92302709826439e+06
 
 PointNumber:        2217
 Lat:                8.39102241187287e-01
@@ -13336,7 +13556,8 @@ PointNumber:        2218
 Lat:                8.39102241187287e-01
 Lon:                1.12987104024335e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+2.21939313660103e+06   2.21941294285136e+06
 
 PointNumber:        2219
 Lat:                8.39102241187287e-01
@@ -13354,7 +13575,8 @@ PointNumber:        2221
 Lat:                8.39102241187287e-01
 Lon:                1.29521801833686e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+4.88995828624607e+05   4.89003153948469e+05
 
 PointNumber:        2222
 Lat:                8.39102241187287e-01
@@ -13378,7 +13600,8 @@ PointNumber:        2225
 Lat:                8.39102241187287e-01
 Lon:                1.51568066161263e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+2.12759530717576e+06   2.12760248696887e+06
 
 PointNumber:        2226
 Lat:                8.39102241187287e-01
@@ -13420,19 +13643,22 @@ PointNumber:        2232
 Lat:                8.39102241187287e-01
 Lon:                1.90149028298191e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+8.99294510782472e+03   9.00181023493957e+03
 
 PointNumber:        2233
 Lat:                8.39102241187287e-01
 Lon:                1.95660594816418e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+8.25599507954241e+05   8.25605036272691e+05
 
 PointNumber:        2234
 Lat:                8.39102241187287e-01
 Lon:                2.01172161334644e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+2.40659526679895e+06   2.40660187534562e+06
 
 PointNumber:        2235
 Lat:                8.39102241187287e-01
@@ -13486,7 +13712,9 @@ PointNumber:        2243
 Lat:                8.74553944912449e-01
 Lon:                -2.06683727852871e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   2
+1.13999881606240e+06   1.14000314236964e+06
+2.35019518866191e+06   2.35020107720488e+06
 
 PointNumber:        2244
 Lat:                8.74553944912449e-01
@@ -13498,7 +13726,8 @@ PointNumber:        2245
 Lat:                8.74553944912449e-01
 Lon:                -1.95660594816418e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.76939894820651e+06   1.76941355504756e+06
 
 PointNumber:        2246
 Lat:                8.74553944912449e-01
@@ -13516,7 +13745,8 @@ PointNumber:        2248
 Lat:                8.74553944912449e-01
 Lon:                -1.79125897007067e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.24858802587579e+06   1.24860891922666e+06
 
 PointNumber:        2249
 Lat:                8.74553944912449e-01
@@ -13528,25 +13758,30 @@ PointNumber:        2250
 Lat:                8.74553944912449e-01
 Lon:                -1.68102763970614e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.80419858436088e+06   1.80421419051970e+06
 
 PointNumber:        2251
 Lat:                8.74553944912449e-01
 Lon:                -1.62591199197716e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+7.27785029894063e+05   7.27803953269170e+05
 
 PointNumber:        2252
 Lat:                8.74553944912449e-01
 Lon:                -1.57079632679490e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   2
+8.35198399055178e+05   8.35215291206332e+05
+1.54379955317703e+06   1.54381497746396e+06
 
 PointNumber:        2253
 Lat:                8.74553944912449e-01
 Lon:                -1.51568066161263e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.28339652098821e+06   1.28341246472428e+06
 
 PointNumber:        2254
 Lat:                8.74553944912449e-01
@@ -13576,7 +13811,8 @@ PointNumber:        2258
 Lat:                8.74553944912449e-01
 Lon:                -1.24010237060788e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.60859205872002e+06   1.60861530058534e+06
 
 PointNumber:        2259
 Lat:                8.74553944912449e-01
@@ -13600,7 +13836,8 @@ PointNumber:        2262
 Lat:                8.74553944912449e-01
 Lon:                1.37789154229020e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.10939963346045e+06   1.10940813868988e+06
 
 PointNumber:        2263
 Lat:                8.74553944912449e-01
@@ -13648,7 +13885,9 @@ PointNumber:        2270
 Lat:                8.74553944912449e-01
 Lon:                5.78714440780565e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   2
+1.52395122904346e+05   1.52411048821407e+05
+1.66979709110231e+06   1.66982836918000e+06
 
 PointNumber:        2271
 Lat:                8.74553944912449e-01
@@ -13690,7 +13929,8 @@ PointNumber:        2277
 Lat:                8.74553944912449e-01
 Lon:                9.64524062149844e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.76818381803834e+06   1.76820248872754e+06
 
 PointNumber:        2278
 Lat:                8.74553944912449e-01
@@ -13714,7 +13954,8 @@ PointNumber:        2281
 Lat:                8.74553944912449e-01
 Lon:                1.18498670542562e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.89959760056482e+06   1.89961381766536e+06
 
 PointNumber:        2282
 Lat:                8.74553944912449e-01
@@ -13726,7 +13967,8 @@ PointNumber:        2283
 Lat:                8.74553944912449e-01
 Lon:                1.29521801833686e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+8.33991694091898e+05   8.34000216185594e+05
 
 PointNumber:        2284
 Lat:                8.74553944912449e-01
@@ -13744,7 +13986,8 @@ PointNumber:        2286
 Lat:                8.74553944912449e-01
 Lon:                1.46056501388366e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.93439536358355e+06   1.93440130571362e+06
 
 PointNumber:        2287
 Lat:                8.74553944912449e-01
@@ -13762,7 +14005,8 @@ PointNumber:        2289
 Lat:                8.74553944912449e-01
 Lon:                1.62591199197716e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.60738399656184e+06   1.60740076192525e+06
 
 PointNumber:        2290
 Lat:                8.74553944912449e-01
@@ -13792,7 +14036,8 @@ PointNumber:        2294
 Lat:                8.74553944912449e-01
 Lon:                1.90149028298191e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.28459936087849e+06   1.28460105708292e+06
 
 PointNumber:        2295
 Lat:                8.74553944912449e-01
@@ -13810,7 +14055,9 @@ PointNumber:        2297
 Lat:                8.74553944912449e-01
 Lon:                2.06683727852871e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   2
+7.63794421525597e+05   7.63801311095641e+05
+2.16778602325812e+06   2.16780528109259e+06
 
 PointNumber:        2298
 Lat:                8.74553944912449e-01
@@ -13828,7 +14075,8 @@ PointNumber:        2300
 Lat:                8.74553944912449e-01
 Lon:                2.23218425662222e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+2.42994237675852e+05   2.43000854030677e+05
 
 PointNumber:        2301
 Lat:                8.74553944912449e-01
@@ -13840,19 +14088,23 @@ PointNumber:        2302
 Lat:                8.74553944912449e-01
 Lon:                2.34241556953346e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+7.98595106172730e+05   7.98614935558974e+05
 
 PointNumber:        2303
 Lat:                8.74553944912449e-01
 Lon:                2.39753123471572e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   2
+5.38198465428321e+05   5.38211038053884e+05
+1.07879993978534e+06   1.07880135498329e+06
 
 PointNumber:        2304
 Lat:                8.74553944912449e-01
 Lon:                2.45264689989799e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+2.13589723062013e+05   2.13603235191240e+05
 
 PointNumber:        2305
 Lat:                8.74553944912449e-01
@@ -13906,7 +14158,8 @@ PointNumber:        2313
 Lat:                9.10005648637611e-01
 Lon:                -1.84637463525294e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+5.96397014522501e+05   5.96407240758148e+05
 
 PointNumber:        2314
 Lat:                9.10005648637611e-01
@@ -13924,7 +14177,8 @@ PointNumber:        2316
 Lat:                9.10005648637611e-01
 Lon:                -1.68102763970614e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+7.55912254897953e+04   7.56014024352497e+04
 
 PointNumber:        2317
 Lat:                9.10005648637611e-01
@@ -13942,7 +14196,8 @@ PointNumber:        2319
 Lat:                9.10005648637611e-01
 Lon:                -1.51568066161263e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+2.19599765829315e+06   2.19600427197845e+06
 
 PointNumber:        2320
 Lat:                9.10005648637611e-01
@@ -13966,7 +14221,8 @@ PointNumber:        2323
 Lat:                9.10005648637611e-01
 Lon:                -1.24010237060788e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+3.98394066264213e+05   3.98406995654929e+05
 
 PointNumber:        2324
 Lat:                9.10005648637611e-01
@@ -13996,7 +14252,8 @@ PointNumber:        2328
 Lat:                9.10005648637611e-01
 Lon:                -1.37789154229020e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.89117186628665e+06   1.89120062497782e+06
 
 PointNumber:        2329
 Lat:                9.10005648637611e-01
@@ -14014,7 +14271,8 @@ PointNumber:        2331
 Lat:                9.10005648637611e-01
 Lon:                8.26734890467532e-02
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+4.45190349018201e+05   4.45206486166687e+05
 
 PointNumber:        2332
 Lat:                9.10005648637611e-01
@@ -14032,7 +14290,8 @@ PointNumber:        2334
 Lat:                9.10005648637611e-01
 Lon:                2.48020467140260e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.79939219612950e+06   1.79940056942052e+06
 
 PointNumber:        2335
 Lat:                9.10005648637611e-01
@@ -14081,7 +14340,7 @@ Lat:                9.10005648637611e-01
 Lon:                6.88945753691805e-01
 Alt:                0.00000000000000e+00
 NumberOfEvents  :   1
-8.20788633027729e+05   8.20817183000970e+05
+8.20796382472648e+05   8.20807884238479e+05
 
 PointNumber:        2343
 Lat:                9.10005648637611e-01
@@ -14093,20 +14352,22 @@ PointNumber:        2344
 Lat:                9.10005648637611e-01
 Lon:                7.99177084056338e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+5.60387214843272e+05   5.60404308766441e+05
 
 PointNumber:        2345
 Lat:                9.10005648637611e-01
 Lon:                8.54292731785312e-01
 Alt:                0.00000000000000e+00
 NumberOfEvents  :   1
-2.99981395095189e+05   3.00010989869447e+05
+2.99985468560995e+05   3.00007600992521e+05
 
 PointNumber:        2346
 Lat:                9.10005648637611e-01
 Lon:                9.09408396967578e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+3.95906203319223e+04   3.96011647805188e+04
 
 PointNumber:        2347
 Lat:                9.10005648637611e-01
@@ -14118,7 +14379,8 @@ PointNumber:        2348
 Lat:                9.10005648637611e-01
 Lon:                1.01963972733211e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+3.67799551005797e+05   3.67805845728755e+05
 
 PointNumber:        2349
 Lat:                9.10005648637611e-01
@@ -14148,19 +14410,22 @@ PointNumber:        2353
 Lat:                9.10005648637611e-01
 Lon:                1.29521801833686e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.14119689194828e+06   1.14120728397487e+06
 
 PointNumber:        2354
 Lat:                9.10005648637611e-01
 Lon:                1.35033368351912e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.14118784871123e+06   1.14120001079237e+06
 
 PointNumber:        2355
 Lat:                9.10005648637611e-01
 Lon:                1.40544934870139e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+2.05796711282238e+05   2.05818102260124e+05
 
 PointNumber:        2356
 Lat:                9.10005648637611e-01
@@ -14184,7 +14449,8 @@ PointNumber:        2359
 Lat:                9.10005648637611e-01
 Lon:                1.62591199197716e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.91459386153946e+06   1.91461048069894e+06
 
 PointNumber:        2360
 Lat:                9.10005648637611e-01
@@ -14196,7 +14462,8 @@ PointNumber:        2361
 Lat:                9.10005648637611e-01
 Lon:                1.73614330488840e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.08717748998489e+06   1.08720537616398e+06
 
 PointNumber:        2362
 Lat:                9.10005648637611e-01
@@ -14250,7 +14517,8 @@ PointNumber:        2370
 Lat:                9.10005648637611e-01
 Lon:                2.28729992180448e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.71119683067772e+06   1.71120706217101e+06
 
 PointNumber:        2371
 Lat:                9.10005648637611e-01
@@ -14268,13 +14536,15 @@ PointNumber:        2373
 Lat:                9.10005648637611e-01
 Lon:                2.45264689989799e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+5.20799544968852e+05   5.20814582649734e+05
 
 PointNumber:        2374
 Lat:                9.45457369816065e-01
 Lon:                -2.25306139644238e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.42858792453973e+06   1.42860094884966e+06
 
 PointNumber:        2375
 Lat:                9.45457369816065e-01
@@ -14286,7 +14556,8 @@ PointNumber:        2376
 Lat:                9.45457369816065e-01
 Lon:                -2.12612836469369e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+9.07784729644958e+05   9.07800479620019e+05
 
 PointNumber:        2377
 Lat:                9.45457369816065e-01
@@ -14299,7 +14570,7 @@ Lat:                9.45457369816065e-01
 Lon:                -1.99919533294500e+00
 Alt:                0.00000000000000e+00
 NumberOfEvents  :   1
-5.81994044657122e+05   5.82004015792779e+05
+5.81977419549740e+05   5.82004015793157e+05
 
 PointNumber:        2379
 Lat:                9.45457369816065e-01
@@ -14323,7 +14594,8 @@ PointNumber:        2382
 Lat:                9.45457369816065e-01
 Lon:                -1.68186272739334e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.35538237580065e+06   1.35540277701323e+06
 
 PointNumber:        2383
 Lat:                9.45457369816065e-01
@@ -14341,7 +14613,8 @@ PointNumber:        2385
 Lat:                9.45457369816065e-01
 Lon:                -1.49146317104366e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+5.53198120810666e+05   5.53215843342783e+05
 
 PointNumber:        2386
 Lat:                9.45457369816065e-01
@@ -14353,13 +14626,15 @@ PointNumber:        2387
 Lat:                9.45457369816065e-01
 Lon:                -1.30106363214727e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+9.18599274445037e+05   9.18604232587483e+05
 
 PointNumber:        2388
 Lat:                9.45457369816065e-01
 Lon:                -1.23759710754628e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.64639579167407e+06   1.64640447341173e+06
 
 PointNumber:        2389
 Lat:                9.45457369816065e-01
@@ -14389,13 +14664,16 @@ PointNumber:        2393
 Lat:                9.45457369816065e-01
 Lon:                -3.17332623004951e-02
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.37099698504440e+06   1.37100063065206e+06
 
 PointNumber:        2394
 Lat:                9.45457369816065e-01
 Lon:                1.58666294049185e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   2
+1.41659288250691e+06   1.41660734016846e+06
+1.91339468345161e+06   1.91340220534235e+06
 
 PointNumber:        2395
 Lat:                9.45457369816065e-01
@@ -14407,13 +14685,15 @@ PointNumber:        2396
 Lat:                9.45457369816065e-01
 Lon:                2.85599325797875e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+2.14437140822163e+06   2.14437823229422e+06
 
 PointNumber:        2397
 Lat:                9.45457369816065e-01
 Lon:                3.49065850398866e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.33799936469906e+05   1.33801609051524e+05
 
 PointNumber:        2398
 Lat:                9.45457369816065e-01
@@ -14425,7 +14705,8 @@ PointNumber:        2399
 Lat:                9.45457369816065e-01
 Lon:                4.75998882147556e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+2.18998221828649e+06   2.18999082948253e+06
 
 PointNumber:        2400
 Lat:                9.45457369816065e-01
@@ -14497,7 +14778,8 @@ PointNumber:        2411
 Lat:                9.45457369816065e-01
 Lon:                1.23759710754628e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+2.36939366766974e+06   2.36940115912701e+06
 
 PointNumber:        2412
 Lat:                9.45457369816065e-01
@@ -14509,20 +14791,23 @@ PointNumber:        2413
 Lat:                9.45457369816065e-01
 Lon:                1.36453013929497e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   3
+1.84858031202809e+06   1.84858940602125e+06
+2.28073926556805e+06   2.28074487292613e+06
+2.38919595471430e+06   2.38920290316629e+06
 
 PointNumber:        2414
 Lat:                9.45457369816065e-01
 Lon:                1.42799666389596e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.58818291558000e+06   1.58820329346646e+06
 
 PointNumber:        2415
 Lat:                9.45457369816065e-01
 Lon:                1.49146317104366e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   1
-1.20419699146152e+06   1.20420462194431e+06
+NumberOfEvents  :   0
 
 PointNumber:        2416
 Lat:                9.45457369816065e-01
@@ -14534,8 +14819,7 @@ PointNumber:        2417
 Lat:                9.45457369816065e-01
 Lon:                1.61839622024564e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   1
-6.83395406603594e+05   6.83403953984634e+05
+NumberOfEvents  :   0
 
 PointNumber:        2418
 Lat:                9.45457369816065e-01
@@ -14553,7 +14837,8 @@ PointNumber:        2420
 Lat:                9.45457369816065e-01
 Lon:                1.80879577659532e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.62585163832208e+05   1.62600809855712e+05
 
 PointNumber:        2421
 Lat:                9.45457369816065e-01
@@ -14577,13 +14862,15 @@ PointNumber:        2424
 Lat:                9.45457369816065e-01
 Lon:                2.06266184009270e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.23359880178934e+06   1.23360886262430e+06
 
 PointNumber:        2425
 Lat:                9.45457369816065e-01
 Lon:                2.12612836469369e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+9.95399265899459e+05   9.95405779809118e+05
 
 PointNumber:        2426
 Lat:                9.45457369816065e-01
@@ -14613,7 +14900,8 @@ PointNumber:        2430
 Lat:                9.45457369816065e-01
 Lon:                2.76079354089043e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+8.78997786349682e+05   8.79011440727919e+05
 
 PointNumber:        2431
 Lat:                9.80909073541227e-01
@@ -14637,7 +14925,8 @@ PointNumber:        2434
 Lat:                9.80909073541227e-01
 Lon:                -2.12612836469369e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.29179884675679e+06   1.29180498904409e+06
 
 PointNumber:        2435
 Lat:                9.80909073541227e-01
@@ -14649,7 +14938,8 @@ PointNumber:        2436
 Lat:                9.80909073541227e-01
 Lon:                -1.99919533294500e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+7.70989329309207e+05   7.71015479867733e+05
 
 PointNumber:        2437
 Lat:                9.80909073541227e-01
@@ -14661,13 +14951,16 @@ PointNumber:        2438
 Lat:                9.80909073541227e-01
 Lon:                -1.87226228374302e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.85519498857468e+06   1.85520213276283e+06
 
 PointNumber:        2439
 Lat:                9.80909073541227e-01
 Lon:                -1.80879577659532e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   2
+4.44595951755547e+05   4.44618142261879e+05
+1.53060229959814e+06   1.53062652066497e+06
 
 PointNumber:        2440
 Lat:                9.80909073541227e-01
@@ -14691,7 +14984,8 @@ PointNumber:        2443
 Lat:                9.80909073541227e-01
 Lon:                -1.55492969564465e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+2.08319954406728e+06   2.08322826342903e+06
 
 PointNumber:        2444
 Lat:                9.80909073541227e-01
@@ -14703,7 +14997,8 @@ PointNumber:        2445
 Lat:                9.80909073541227e-01
 Lon:                -1.23759710754628e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.50059865621714e+06   1.50060322850496e+06
 
 PointNumber:        2446
 Lat:                9.80909073541227e-01
@@ -14715,7 +15010,8 @@ PointNumber:        2447
 Lat:                9.80909073541227e-01
 Lon:                -1.11066407579759e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+2.21219833606317e+06   2.21220165405668e+06
 
 PointNumber:        2448
 Lat:                9.80909073541227e-01
@@ -14733,7 +15029,8 @@ PointNumber:        2450
 Lat:                9.80909073541227e-01
 Lon:                2.22132818650176e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+2.70597017272224e+05   2.70608556875215e+05
 
 PointNumber:        2451
 Lat:                9.80909073541227e-01
@@ -14799,7 +15096,8 @@ PointNumber:        2461
 Lat:                9.80909073541227e-01
 Lon:                1.04719755119660e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.16159885579468e+06   1.16161368746621e+06
 
 PointNumber:        2462
 Lat:                9.80909073541227e-01
@@ -14811,7 +15109,9 @@ PointNumber:        2463
 Lat:                9.80909073541227e-01
 Lon:                1.17413058294529e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   2
+6.40786982561851e+05   6.40814725874879e+05
+2.24579440731782e+06   2.24580484309619e+06
 
 PointNumber:        2464
 Lat:                9.80909073541227e-01
@@ -14829,7 +15129,8 @@ PointNumber:        2466
 Lat:                9.80909073541227e-01
 Lon:                1.36453013929497e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.19979132008379e+05   1.20001888700505e+05
 
 PointNumber:        2467
 Lat:                9.80909073541227e-01
@@ -14847,49 +15148,58 @@ PointNumber:        2469
 Lat:                9.80909073541227e-01
 Lon:                1.55492969564465e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.38596969958083e+05   1.38605212628828e+05
 
 PointNumber:        2470
 Lat:                9.80909073541227e-01
 Lon:                1.61839622024564e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+3.59384666160251e+05   3.59409841091267e+05
 
 PointNumber:        2471
 Lat:                9.80909073541227e-01
 Lon:                1.68186272739334e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+8.06998786648768e+05   8.07003759074119e+05
 
 PointNumber:        2472
 Lat:                9.80909073541227e-01
 Lon:                1.74532925199433e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+5.46598121382381e+05   5.46607235765949e+05
 
 PointNumber:        2473
 Lat:                9.80909073541227e-01
 Lon:                1.80879577659532e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+2.86199098683333e+05   2.86207549334938e+05
 
 PointNumber:        2474
 Lat:                9.80909073541227e-01
 Lon:                1.87226228374302e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   2
+9.11996547001494e+05   9.12001095210727e+05
+1.99799855939089e+06   1.99800588839788e+06
 
 PointNumber:        2475
 Lat:                9.80909073541227e-01
 Lon:                1.93572880834401e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.13279049869642e+06   1.13280630126420e+06
 
 PointNumber:        2476
 Lat:                9.80909073541227e-01
 Lon:                1.99919533294500e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.37038062403672e+06   1.37040003267752e+06
 
 PointNumber:        2477
 Lat:                9.80909073541227e-01
@@ -14919,7 +15229,8 @@ PointNumber:        2481
 Lat:                9.80909073541227e-01
 Lon:                2.31652792104337e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+6.95998410212183e+05   6.96022439731216e+05
 
 PointNumber:        2482
 Lat:                9.80909073541227e-01
@@ -14967,13 +15278,15 @@ PointNumber:        2489
 Lat:                1.01636077726639e+00
 Lon:                -2.12612836469369e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.25399919127017e+06   1.25400086961957e+06
 
 PointNumber:        2490
 Lat:                1.01636077726639e+00
 Lon:                -2.06266184009270e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+2.41379914699197e+06   2.41380574045471e+06
 
 PointNumber:        2491
 Lat:                1.01636077726639e+00
@@ -14997,7 +15310,8 @@ PointNumber:        2494
 Lat:                1.01636077726639e+00
 Lon:                -1.80879577659532e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+7.89598896483043e+05   7.89606844329985e+05
 
 PointNumber:        2495
 Lat:                1.01636077726639e+00
@@ -15021,7 +15335,8 @@ PointNumber:        2498
 Lat:                1.01636077726639e+00
 Lon:                -1.23759710754628e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.18198266470363e+05   1.18201804256077e+05
 
 PointNumber:        2499
 Lat:                1.01636077726639e+00
@@ -15033,7 +15348,8 @@ PointNumber:        2500
 Lat:                1.01636077726639e+00
 Lon:                -1.11066407579759e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+2.33639914997276e+06   2.33640722976262e+06
 
 PointNumber:        2501
 Lat:                1.01636077726639e+00
@@ -15051,7 +15367,8 @@ PointNumber:        2503
 Lat:                1.01636077726639e+00
 Lon:                4.75998882147556e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.21799463758326e+06   1.21801054531183e+06
 
 PointNumber:        2504
 Lat:                1.01636077726639e+00
@@ -15069,7 +15386,8 @@ PointNumber:        2506
 Lat:                1.01636077726639e+00
 Lon:                6.66398438497236e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+6.97197199312961e+05   6.97206757666497e+05
 
 PointNumber:        2507
 Lat:                1.01636077726639e+00
@@ -15081,7 +15399,8 @@ PointNumber:        2508
 Lat:                1.01636077726639e+00
 Lon:                7.93331470245926e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+6.67197206225052e+05   6.67215584301525e+05
 
 PointNumber:        2509
 Lat:                1.01636077726639e+00
@@ -15117,7 +15436,8 @@ PointNumber:        2514
 Lat:                1.01636077726639e+00
 Lon:                1.17413058294529e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+8.63394344474529e+05   8.63413087835023e+05
 
 PointNumber:        2515
 Lat:                1.01636077726639e+00
@@ -15153,13 +15473,15 @@ PointNumber:        2520
 Lat:                1.01636077726639e+00
 Lon:                1.55492969564465e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+8.79591754940893e+05   8.79600478749437e+05
 
 PointNumber:        2521
 Lat:                1.01636077726639e+00
 Lon:                1.61839622024564e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.43940720559989e+04   1.44032203340672e+04
 
 PointNumber:        2522
 Lat:                1.01636077726639e+00
@@ -15183,7 +15505,8 @@ PointNumber:        2525
 Lat:                1.01636077726639e+00
 Lon:                1.87226228374302e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.65299417843722e+06   1.65300463177492e+06
 
 PointNumber:        2526
 Lat:                1.01636077726639e+00
@@ -15219,7 +15542,8 @@ PointNumber:        2531
 Lat:                1.01636077726639e+00
 Lon:                2.25306139644238e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+2.09519664969229e+06   2.09522034691205e+06
 
 PointNumber:        2532
 Lat:                1.01636077726639e+00
@@ -15237,7 +15561,8 @@ PointNumber:        2534
 Lat:                1.01636077726639e+00
 Lon:                2.44346095279206e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.57439522385825e+06   1.57440369032418e+06
 
 PointNumber:        2535
 Lat:                1.01636077726639e+00
@@ -15315,7 +15640,8 @@ PointNumber:        2547
 Lat:                1.05181249844484e+00
 Lon:                -1.90739553469286e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+2.05079515039204e+06   2.05080474695434e+06
 
 PointNumber:        2548
 Lat:                1.05181249844484e+00
@@ -15327,19 +15653,22 @@ PointNumber:        2549
 Lat:                1.05181249844484e+00
 Lon:                -1.75779589449523e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.37219508916909e+06   1.37220070135501e+06
 
 PointNumber:        2550
 Lat:                1.05181249844484e+00
 Lon:                -1.68299605694312e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.68058367354883e+06   1.68059212269998e+06
 
 PointNumber:        2551
 Lat:                1.05181249844484e+00
 Lon:                -1.30899693899575e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.77591948974253e+05   1.77600427491452e+05
 
 PointNumber:        2552
 Lat:                1.05181249844484e+00
@@ -15357,7 +15686,8 @@ PointNumber:        2554
 Lat:                1.05181249844484e+00
 Lon:                1.12199730148224e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.95118889548022e+06   1.95120324005280e+06
 
 PointNumber:        2555
 Lat:                1.05181249844484e+00
@@ -15399,7 +15729,8 @@ PointNumber:        2561
 Lat:                1.05181249844484e+00
 Lon:                8.60197983496265e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.90499289617242e+06   1.90500084463088e+06
 
 PointNumber:        2562
 Lat:                1.05181249844484e+00
@@ -15417,7 +15748,8 @@ PointNumber:        2564
 Lat:                1.05181249844484e+00
 Lon:                1.08459746124601e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+6.26394678785073e+05   6.26403420873397e+05
 
 PointNumber:        2565
 Lat:                1.05181249844484e+00
@@ -15453,7 +15785,8 @@ PointNumber:        2570
 Lat:                1.05181249844484e+00
 Lon:                1.53339641674549e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.69379972844599e+06   1.69380896553890e+06
 
 PointNumber:        2571
 Lat:                1.05181249844484e+00
@@ -15501,19 +15834,22 @@ PointNumber:        2578
 Lat:                1.05181249844484e+00
 Lon:                2.13179501244260e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+2.08138279064736e+06   2.08140321062871e+06
 
 PointNumber:        2579
 Lat:                1.05181249844484e+00
 Lon:                2.20659483254142e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.21619801940729e+06   1.21620527023604e+06
 
 PointNumber:        2580
 Lat:                1.05181249844484e+00
 Lon:                2.28139467009353e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+2.37539784547517e+06   2.37540250916476e+06
 
 PointNumber:        2581
 Lat:                1.05181249844484e+00
@@ -15549,7 +15885,8 @@ PointNumber:        2586
 Lat:                1.05181249844484e+00
 Lon:                2.87979326579064e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+5.80793523945064e+05   5.80810529177236e+05
 
 PointNumber:        2587
 Lat:                1.08726420217001e+00
@@ -15591,13 +15928,15 @@ PointNumber:        2593
 Lat:                1.08726420217001e+00
 Lon:                -2.43099431029116e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.14299200168028e+06   1.14300453546434e+06
 
 PointNumber:        2594
 Lat:                1.08726420217001e+00
 Lon:                -2.35619449019235e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.79759455683982e+06   1.79760332427582e+06
 
 PointNumber:        2595
 Lat:                1.08726420217001e+00
@@ -15651,7 +15990,8 @@ PointNumber:        2603
 Lat:                1.08726420217001e+00
 Lon:                -1.68299605694312e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+2.98195653974670e+05   2.98206504792692e+05
 
 PointNumber:        2604
 Lat:                1.08726420217001e+00
@@ -15669,7 +16009,8 @@ PointNumber:        2606
 Lat:                1.08726420217001e+00
 Lon:                -8.60197983496264e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+4.30797666187691e+05   4.30806629067547e+05
 
 PointNumber:        2607
 Lat:                1.08726420217001e+00
@@ -15681,7 +16022,8 @@ PointNumber:        2608
 Lat:                1.08726420217001e+00
 Lon:                1.86999567700333e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+8.77197311754736e+05   8.77206486233997e+05
 
 PointNumber:        2609
 Lat:                1.08726420217001e+00
@@ -15765,7 +16107,9 @@ PointNumber:        2622
 Lat:                1.08726420217001e+00
 Lon:                1.30899693899575e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   2
+4.00197481981075e+05   4.00208175472480e+05
+1.26539883775921e+06   1.26540669907723e+06
 
 PointNumber:        2623
 Lat:                1.08726420217001e+00
@@ -15783,7 +16127,8 @@ PointNumber:        2625
 Lat:                1.08726420217001e+00
 Lon:                1.53339641674549e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+2.36399482493826e+06   2.36400357126375e+06
 
 PointNumber:        2626
 Lat:                1.08726420217001e+00
@@ -15831,7 +16176,8 @@ PointNumber:        2633
 Lat:                1.08726420217001e+00
 Lon:                2.13179501244260e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.73639764505438e+06   1.73640007101535e+06
 
 PointNumber:        2634
 Lat:                1.08726420217001e+00
@@ -15897,7 +16243,8 @@ PointNumber:        2644
 Lat:                1.08726420217001e+00
 Lon:                2.95459308588946e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+3.42599581420392e+05   3.42603616231702e+05
 
 PointNumber:        2645
 Lat:                1.08726420217001e+00
@@ -15921,7 +16268,8 @@ PointNumber:        2648
 Lat:                1.12271590589517e+00
 Lon:                -2.65539378804090e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+7.14595376928548e+05   7.14600904179506e+05
 
 PointNumber:        2649
 Lat:                1.12271590589517e+00
@@ -15939,7 +16287,8 @@ PointNumber:        2651
 Lat:                1.12271590589517e+00
 Lon:                -2.43099431029116e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.38059720033129e+06   1.38060185610276e+06
 
 PointNumber:        2652
 Lat:                1.12271590589517e+00
@@ -16059,7 +16408,8 @@ PointNumber:        2671
 Lat:                1.12271590589517e+00
 Lon:                2.61799387799149e-01
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.19994846267561e+05   1.20002900041077e+05
 
 PointNumber:        2672
 Lat:                1.12271590589517e+00
@@ -16167,7 +16517,8 @@ PointNumber:        2689
 Lat:                1.12271590589517e+00
 Lon:                1.75779589449523e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+6.53399412450511e+05   6.53407459222144e+05
 
 PointNumber:        2690
 Lat:                1.12271590589517e+00
@@ -16191,13 +16542,16 @@ PointNumber:        2693
 Lat:                1.12271590589517e+00
 Lon:                2.05699519234379e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   2
+7.37972409542361e+04   7.38050200200544e+04
+1.42679720648613e+06   1.42680832168593e+06
 
 PointNumber:        2694
 Lat:                1.12271590589517e+00
 Lon:                2.13179501244260e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.81196704316865e+05   1.81203154288740e+05
 
 PointNumber:        2695
 Lat:                1.12271590589517e+00
@@ -16221,7 +16575,8 @@ PointNumber:        2698
 Lat:                1.12271590589517e+00
 Lon:                2.43099431029116e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+9.54597880711396e+05   9.54603003936430e+05
 
 PointNumber:        2699
 Lat:                1.12271590589517e+00
@@ -16281,7 +16636,8 @@ PointNumber:        2708
 Lat:                1.15816762707362e+00
 Lon:                -2.99879299069086e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.35359932186363e+06   1.35360123990727e+06
 
 PointNumber:        2709
 Lat:                1.15816762707362e+00
@@ -16323,19 +16679,22 @@ PointNumber:        2715
 Lat:                1.15816762707362e+00
 Lon:                -2.23719476529213e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.02597186431524e+05   1.02602614317910e+05
 
 PointNumber:        2716
 Lat:                1.15816762707362e+00
 Lon:                -2.04679520894245e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+6.70799723376337e+05   6.70804090224221e+05
 
 PointNumber:        2717
 Lat:                1.15816762707362e+00
 Lon:                -1.95159543949426e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.74119831769926e+06   1.74120336938578e+06
 
 PointNumber:        2718
 Lat:                1.15816762707362e+00
@@ -16497,7 +16856,8 @@ PointNumber:        2744
 Lat:                1.15816762707362e+00
 Lon:                1.85639565259277e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+1.33197675054349e+05   1.33202937545830e+05
 
 PointNumber:        2745
 Lat:                1.15816762707362e+00
@@ -16515,7 +16875,8 @@ PointNumber:        2747
 Lat:                1.15816762707362e+00
 Lon:                2.14199499584394e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+9.06596409893237e+05   9.06601999567139e+05
 
 PointNumber:        2748
 Lat:                1.15816762707362e+00
@@ -16575,7 +16936,8 @@ PointNumber:        2757
 Lat:                1.15816762707362e+00
 Lon:                3.09399276013905e+00
 Alt:                0.00000000000000e+00
-NumberOfEvents  :   0
+NumberOfEvents  :   1
+2.15639297684750e+06   2.15640156871173e+06
 
 PointNumber:        2758
 Lat:                1.19361933079878e+00

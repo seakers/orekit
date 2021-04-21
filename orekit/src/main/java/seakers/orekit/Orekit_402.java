@@ -214,6 +214,7 @@ public class Orekit_402 {
         }
 
         ArrayList<CoveragePoint> points = new ArrayList<>();
+        double th_g = 0;
         for(int idx = 1; idx < records.size()-1; idx++) {
 //            System.out.println(idx);
 
@@ -221,9 +222,12 @@ public class Orekit_402 {
             double lat = parseDouble(records.get(idx).get(1));
             double lon = parseDouble(records.get(idx).get(2));
 
-//            if(lon < 0){
-//                lon = 360 + lon;
-//            }
+            if(idx > 1){
+                double lat_p = parseDouble(records.get(idx-1).get(1));
+                double lon_p = parseDouble(records.get(idx-1).get(2));
+
+                th_g += Math.acos( Math.cos(Math.toRadians(Math.abs(lat - lat_p))) * Math.cos( Math.toRadians(Math.abs(lon - lon_p)) ) );
+            }
 
             lat = Math.toRadians(lat);
             lon = Math.toRadians(lon);
@@ -232,19 +236,20 @@ public class Orekit_402 {
 
             points.add(point);
         }
+        th_g = th_g/(records.size()-2);
 
 
         //create a coverage definition
-//        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", points);
-//        CoverageDefinition covDef2 = new CoverageDefinition("covdef2", points);
-//        CoverageDefinition covDef3 = new CoverageDefinition("covdef3", points);
-
         double deg = 1;
-        double th_g = Math.toRadians(deg);
+//        th_g = Math.toRadians(deg);
 
-        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", deg, earthShape, EQUAL_AREA);
-        CoverageDefinition covDef2 = new CoverageDefinition("covdef2", deg, earthShape, EQUAL_AREA);
-        CoverageDefinition covDef3 = new CoverageDefinition("covdef3", deg, earthShape, EQUAL_AREA);
+//        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", deg, earthShape, EQUAL_AREA);
+//        CoverageDefinition covDef2 = new CoverageDefinition("covdef2", deg, earthShape, EQUAL_AREA);
+//        CoverageDefinition covDef3 = new CoverageDefinition("covdef3", deg, earthShape, EQUAL_AREA);
+
+        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", points);
+        CoverageDefinition covDef2 = new CoverageDefinition("covdef2", points);
+        CoverageDefinition covDef3 = new CoverageDefinition("covdef3", points);
 
 
         covDef1.assignConstellation(constellations1);
