@@ -58,6 +58,8 @@ public class ReflectometerEventAnalysis  extends AbstractGroundEventAnalysis {
 
     private final Constellation txConstel;
 
+    private final double th_g;
+
     /**
      * Creates a new event analysis.
      * @param startDate of analysis
@@ -71,15 +73,17 @@ public class ReflectometerEventAnalysis  extends AbstractGroundEventAnalysis {
 * merged accesses between all satellites (this saves memory).
      * @param saveToDB flag to dictate whether the coverage accesses of
      * @param txConstel
+     * @param th_g
      */
     public ReflectometerEventAnalysis(AbsoluteDate startDate, AbsoluteDate endDate,
                                       Frame inertialFrame, Set<CoverageDefinition> covDefs,
                                       PropagatorFactory propagatorFactory, boolean saveAllAccesses,
-                                      boolean saveToDB, Constellation txConstel) {
+                                      boolean saveToDB, Constellation txConstel, double th_g) {
         super(startDate, endDate, inertialFrame, covDefs);
         this.propagatorFactory = propagatorFactory;
         this.saveAllAccesses = saveAllAccesses;
         this.txConstel = txConstel;
+        this.th_g = th_g;
         this.propagatorMap = new HashMap<>();
         for(Satellite txSat : txConstel.getSatellites()){
             Propagator prop = propagatorFactory.createPropagator(txSat.getOrbit(), txSat.getGrossMass());
@@ -134,7 +138,7 @@ public class ReflectometerEventAnalysis  extends AbstractGroundEventAnalysis {
                 double fovStepSize = sat.getOrbit().getKeplerianPeriod() / 100.;
                 double threshold = 1e-3;
 
-                ReflectometerEventAnalysis.FieldOfViewSubRoutine subRoutine = new ReflectometerEventAnalysis.FieldOfViewSubRoutine(sat, prop, propagatorMap, cdef, txConstel, fovStepSize, threshold);
+                ReflectometerEventAnalysis.FieldOfViewSubRoutine subRoutine = new ReflectometerEventAnalysis.FieldOfViewSubRoutine(sat, prop, propagatorMap, cdef, txConstel, fovStepSize, threshold, th_g);
                 subRoutines.add(subRoutine);
             }
 
@@ -326,18 +330,21 @@ public class ReflectometerEventAnalysis  extends AbstractGroundEventAnalysis {
         private final HashMap<Satellite,Propagator> propagatorMap;
 
         private final Constellation txConstel;
+
+        private final double th_g;
         /**
-         *  @param sat The satellite to propagate
+         * @param sat The satellite to propagate
          * @param prop The propagator
          * @param cdef The coverage definition to access
+         * @param txConstel
          * @param fovStepSize The step size during propagation when computing
 * the field of view events. Generally, this should be a small step for
 * accurate results.
          * @param threshold The threshold, in seconds, when conducting root
-         * @param txConstel
+         * @param th_g
          */
         public FieldOfViewSubRoutine(Satellite sat, Propagator prop, HashMap<Satellite, Propagator> propagatorMap,
-                                     CoverageDefinition cdef, Constellation txConstel, double fovStepSize, double threshold) {
+                                     CoverageDefinition cdef, Constellation txConstel, double fovStepSize, double threshold, double th_g) {
             this.sat = sat;
             this.prop = prop;
             this.propagatorMap = propagatorMap;
@@ -346,6 +353,7 @@ public class ReflectometerEventAnalysis  extends AbstractGroundEventAnalysis {
             this.threshold = threshold;
             this.satAccesses = new HashMap<>(cdef.getNumberOfPoints());
             this.txConstel = txConstel;
+            this.th_g = th_g;
             for (CoveragePoint pt : cdef.getPoints()) {
                 satAccesses.put(pt, getEmptyTimeArray());
             }
@@ -468,7 +476,7 @@ public class ReflectometerEventAnalysis  extends AbstractGroundEventAnalysis {
         private TimeIntervalHandler<ReflectionDetector> addRefDetector(CoveragePoint pt, Instrument inst, SpacecraftState initialState) {
             Frame inertialFrame = initialState.getFrame();
 
-            ReflectionDetector refDetec = new ReflectionDetector(pt, propagatorMap, inertialFrame, inst, txConstel);
+            ReflectionDetector refDetec = new ReflectionDetector(pt, propagatorMap, inertialFrame, inst, txConstel, th_g);
             TimeIntervalHandler<ReflectionDetector> refHandler = new TimeIntervalHandler<>(getStartDate(), getEndDate(), refDetec.g(initialState), Action.CONTINUE);
             refDetec = refDetec.withHandler(refHandler);
             prop.addEventDetector(refDetec);

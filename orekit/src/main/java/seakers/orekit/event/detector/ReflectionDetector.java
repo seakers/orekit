@@ -4,7 +4,6 @@ import org.hipparchus.geometry.euclidean.threed.Vector3D;
 import org.orekit.errors.OrekitException;
 import org.orekit.frames.Frame;
 import org.orekit.frames.TopocentricFrame;
-import org.orekit.gnss.SatelliteSystem;
 import org.orekit.propagation.Propagator;
 import org.orekit.propagation.SpacecraftState;
 import org.orekit.propagation.events.AbstractDetector;
@@ -19,6 +18,9 @@ import seakers.orekit.object.Satellite;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+/**
+ * @author a.aguilar
+ */
 public class ReflectionDetector extends AbstractDetector<ReflectionDetector> {
     private final TopocentricFrame target;
 
@@ -30,6 +32,10 @@ public class ReflectionDetector extends AbstractDetector<ReflectionDetector> {
 
     private final Constellation txConstel;
 
+    private final double th_g;
+
+    private double th_err;
+
     /**
      * The minimum radius of the earth (north-south direction)
      */
@@ -40,12 +46,13 @@ public class ReflectionDetector extends AbstractDetector<ReflectionDetector> {
      * check for step size is set to 600.0 seconds by default. Threshold for
      * event detection is set to default 1e-6 seconds. This detector by default
      * stops when an event is detected.
-     *  @param target the target to attach the detector to
+     * @param target the target to attach the detector to
      * @param instrument
      * @param txConstel
+     * @param th_g
      */
-    public ReflectionDetector(final TopocentricFrame target, HashMap<Satellite,Propagator> propagatorMap, final Frame inertialFrame, Instrument instrument, Constellation txConstel) {
-        this(target, propagatorMap, inertialFrame, DEFAULT_MAXCHECK, DEFAULT_THRESHOLD, DEFAULT_MAX_ITER, new StopOnIncreasing<>(), instrument, txConstel);
+    public ReflectionDetector(final TopocentricFrame target, HashMap<Satellite, Propagator> propagatorMap, final Frame inertialFrame, Instrument instrument, Constellation txConstel, double th_g) {
+        this(target, propagatorMap, inertialFrame, DEFAULT_MAXCHECK, DEFAULT_THRESHOLD, DEFAULT_MAX_ITER, new StopOnIncreasing<>(), instrument, txConstel, th_g);
     }
 
     /**
@@ -62,10 +69,11 @@ public class ReflectionDetector extends AbstractDetector<ReflectionDetector> {
      * @param handler event handler to call at event occurrences
      * @param instrument
      * @param txConstel
+     * @param th_g
      */
-    private ReflectionDetector(final TopocentricFrame target, HashMap<Satellite,Propagator> propagatorMap, final Frame inertialFrame,
+    private ReflectionDetector(final TopocentricFrame target, HashMap<Satellite, Propagator> propagatorMap, final Frame inertialFrame,
                                final double maxCheck, final double threshold, final int maxIter,
-                               final EventHandler<? super ReflectionDetector> handler, Instrument instrument, Constellation txConstel) {
+                               final EventHandler<? super ReflectionDetector> handler, Instrument instrument, Constellation txConstel, double th_g) {
         super(maxCheck, threshold, maxIter, handler);
 
         this.propagatorMap = propagatorMap;
@@ -73,6 +81,8 @@ public class ReflectionDetector extends AbstractDetector<ReflectionDetector> {
         this.inertialFrame = inertialFrame;
         this.instrument = instrument;
         this.txConstel = txConstel;
+        this.th_g = th_g;
+        this.th_err = Math.acos( Math.pow( Math.cos(th_g/2) , 2) );
     }
 
     /**
@@ -126,14 +136,15 @@ public class ReflectionDetector extends AbstractDetector<ReflectionDetector> {
                 if(targetVisTx) {
                     rxVisTx = checkFOV(s,sTx);
                     coplanar = checkCoplanar(s,sTx);
-                    break;
+
+                    if(rxVisTx && coplanar) break;
                 }
             }
 
             if(targetVisTx && rxVisTx && coplanar) break;
         }
 
-        if(targetVisRx && targetVisTx && rxVisTx && coplanar){
+        if(targetVisTx && rxVisTx && coplanar){
             return 1;
         }
         return -1;
@@ -143,7 +154,7 @@ public class ReflectionDetector extends AbstractDetector<ReflectionDetector> {
     @Override
     protected ReflectionDetector create(final double newMaxCheck, final double newThreshold,
                                     final int newMaxIter, final EventHandler<? super ReflectionDetector> newHandler) {
-        return new ReflectionDetector(target, propagatorMap, inertialFrame, newMaxCheck, newThreshold, newMaxIter, newHandler, instrument, txConstel);
+        return new ReflectionDetector(target, propagatorMap, inertialFrame, newMaxCheck, newThreshold, newMaxIter, newHandler, instrument, txConstel, th_g);
     }
 
     private boolean checkFOV(SpacecraftState sRx, SpacecraftState sTx){
@@ -169,7 +180,7 @@ public class ReflectionDetector extends AbstractDetector<ReflectionDetector> {
         final double coplanar
                 = Math.abs(targetPosInert.normalize().dotProduct(txPosInert.crossProduct(rxPosInert)));
         boolean inView = false;
-        if(coplanar < Math.toRadians(0.5)) {
+        if(coplanar < th_err) {
             final Vector3D targetToTX
                     = txPosInert.subtract(targetPosInert);
             final Vector3D targetToRX
@@ -181,7 +192,7 @@ public class ReflectionDetector extends AbstractDetector<ReflectionDetector> {
 
             final double spec = Math.abs(thetaRX - thetaTX);
 
-            if(spec < Math.toRadians(0.5)) {
+            if(spec < th_err) {
                 inView = true;
 //                System.out.println(date);
             }

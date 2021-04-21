@@ -126,7 +126,9 @@ public class Test_402 {
         constellations.add(constelRx);
 
         // coverage definition
-        CoverageDefinition covDef = new CoverageDefinition("covdef1", 9, earthShape, EQUAL_AREA);
+        double deg = 9;
+        double th_g = Math.toRadians(deg);
+        CoverageDefinition covDef = new CoverageDefinition("covdef1", deg, earthShape, EQUAL_AREA);
         covDef.assignConstellation(constellations);
         HashSet<CoverageDefinition> covDefs = new HashSet<>();
         covDefs.add(covDef);
@@ -143,7 +145,7 @@ public class Test_402 {
         // Script Test
         ArrayList<EventAnalysis> eventAnalysesTest = new ArrayList<>();
         ReflectometerEventAnalysis refEventTest = new ReflectometerEventAnalysis(startDate, endDate,
-                inertialFrame, covDefs, pfJ2, true, true, constelTx);
+                inertialFrame, covDefs, pfJ2, true, true, constelTx, th_g);
         eventAnalysesTest.add(refEventTest);
 
 

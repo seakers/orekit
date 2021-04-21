@@ -1,7 +1,5 @@
 package seakers.orekit;
 
-import jdk.jfr.Event;
-import org.hipparchus.stat.descriptive.DescriptiveStatistics;
 import org.hipparchus.util.FastMath;
 import org.orekit.bodies.BodyShape;
 import org.orekit.bodies.GeodeticPoint;
@@ -12,7 +10,6 @@ import org.orekit.data.DirectoryCrawler;
 import org.orekit.errors.OrekitException;
 import org.orekit.frames.Frame;
 import org.orekit.frames.FramesFactory;
-import org.orekit.frames.TopocentricFrame;
 import org.orekit.orbits.KeplerianOrbit;
 import org.orekit.orbits.Orbit;
 import org.orekit.orbits.PositionAngle;
@@ -24,16 +21,11 @@ import org.orekit.utils.Constants;
 import org.orekit.utils.IERSConventions;
 import seakers.orekit.analysis.Analysis;
 import seakers.orekit.constellations.Walker;
-import seakers.orekit.coverage.access.TimeIntervalArray;
-import seakers.orekit.coverage.analysis.AnalysisMetric;
-import seakers.orekit.coverage.analysis.GroundEventAnalyzer;
 import seakers.orekit.event.*;
 import seakers.orekit.object.*;
 import seakers.orekit.object.communications.ReceiverAntenna;
 import seakers.orekit.object.communications.TransmitterAntenna;
 import seakers.orekit.object.fieldofview.NadirSimpleConicalFOV;
-import seakers.orekit.object.fieldofview.OffNadirRectangularFOV;
-import seakers.orekit.object.fieldofview.SimpleConicalFieldOfView;
 import seakers.orekit.propagation.PropagatorFactory;
 import seakers.orekit.propagation.PropagatorType;
 import seakers.orekit.scenario.Scenario;
@@ -247,9 +239,12 @@ public class Orekit_402 {
 //        CoverageDefinition covDef2 = new CoverageDefinition("covdef2", points);
 //        CoverageDefinition covDef3 = new CoverageDefinition("covdef3", points);
 
-        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", 1, earthShape, EQUAL_AREA);
-        CoverageDefinition covDef2 = new CoverageDefinition("covdef2", 1, earthShape, EQUAL_AREA);
-        CoverageDefinition covDef3 = new CoverageDefinition("covdef3", 1, earthShape, EQUAL_AREA);
+        double deg = 1;
+        double th_g = Math.toRadians(deg);
+
+        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", deg, earthShape, EQUAL_AREA);
+        CoverageDefinition covDef2 = new CoverageDefinition("covdef2", deg, earthShape, EQUAL_AREA);
+        CoverageDefinition covDef3 = new CoverageDefinition("covdef3", deg, earthShape, EQUAL_AREA);
 
 
         covDef1.assignConstellation(constellations1);
@@ -276,15 +271,15 @@ public class Orekit_402 {
         EventAnalysisFactory eaf = new EventAnalysisFactory(startDate, endDate, inertialFrame, pfJ2);
 
         ArrayList<EventAnalysis> eventanalyses1 = new ArrayList<>();
-        ReflectometerEventAnalysis refEvent1 = new ReflectometerEventAnalysis(startDate, endDate, inertialFrame, covDefs1, pfJ2, true, true, gpsWalker);
+        ReflectometerEventAnalysis refEvent1 = new ReflectometerEventAnalysis(startDate, endDate, inertialFrame, covDefs1, pfJ2, true, true, gpsWalker, th_g);
         eventanalyses1.add(refEvent1);
 
         ArrayList<EventAnalysis> eventanalyses2 = new ArrayList<>();
-        ReflectometerEventAnalysis refEvent2 = new ReflectometerEventAnalysis(startDate, endDate, inertialFrame, covDefs2, pfJ2, true, true, gpsWalker);
+        ReflectometerEventAnalysis refEvent2 = new ReflectometerEventAnalysis(startDate, endDate, inertialFrame, covDefs2, pfJ2, true, true, gpsWalker, th_g);
         eventanalyses2.add(refEvent2);
 
         ArrayList<EventAnalysis> eventanalyses3 = new ArrayList<>();
-        ReflectometerEventAnalysis refEvent3 = new ReflectometerEventAnalysis(startDate, endDate, inertialFrame, covDefs3, pfJ2, true, true, gpsWalker);
+        ReflectometerEventAnalysis refEvent3 = new ReflectometerEventAnalysis(startDate, endDate, inertialFrame, covDefs3, pfJ2, true, true, gpsWalker, th_g);
         eventanalyses3.add(refEvent3);
 
 
