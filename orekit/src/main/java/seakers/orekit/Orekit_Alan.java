@@ -76,7 +76,7 @@ public class Orekit_Alan {
         //if running on a non-US machine, need the line below
         Locale.setDefault(new Locale("en", "US"));
 
-        File orekitData = new File("../dmas3/data/orekit-data");
+        File orekitData = new File("orekit\\resources");
         DataProvidersManager manager = DataContext.getDefault().getDataProvidersManager();
         manager.addProvider(new DirectoryCrawler(orekitData));
 

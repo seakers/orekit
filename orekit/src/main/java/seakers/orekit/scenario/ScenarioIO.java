@@ -81,6 +81,11 @@ public class ScenarioIO {
                 fw.append(String.format("Lon:                %.14e\n", pt.getPoint().getLongitude()));
                 fw.append(String.format("Alt:                %.14e\n", pt.getPoint().getAltitude()));
                 fw.append(String.format("NumberOfEvents  :   %d\n", groundEvents.get(pt).numIntervals()));
+
+                if(groundEvents.get(pt).numIntervals() > 0){
+                    int x = 1;
+                }
+
                 Iterator<RiseSetTime> iter = groundEvents.get(pt).getRiseSetTimes().iterator();
                 while (iter.hasNext()) {
                     fw.append(String.format("%.14e", iter.next().getTime()));
