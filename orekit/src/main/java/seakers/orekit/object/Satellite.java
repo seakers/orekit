@@ -94,6 +94,21 @@ public class Satellite implements OrekitObject, Serializable {
     }
 
     /**
+     * Constructor for new satellite instance with no attitude control and
+     * default wet mass and default dry mass. Instruments are assigned to
+     * this spacecraft
+     *
+     * @param name satellite name
+     * @param orbit initial orbit to position satellite
+     */
+    public Satellite(String name, Orbit orbit, Collection<Instrument> instruments) {
+        this(name, orbit, null, instruments,
+                new ReceiverAntenna(1., new HashSet<>()),
+                new TransmitterAntenna(1, new HashSet<>()),
+                Propagator.DEFAULT_MASS, Propagator.DEFAULT_MASS);
+    }
+
+    /**
      * Constructor for new satellite instance with default wet mass and default
      * dry mass
      *

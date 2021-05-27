@@ -144,7 +144,7 @@ public abstract class AbstractEventDetector<T extends AbstractEventDetector<T>> 
      * @return
      */
     @Override
-    protected final T create(double newMaxCheck, double newThreshold, int newMaxIter, EventHandler<? super T> newHandler) {
+    protected T create(double newMaxCheck, double newThreshold, int newMaxIter, EventHandler<? super T> newHandler) {
         return create(initialState, startDate, endDate, action, newMaxCheck, newThreshold, newMaxIter);
     }
 

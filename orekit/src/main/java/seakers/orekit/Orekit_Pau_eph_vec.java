@@ -103,7 +103,7 @@ public class Orekit_Pau_eph_vec {
 
         TimeScale utc = TimeScalesFactory.getUTC();
         AbsoluteDate startDate = new AbsoluteDate(2005, 1, 1, 00, 00, 00.000, utc);
-        AbsoluteDate endDate = new AbsoluteDate(2030, 1, 1, 00, 00, 00.000, utc);
+        AbsoluteDate endDate = new AbsoluteDate(2005, 1, 8, 00, 00, 00.000, utc);
         double mu = Constants.WGS84_EARTH_MU; // gravitation coefficient
         
         Frame earthFrame = FramesFactory.getITRF(IERSConventions.IERS_2003, true);
@@ -144,15 +144,15 @@ public class Orekit_Pau_eph_vec {
         propertiesPropagator.setProperty("orekit.propagator.solarpressure", "true");
         propertiesPropagator.setProperty("orekit.propagator.solararea", "0.058");
 
-        //PropagatorFactory pf = new PropagatorFactory(PropagatorType.J2, propertiesPropagator);
-        PropagatorFactory pf = new PropagatorFactory(PropagatorType.NUMERICAL, propertiesPropagator);
+        PropagatorFactory pf = new PropagatorFactory(PropagatorType.J2, propertiesPropagator);
+        //PropagatorFactory pf = new PropagatorFactory(PropagatorType.NUMERICAL, propertiesPropagator);
 
         //set the analyses
         double analysisTimeStep = 60;
         Collection<Analysis<?>> analyses = new ArrayList<>();
         for (final Satellite sat : constellation.getSatellites()) {
-            analyses.add(new LifetimeAnalysis(startDate, endDate, analysisTimeStep, sat, PositionAngle.MEAN, pf, earthShape));
-            //analyses.add(new OrbitalElementsAnalysis(startDate, endDate, analysisTimeStep, sat, PositionAngle.MEAN,pf));
+            //analyses.add(new LifetimeAnalysis(startDate, endDate, analysisTimeStep, sat, PositionAngle.MEAN, pf, earthShape));
+            analyses.add(new OrbitalElementsAnalysis(startDate, endDate, analysisTimeStep, sat, PositionAngle.MEAN,pf));
             //analyses.add(new VectorAnalisysEclipseSunlightDiffDrag(startDate, endDate, analysisTimeStep, sat, pf, inertialFrame, 0.13, 0.07, 0.058, 6));
 //            analyses.add(new VectorAnalysis(startDate,endDate,analysisTimeStep,sat,pf,inertialFrame) {
 //                private static final long serialVersionUID = 4680062066885650976L;

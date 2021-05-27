@@ -352,6 +352,18 @@ public class ScenarioIO {
 
         return true;
     }
+    public static <T> boolean printAnalysis(Analysis<T> analysis) {
+        Iterator<Record<T>> histIter = analysis.getHistory().iterator();
+        System.out.println("#Epoch time," + analysis.getHeader() + "\n");
+        while (histIter.hasNext()) {
+            Record<T> r = histIter.next();
+            System.out.println(String.format("%f,%s\n",
+                    r.getDate().durationFrom(analysis.getStartDate()),
+                    r.getValue()));
+        }
+
+        return true;
+    }
 
     /**
      * Loads the Scenario instance saved by using save() from the given

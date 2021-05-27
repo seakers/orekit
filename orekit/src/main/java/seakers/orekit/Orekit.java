@@ -182,7 +182,7 @@ public class Orekit {
         propertiesPropagator.setProperty("orekit.propagator.solarpressure", "true");
         propertiesPropagator.setProperty("orekit.propagator.solararea", "0.058");
 
-        PropagatorFactory pf = new PropagatorFactory(PropagatorType.J2, propertiesPropagator);
+        PropagatorFactory pf = new PropagatorFactory(PropagatorType.KEPLERIAN, propertiesPropagator);
 //        PropagatorFactory pf = new PropagatorFactory(PropagatorType.NUMERICAL, propertiesPropagator);
 
         Properties propertiesEventAnalysis = new Properties();
@@ -279,10 +279,10 @@ public class Orekit {
                     String.format("%s_%s", scen.toString(), "analysis"), analysis);
         }
         long end = System.nanoTime();
+        System.out.println("bruh i'm done");
         Logger.getGlobal().finest(String.format("Took %.4f sec", (end - end1) / Math.pow(10, 9)));
 
         OrekitConfig.end();
-
     }
 
 }
