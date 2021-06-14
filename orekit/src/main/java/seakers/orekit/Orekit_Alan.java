@@ -76,7 +76,7 @@ public class Orekit_Alan {
         //if running on a non-US machine, need the line below
         Locale.setDefault(new Locale("en", "US"));
 
-        File orekitData = new File("orekit\\resources");
+        File orekitData = new File("orekit/resources");
         DataProvidersManager manager = DataContext.getDefault().getDataProvidersManager();
         manager.addProvider(new DirectoryCrawler(orekitData));
 
@@ -96,7 +96,7 @@ public class Orekit_Alan {
 
         TimeScale utc = TimeScalesFactory.getUTC();
         AbsoluteDate startDate = new AbsoluteDate(2020, 1, 1, 00, 00, 00.000, utc);
-        AbsoluteDate endDate = new AbsoluteDate(2020, 1, 8, 00, 00, 00.000, utc);
+        AbsoluteDate endDate = new AbsoluteDate(2020, 1, 2, 00, 00, 00.000, utc);
         double mu = Constants.WGS84_EARTH_MU; // gravitation coefficient
 
         //must use IERS_2003 and EME2000 frames to be consistent with STK
@@ -331,9 +331,14 @@ public class Orekit_Alan {
 
         Logger.getGlobal().finer(String.format("Done Running Scenario %s", scen2));
 
+//        LatencyAnalyzer latAn = new LatencyAnalyzer(Event2.getAllAccessesGS(),startDate,endDate,true);
+//        DescriptiveStatistics latStats = latAn.getStatistics();
+//
 //        //without crosslinks
-//        LatencyGroundEventAnalyzer latencyAnalyzer=new LatencyGroundEventAnalyzer(Event2.getAllAccesses().get(covDef1),Event2.getAllAccessesGS(),false);
-//        DescriptiveStatistics latencyStats = latencyAnalyzer.getStatistics(new double[]{FastMath.toRadians(-30), FastMath.toRadians(30)}, new double[]{-Math.PI, Math.PI});
+//        LatencyGroundEventAnalyzer latencyAnalyzer=new LatencyGroundEventAnalyzer(Event2.getAllAccesses()
+//                .get(covDef1),Event2.getAllAccessesGS(),false);
+//        DescriptiveStatistics latencyStats = latencyAnalyzer.getStatistics(new double[]{FastMath.toRadians(-30), FastMath.toRadians(30)},
+//                new double[]{-Math.PI, Math.PI});
 //        System.out.println("Without crosslinks:");
 //        System.out.println(String.format("Max latency time %s mins", latencyStats.getMax()/60));
 //        System.out.println(String.format("Mean latency time %s mins", latencyStats.getMean()/60));

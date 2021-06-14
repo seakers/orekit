@@ -53,7 +53,7 @@ public class Orekit_402 {
         //if running on a non-US machine, need the line below
         Locale.setDefault(new Locale("en", "US"));
 
-        File orekitData = new File("orekit\\resources");
+        File orekitData = new File("orekit/resources");
         DataProvidersManager manager = DataContext.getDefault().getDataProvidersManager();
         manager.addProvider(new DirectoryCrawler(orekitData));
 
@@ -130,7 +130,7 @@ public class Orekit_402 {
         gpsPayload.add(gpsAntenna);
 
         // define constellations
-        // -Reflectometerr Receivers
+        // -Reflectometer Receivers
         HashSet<CommunicationBand> satBands = new HashSet<>();
         satBands.add(CommunicationBand.UHF);
 
@@ -239,7 +239,7 @@ public class Orekit_402 {
 //        CoverageDefinition covDef2 = new CoverageDefinition("covdef2", points);
 //        CoverageDefinition covDef3 = new CoverageDefinition("covdef3", points);
 
-        double deg = 1;
+        double deg = 9;
         double th_g = Math.toRadians(deg);
 
         CoverageDefinition covDef1 = new CoverageDefinition("covdef1", deg, earthShape, EQUAL_AREA);
