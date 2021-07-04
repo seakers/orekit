@@ -79,6 +79,16 @@ public class Satellite implements OrekitObject, Serializable {
     private final double grossMass;
 
     /**
+     * Size of onboard memory available for payload
+     */
+    private final double maxMemory;
+
+    /**
+     * Downlink speed in bits per second
+     */
+    private final double downLink;
+
+    /**
      * Constructor for new satellite instance with no attitude control and
      * default wet mass and default dry mass. No instruments are assigned to
      * this spacecraft
@@ -90,7 +100,7 @@ public class Satellite implements OrekitObject, Serializable {
         this(name, orbit, null, new ArrayList<>(),
                 new ReceiverAntenna(1., new HashSet<>()),
                 new TransmitterAntenna(1, new HashSet<>()),
-                Propagator.DEFAULT_MASS, Propagator.DEFAULT_MASS);
+                Propagator.DEFAULT_MASS, Propagator.DEFAULT_MASS, 0.0, 0.0);
     }
 
     /**
@@ -106,7 +116,13 @@ public class Satellite implements OrekitObject, Serializable {
         this(name, orbit, attProv, instruments,
                 new ReceiverAntenna(1., new HashSet<>()),
                 new TransmitterAntenna(1, new HashSet<>()),
-                Propagator.DEFAULT_MASS, Propagator.DEFAULT_MASS);
+                Propagator.DEFAULT_MASS, Propagator.DEFAULT_MASS, 0.0, 0.0);
+    }
+
+    public Satellite(String name, Orbit orbit, AttitudeProvider attProv, Collection<Instrument> instruments,
+                     Receiver receiver, Transmitter transmitter, double wetMass, double dryMass){
+        this(name, orbit, attProv, instruments,
+                receiver, transmitter, wetMass, dryMass, 0.0, 0.0);
     }
 
     /**
@@ -123,7 +139,7 @@ public class Satellite implements OrekitObject, Serializable {
      * @param wetMass the wet mass of the spacecraft
      */
     public Satellite(String name, Orbit orbit, AttitudeProvider attProv, Collection<Instrument> instruments,
-            Receiver receiver, Transmitter transmitter, double wetMass, double dryMass) {
+            Receiver receiver, Transmitter transmitter, double wetMass, double dryMass, double maxMemory, double downLink) {
         this.orbit = orbit;
         this.name = name;
         this.payload = new ArrayList<>(instruments);
@@ -133,6 +149,8 @@ public class Satellite implements OrekitObject, Serializable {
         this.wetMass = wetMass;
         this.dryMass = dryMass;
         this.grossMass = wetMass + dryMass;
+        this.maxMemory = maxMemory;
+        this.downLink = downLink;
     }
 
     public ArrayList<Instrument> getPayload() {
@@ -174,6 +192,10 @@ public class Satellite implements OrekitObject, Serializable {
     public Receiver getReceiver() {
         return receiver;
     }
+
+    public double getMaxMemory(){return maxMemory;}
+
+    public double getDownLink(){return downLink;}
 
     /**
      * pretty print the orbit

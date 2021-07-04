@@ -66,9 +66,20 @@ public class GndStationNetwork {
                 new GeodeticPoint(FastMath.toRadians(32.5047), FastMath.toRadians(-106.6108), 0.), "WS");
 
         ArrayList<TopocentricFrame> points = new ArrayList<>();
-        points.add(AS); points.add(SSC); points.add(KUS); points.add(HBK); points.add(USHI);
-        points.add(AUWA); points.add(KU); points.add(MG); points.add(TR); points.add(SG);
-        points.add(SA); points.add(SI); points.add(WG); points.add(WS);
+        points.add(AS);
+        points.add(SSC);
+        points.add(KUS);
+        points.add(HBK);
+        points.add(USHI);
+        points.add(AUWA);
+        points.add(KU);
+        points.add(MG);
+        points.add(TR);
+        points.add(SG);
+        points.add(SA);
+        points.add(SI);
+        points.add(WG);
+        points.add(WS);
 
         for(TopocentricFrame point : points){
             HashSet<CommunicationBand> bands = new HashSet<>();
@@ -132,11 +143,28 @@ public class GndStationNetwork {
                 new GeodeticPoint(FastMath.toRadians(39.9075), FastMath.toRadians(116.39723), 0.), "Beijing");
 
         ArrayList<TopocentricFrame> points = new ArrayList<>();
-        points.add(NVirg); points.add(Ohio); points.add(NCal); points.add(Org); points.add(Africa);
-        points.add(HK); points.add(India); points.add(Jap); points.add(Kor); points.add(Sing);
-        points.add(Aus); points.add(Tok); points.add(Can); points.add(Ger);
-        points.add(Ire); points.add(Ing); points.add(Itl); points.add(Fr);
-        points.add(Swe); points.add(Bhr); points.add(Bra); points.add(China);
+        points.add(NVirg);
+        points.add(Ohio);
+        points.add(NCal);
+        points.add(Org);
+        points.add(Africa);
+        points.add(HK);
+        points.add(India);
+        points.add(Jap);
+        points.add(Kor);
+        points.add(Sing);
+        points.add(Aus);
+        points.add(Tok);
+        points.add(Can);
+        points.add(Ger);
+        points.add(Ire);
+        points.add(Ing);
+        points.add(Itl);
+        points.add(Fr);
+        points.add(Swe);
+        points.add(Bhr);
+        points.add(Bra);
+        points.add(China);
 
 
         HashSet<GndStation> AWS = new HashSet<>();

@@ -23,10 +23,21 @@ public class Instrument implements OrekitObject, Serializable {
     private final String name;
     
     private final FieldOfViewDefinition fov;
-    
+
+    /**
+     * Instrument mass in kg
+     */
     private final double mass;
-    
+
+    /**
+     * Average power in Watts
+     */
     private final double averagePower;
+
+    /**
+     * instrument data rate in bits per second
+     */
+    private final double dataRate;
     
     /**
      * This constructor is for creating a custom shape field of view.
@@ -35,13 +46,26 @@ public class Instrument implements OrekitObject, Serializable {
      * @param fov the field of view of the instrument
      * @param mass the mass of the instrument
      * @param averagePower the average power required by the instrument
-     * 
      */
-    public Instrument(String name, FieldOfViewDefinition fov, double mass, double averagePower) {
+    public Instrument(String name, FieldOfViewDefinition fov, double mass, double averagePower){
+        this(name, fov, mass, averagePower, 0.0);
+    }
+
+    /**
+     * This constructor is for creating a custom shape field of view.
+     *
+     * @param name the name of the instrument
+     * @param fov the field of view of the instrument
+     * @param mass the mass of the instrument
+     * @param averagePower the average power required by the instrument
+     * @param dataRate the data rate of the instrument when operational
+     */
+    public Instrument(String name, FieldOfViewDefinition fov, double mass, double averagePower, double dataRate) {
         this.name = name;
         this.fov = fov;
         this.mass = mass;
         this.averagePower = averagePower;
+        this.dataRate = dataRate;
     }
 
     /**
@@ -92,7 +116,7 @@ public class Instrument implements OrekitObject, Serializable {
         return true;
     }
 
-
-    
-
-    }
+    public double getMass() { return mass; }
+    public double getAveragePower() { return averagePower; }
+    public double getDataRate() { return dataRate; }
+}
