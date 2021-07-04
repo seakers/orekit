@@ -69,27 +69,7 @@ public class GSAccessAnalyser {
         this.endDate = endDate;
         this.allowCrossLinks = allowCrossLinks;
         this.accessStrategy = strategy;
-        if(allowCrossLinks) this.gsEventsProcessed = processGSEventsCL();
-        else this.gsEventsProcessed = processGSEvents();
-    }
-
-    private HashMap<Satellite, TimeIntervalArray> processGSEventsCL() throws Exception {
-        // initialize processed events
-        HashMap<Satellite, TimeIntervalArray> processed = new HashMap<>();
-        for(Satellite sat : gsEvents.keySet()){
-            processed.put(sat,new TimeIntervalArray(startDate,endDate));
-        }
-
-        switch(accessStrategy){
-            case CONSERVATIVE:
-                break;
-            case EVERY_ACCESS:
-                break;
-            default:
-                throw new Exception("Access strategy not yet supported");
-        }
-
-        return processed;
+        this.gsEventsProcessed = processGSEvents();
     }
 
     private HashMap<Satellite, TimeIntervalArray> processGSEvents() throws Exception {
@@ -103,7 +83,10 @@ public class GSAccessAnalyser {
             case CONSERVATIVE:
                 // only downloads when max memory is full
                 for(Satellite sat : gsEvents.keySet()){
-                    TimeIntervalArray accesses = getOrderedAccess(sat);
+                    TimeIntervalArray accesses;
+                    if(allowCrossLinks) accesses = getOrderedAccessCL();
+                    else accesses = getOrderedAccess(sat);
+
                     double payloadDataRate = 0;
                     for(Instrument ins : sat.getPayload()){
                         payloadDataRate += ins.getDataRate();
@@ -153,7 +136,10 @@ public class GSAccessAnalyser {
             case EVERY_ACCESS:
                 // downloads all data at avery access
                 for(Satellite sat : gsEvents.keySet()){
-                    TimeIntervalArray accesses = getOrderedAccess(sat);
+                    TimeIntervalArray accesses;
+                    if(allowCrossLinks) accesses = getOrderedAccessCL();
+                    else accesses = getOrderedAccess(sat);
+
                     double payloadDataRate = 0;
                     for(Instrument ins : sat.getPayload()){
                         payloadDataRate += ins.getDataRate();
@@ -190,9 +176,9 @@ public class GSAccessAnalyser {
             default:
                 throw new Exception("Access strategy not yet supported");
         }
+
         return processed;
     }
-
 
     /**
      * Gets the collection of satellites in this analysis.
@@ -416,6 +402,16 @@ public class GSAccessAnalyser {
             accesses.add(gsEvents.get(sat).get(gndStation));
         }
 
+        return mergeAccesses(accesses);
+    }
+
+    private TimeIntervalArray getOrderedAccessCL() throws Exception {
+        ArrayList<TimeIntervalArray> accesses = new ArrayList<>();
+        for(Satellite sat : gsEvents.keySet()) {
+            for (GndStation gndStation : gsEvents.get(sat).keySet()) {
+                accesses.add(gsEvents.get(sat).get(gndStation));
+            }
+        }
         return mergeAccesses(accesses);
     }
 
