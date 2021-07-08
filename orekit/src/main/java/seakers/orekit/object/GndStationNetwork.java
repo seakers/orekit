@@ -22,7 +22,15 @@ public class GndStationNetwork {
     public final double costNEN = 490.0;
 
     public final HashSet<GndStation> AWS;
-    public final double costAWS = -1;
+    public final double costAWS = 22.0;
+
+    /**
+     * List of supported Ground Station Networks
+     */
+    public enum GSNetwork{
+        NEN,
+        AWS
+    }
 
     public GndStationNetwork(){
         NEN = setupNEN();
@@ -177,5 +185,16 @@ public class GndStationNetwork {
         }
 
         return AWS;
+    }
+
+    public double getCost(GSNetwork network) throws Exception {
+        switch(network){
+            case NEN:
+                return costNEN;
+            case AWS:
+                return costAWS;
+            default:
+                throw new Exception("Ground Station Network not yet supported");
+        }
     }
 }

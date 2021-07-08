@@ -68,7 +68,7 @@ public class LatencyGroundEventAnalyzer implements Serializable {
             HashMap<Satellite,HashMap<GndStation, TimeIntervalArray>> gsEvents, boolean allowCrossLinks) {
         this.events = fovEvents;
         this.gndstations = gsEvents;
-        Set<Satellite> sats = fovEvents.keySet();
+        Set<Satellite> sats = null;
         Map<TopocentricFrame, TimeIntervalArray> sat1_accesses=fovEvents.get(sats.iterator().next());
         Set<TopocentricFrame> topos = sat1_accesses.keySet();
         TopocentricFrame tp = topos.iterator().next();

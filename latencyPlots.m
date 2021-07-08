@@ -1,34 +1,18 @@
 clc; close all; clear all;
 
-data = csvread('latencyResults3.csv');
-[n,m] = size(data);
+save = false;
+
+rawData = csvread('latencyResults.csv');
+[n,m] = size(rawData);
+n_metrics = 7;
 
 path = "./orekit/src/main/java/seakers/orekit/exec/results/";
 
-NEN_lat = cell(14,2);
-AWS_lat = cell(22,2);
-
-NEN_gap = cell(14,2);
-AWS_gap = cell(22,2);
-
-NEN_cost = cell(14,2);
-AWS_cost = cell(22,2);
-
-NEN_dur = cell(14,2);
-AWS_dur = cell(22,2);
-
-NEN_data3d = [];
-NEN_data3d_cl = [];
-
-AWS_data3d = [];
-AWS_data3d_cl = [];
-
-sat_gap_NEN = cell(6,2);
-sat_gap_AWS = cell(6,2);
+data = zeros(22,n_metrics*5,2,2,2);
 
 for i = 1:n
     n_gnd = 0;
-    n_gnd_str = num2str(data(i,m-2));
+    n_gnd_str = num2str(rawData(i,m-3));
     
     if(contains(n_gnd_str, "e"))
         n_gnd = str2double(n_gnd_str(20:21)) + 1;
@@ -36,498 +20,278 @@ for i = 1:n
         for j = 1:length(n_gnd_str)
             n_gnd = n_gnd + 1;
         end
+    end  
+  
+    
+    nen = rawData(i,m-2) + 1;
+    strategy = rawData(i,m-1) + 1;
+    crosslinks = rawData(i,m) + 1;
+    
+%     fprintf("NEN: %d, STRAT: %d, CL: %d\n", nen-1, strategy-1, crosslinks-1);
+    
+    for j = 0:n_metrics-1
+        for k = 1:5
+            data(n_gnd,(j*5)+k,nen,strategy,crosslinks) = rawData(i,(j*5)+k);  
+        end
     end
-    
-    nen = data(i,m-1);
-    crosslinks = data(i,m);
-    
-    if nen == 1
-       if crosslinks == 1
-            A = [ NEN_lat{n_gnd,2}, data(i,1), data(i,2), data(i,3), data(i,4), data(i,5) ];
-            NEN_lat{n_gnd,2} = A;
-            
-            B = [ NEN_gap{n_gnd,2}, data(i,6), data(i,7), data(i,8), ... 
-                                    data(i,18), data(i,19), data(i,20), ...
-                                    data(i,30), data(i,31), data(i,32), ...
-                                    data(i,42), data(i,43), data(i,44), ...
-                                    data(i,54), data(i,55), data(i,56), ...
-                                    data(i,66), data(i,67), data(i,68)];
-            NEN_gap{n_gnd,2} = B;
-            
-            C = [ NEN_cost{n_gnd,2}, data(i,m-8), data(i,m-7), data(i,m-6), data(i,m-5), data(i,m-4) ];
-            NEN_cost{n_gnd,2} = C;
-            
-            D = [NEN_dur{n_gnd,2},  data(i,76),data(i,77),data(i,78),data(i,79),data(i,80),data(i,81), ...
-                                    data(i,82),data(i,83),data(i,84),data(i,85),data(i,86),data(i,87), ...
-                                    data(i,88),data(i,89),data(i,90),data(i,91),data(i,92),data(i,93), ...
-                                    data(i,94),data(i,95),data(i,96),data(i,97),data(i,98),data(i,99), ...
-                                    data(i,100),data(i,101),data(i,102),data(i,103),data(i,104),data(i,105), ...
-                                    data(i,106),data(i,107),data(i,108),data(i,109),data(i,110),data(i,111) ];
-            NEN_dur{n_gnd,2} = D;
-            
-            NEN_data3d_cl = [NEN_data3d_cl; 
-                             data(i,7)  data(i,m-7) n_gnd data(i,77) data(i,2);
-                             data(i,19) data(i,m-7) n_gnd data(i,83) data(i,2);
-                             data(i,31) data(i,m-7) n_gnd data(i,89) data(i,2);
-                             data(i,43) data(i,m-7) n_gnd data(i,95) data(i,2);
-                             data(i,55) data(i,m-7) n_gnd data(i,101) data(i,2);
-                             data(i,67) data(i,m-7) n_gnd data(i,107) data(i,2)];
-           
-           sat_gap_NEN{1,2} = [sat_gap_NEN{1,2}, data(i,6), data(i,7), data(i,8)];
-           sat_gap_NEN{2,2} = [sat_gap_NEN{2,2}, data(i,18), data(i,19), data(i,20)];
-           sat_gap_NEN{3,2} = [sat_gap_NEN{3,2}, data(i,30), data(i,31), data(i,32)];
-           sat_gap_NEN{4,2} = [sat_gap_NEN{4,2}, data(i,42), data(i,43), data(i,44)];
-           sat_gap_NEN{5,2} = [sat_gap_NEN{5,2}, data(i,54), data(i,55), data(i,56)];
-           sat_gap_NEN{6,2} = [sat_gap_NEN{6,2}, data(i,66), data(i,67), data(i,68)];
-       else
-            A = [ NEN_lat{n_gnd,1}, data(i,1), data(i,2), data(i,3), data(i,4), data(i,5) ];
-            NEN_lat{n_gnd,1} = A;
-            
-            B = [ NEN_gap{n_gnd,1}, data(i,6), data(i,7), data(i,8), ... 
-                                    data(i,18), data(i,19), data(i,20), ...
-                                    data(i,30), data(i,31), data(i,32), ...
-                                    data(i,42), data(i,43), data(i,44), ...
-                                    data(i,54), data(i,55), data(i,56), ...
-                                    data(i,66), data(i,67), data(i,68)];
-            NEN_gap{n_gnd,1} = B;
-            
-            C = [ NEN_cost{n_gnd,1}, data(i,m-8), data(i,m-7), data(i,m-6), data(i,m-5), data(i,m-4) ];
-            NEN_cost{n_gnd,1} = C;
-            
-            D = [NEN_dur{n_gnd,1},  data(i,76),data(i,77),data(i,78),data(i,79),data(i,80),data(i,81), ...
-                                    data(i,82),data(i,83),data(i,84),data(i,85),data(i,86),data(i,87), ...
-                                    data(i,88),data(i,89),data(i,90),data(i,91),data(i,92),data(i,93), ...
-                                    data(i,94),data(i,95),data(i,96),data(i,97),data(i,98),data(i,99), ...
-                                    data(i,100),data(i,101),data(i,102),data(i,103),data(i,104),data(i,105), ...
-                                    data(i,106),data(i,107),data(i,108),data(i,109),data(i,110),data(i,111) ];
-            NEN_dur{n_gnd,1} = D;
-            
-            NEN_data3d = [ NEN_data3d; 
-                             data(i,7)  data(i,m-7) n_gnd data(i,77) data(i,2);
-                             data(i,19) data(i,m-7) n_gnd data(i,83) data(i,2);
-                             data(i,31) data(i,m-7) n_gnd data(i,89) data(i,2);
-                             data(i,43) data(i,m-7) n_gnd data(i,95) data(i,2);
-                             data(i,55) data(i,m-7) n_gnd data(i,101) data(i,2);
-                             data(i,67) data(i,m-7) n_gnd data(i,107) data(i,2)];
-                       
-           sat_gap_NEN{1,1} = [sat_gap_NEN{1,2}, data(i,6), data(i,7), data(i,8)];
-           sat_gap_NEN{2,1} = [sat_gap_NEN{2,2}, data(i,18), data(i,19), data(i,20)];
-           sat_gap_NEN{3,1} = [sat_gap_NEN{3,2}, data(i,30), data(i,31), data(i,32)];
-           sat_gap_NEN{4,1} = [sat_gap_NEN{4,2}, data(i,42), data(i,43), data(i,44)];
-           sat_gap_NEN{5,1} = [sat_gap_NEN{5,2}, data(i,54), data(i,55), data(i,56)];
-           sat_gap_NEN{6,1} = [sat_gap_NEN{6,2}, data(i,66), data(i,67), data(i,68)];
-       end
+end
+conversions = [60 60 60 24*3600/100 1 1e6 1e3 1e3];
+
+%% Req Print
+req = [1, 2, 6, 12]*60;
+for strategy = 1:2
+    if strategy == 1
+        strategy_label = "Conservative";
     else
-        if crosslinks == 1
-            A = [ AWS_lat{n_gnd,2}, data(i,1), data(i,2), data(i,3), data(i,4), data(i,5) ];
-            AWS_lat{n_gnd,2} = A;
+        strategy_label = "Optimistic";
+    end
+
+    fprintf("\n" + strategy_label + " DL Strategy\n")
+    
+    costPrint = zeros(4,4);
+    gsPrint = zeros(4,4);
+    for nen = 1:2
+        if nen == 1
+            nen_label = "AWS";
+        else
+            nen_label = "NEN";
+        end
+        
+        for crosslinks = 1:2
+            if crosslinks == 1
+                crosslinks_label = ":\t";
+            else
+                crosslinks_label = " w/CL:";
+            end
             
-            B = [ AWS_gap{n_gnd,2}, data(i,6), data(i,7), data(i,8), ... 
-                                    data(i,18), data(i,19), data(i,20), ...
-                                    data(i,30), data(i,31), data(i,32), ...
-                                    data(i,42), data(i,43), data(i,44), ...
-                                    data(i,54), data(i,55), data(i,56), ...
-                                    data(i,66), data(i,67), data(i,68)];
-            AWS_gap{n_gnd,2} = B;
+            fprintf(nen_label + crosslinks_label) 
             
-            C = [ AWS_cost{n_gnd,2}, data(i,m-8), data(i,m-7), data(i,m-6), data(i,m-5), data(i,m-4) ];
-            AWS_cost{n_gnd,2} = C;
+            gapData = data(:,((2-1)*5)+2,nen,strategy,crosslinks)'/conversions(2);
+            [~, n] = size(gapData);
             
-            D = [AWS_dur{n_gnd,2},  data(i,76),data(i,77),data(i,78),data(i,79),data(i,80),data(i,81), ...
-                                    data(i,82),data(i,83),data(i,84),data(i,85),data(i,86),data(i,87), ...
-                                    data(i,88),data(i,89),data(i,90),data(i,91),data(i,92),data(i,93), ...
-                                    data(i,94),data(i,95),data(i,96),data(i,97),data(i,98),data(i,99), ...
-                                    data(i,100),data(i,101),data(i,102),data(i,103),data(i,104),data(i,105), ...
-                                    data(i,106),data(i,107),data(i,108),data(i,109),data(i,110),data(i,111) ];
-            AWS_dur{n_gnd,2} = D;
+            for j = 1:length(req)
+                i_req = -1;
+                for i = 1:n
+                    if(gapData(i) <= req(j))
+                        i_req = i;
+                        break;
+                    end
+                end
+                cost_req = data(i_req,((7-1)*5)+2,nen,strategy,crosslinks)'/conversions(7);
+                
+                costPrint((2*(nen-1))+crosslinks,j) = cost_req;
+                gsPrint((2*(nen-1))+crosslinks,j) = i_req;
+                
+                fprintf("\t%d GS at $%.2fK/day",i_req, cost_req);
+            end
+            fprintf("\n")
+        end
+    end
+end
+
+     
+%% Plots
+labels = cell(n_metrics+1,1);
+labels{1} = ["Measurement Latency [mins]", "lat"];
+labels{2} = ["Gap Time [mins]", "gap"];
+labels{3} = ["Access Time [mins]", "access"];
+labels{4} = ["Dailly Access [%day]", "dur"];
+labels{5} = ["Daily Number of Accesses [-]", "passes"];
+labels{6} = ["Data Captured [Mbits]", "data"];
+labels{7} = ["Daily Cost [USD$k]", "opCost"];
+labels{8} = ["Sat Cost [USD$k]", "satCost"];
+
+limsX = [1 22; 1 14];
+limsY = [-1 1;
+         -25 750;
+         0 10;
+         -0.5 20
+         -25 250;
+         -1 1;
+         -0.5 35];
+% % Cross-Link Plots
+% figs = [];
+% for i = 1:n_metrics    
+%     for nen = 1:2
+%         if nen == 1
+%             nen_label = "AWS";
+%         else
+%             nen_label = "NEN";
+%         end
+%                 
+%         for strategy = 1:2
+%             if strategy == 1
+%                 strategy_label = "Conservative";
+%             else
+%                 strategy_label = "Optimistic";
+%             end
+%                 
+%             fig_strat = figure;
+%             for crosslinks = 1:2
+%                 if crosslinks == 1
+%                     crosslinks_label = "";
+%                 else
+%                     crosslinks_label = " + CL";
+%                 end
+%                 subplot(1,2,crosslinks)
+%                 boxplot(data(:,((i-1)*5)+1:((i-1)*5)+5,nen,strategy,crosslinks)'/conversions(i))
+%                 grid on
+%                 title([labels{i}(1);
+%                         "vs Number of Ground Stations";
+%                         "("+nen_label+crosslinks_label+" w/"+strategy_label+" DL Strategy)"]);
+%                 xlabel("Number of Ground Stations");
+%                 ylabel(labels{i}(1));
+%                 xlim([limsX(nen,1) limsX(nen,2)]);
+%                 ylim([limsY(i,1) limsY(i,2)]);
+%             end  
+%             figs = [figs, fig_strat];
+%         end 
+%     end
+% end
+% 
+% if(save)
+%     [~, n_figs] = size(figs);
+%     for j = 1:n_metrics
+%         if(j == 1 || j == 6) 
+%             continue;
+%         end
+%         saveas(figs((j-1)*4+1),  path+"\cl_"+labels{j}(2)+"_AWS_cons"+".png",'png'); 
+%         saveas(figs((j-1)*4+2),  path+"\cl_"+labels{j}(2)+"_AWS_opt"+".png",'png'); 
+%         saveas(figs((j-1)*4+3),  path+"\cl_"+labels{j}(2)+"_NEN_cons"+".png",'png'); 
+%         saveas(figs((j-1)*4+4),  path+"\cl_"+labels{j}(2)+"_NEN_opt"+".png",'png'); 
+%     end
+% end
+% close all;
+% 
+% % Strategy Plots
+% figs = [];
+% for i = 1:n_metrics
+%     for nen = 1:2
+%         if nen == 1
+%             nen_label = "AWS";
+%         else
+%             nen_label = "NEN";
+%         end
+%         
+%         for crosslinks = 1:2
+%             if crosslinks == 1
+%                 crosslinks_label = "";
+%             else
+%                 crosslinks_label = " + CL";
+%             end
+%         
+% 
+%             fig_strat = figure;    
+%             for strategy = 1:2
+%                 if strategy == 1
+%                     strategy_label = "Conservative";
+%                 else
+%                     strategy_label = "Optimistic";
+%                 end
+%                 subplot(1,2,strategy)
+%                 boxplot(data(:,((i-1)*5)+1:((i-1)*5)+5,nen,strategy,crosslinks)'/conversions(i))
+%                 grid on
+%                 title([labels{i}(1);
+%                         "vs Number of Ground Stations";
+%                         "("+nen_label+crosslinks_label+" w/"+strategy_label+" DL Strategy)"]);
+%                 xlabel("Number of Ground Stations");
+%                 ylabel(labels{i}(1));
+%                 xlim([limsX(nen,1) limsX(nen,2)]);
+%                 ylim([limsY(i,1) limsY(i,2)]);
+%             end    
+%             figs = [figs, fig_strat];
+%         end 
+%     end
+% end
+% 
+% if(save)
+%     [~, n_figs] = size(figs);
+%     for j = 1:n_metrics
+%         if(j == 1 || j == 6) 
+%             continue;
+%         end
+%         saveas(figs((j-1)*4+1),  path+"\strat_"+labels{j}(2)+"_AWS"+".png",'png'); 
+%         saveas(figs((j-1)*4+2),  path+"\strat_"+labels{j}(2)+"_AWS_cl"+".png",'png'); 
+%         saveas(figs((j-1)*4+3),  path+"\strat_"+labels{j}(2)+"_NEN"+".png",'png'); 
+%         saveas(figs((j-1)*4+4),  path+"\strat_"+labels{j}(2)+"_NEN_cl"+".png",'png'); 
+%     end
+% end
+% close all;
+    
+
+% Pareto Front
+figs = [];
+
+i_metrics = [2, 7];
+limsY = [0 525;
+         0 35;
+         0 100];
+for strategy = 1:2
+    if strategy == 1
+        strategy_label = "Conservative";
+    else
+        strategy_label = "Optimistic";
+    end
+    fig3 = figure('position', [1000, 1000, 700, 850]);
+   
+    for j = 1:2
+        subplot(3,1,j)
+        i = i_metrics(j);
+        for nen = 1:2
+            for crosslinks = 1:2
+                if(nen == 1)
+                    scatter(1:1:22, data(:,((i-1)*5)+2,nen,strategy,crosslinks)'/conversions(i),'*');
+                else
+                    scatter(1:1:22, data(:,((i-1)*5)+2,nen,strategy,crosslinks)'/conversions(i),'filled');
+                end
             
-            AWS_data3d_cl = [ AWS_data3d_cl; 
-                             data(i,7)  data(i,m-7) n_gnd data(i,77) data(i,2);
-                             data(i,19) data(i,m-7) n_gnd data(i,83) data(i,2);
-                             data(i,31) data(i,m-7) n_gnd data(i,89) data(i,2);
-                             data(i,43) data(i,m-7) n_gnd data(i,95) data(i,2);
-                             data(i,55) data(i,m-7) n_gnd data(i,101) data(i,2);
-                             data(i,67) data(i,m-7) n_gnd data(i,107) data(i,2)];
-                       
-           sat_gap_AWS{1,2} = [sat_gap_NEN{1,2}, data(i,6), data(i,7), data(i,8)];
-           sat_gap_AWS{2,2} = [sat_gap_NEN{2,2}, data(i,18), data(i,19), data(i,20)];
-           sat_gap_AWS{3,2} = [sat_gap_NEN{3,2}, data(i,30), data(i,31), data(i,32)];
-           sat_gap_AWS{4,2} = [sat_gap_NEN{4,2}, data(i,42), data(i,43), data(i,44)];
-           sat_gap_AWS{5,2} = [sat_gap_NEN{5,2}, data(i,54), data(i,55), data(i,56)];
-           sat_gap_AWS{6,2} = [sat_gap_NEN{6,2}, data(i,66), data(i,67), data(i,68)];
-           
-       else
-            A = [ AWS_gap{n_gnd,1}, data(i,1), data(i,2), data(i,3), data(i,4), data(i,5) ];
-            AWS_gap{n_gnd,1} = A;
-            
-            B = [ AWS_lat{n_gnd,1}, data(i,6), data(i,7), data(i,8), ... 
-                                    data(i,18), data(i,19), data(i,20), ...
-                                    data(i,30), data(i,31), data(i,32), ...
-                                    data(i,42), data(i,43), data(i,44), ...
-                                    data(i,54), data(i,55), data(i,56), ...
-                                    data(i,66), data(i,67), data(i,68)];
-            AWS_lat{n_gnd,1} = B;
-            
-            C = [ AWS_cost{n_gnd,1}, data(i,m-8), data(i,m-7), data(i,m-6), data(i,m-5), data(i,m-4) ];
-            AWS_cost{n_gnd,1} = C;
-            
-            D = [AWS_dur{n_gnd,1},  data(i,76),data(i,77),data(i,78),data(i,79),data(i,80),data(i,81), ...
-                                    data(i,82),data(i,83),data(i,84),data(i,85),data(i,86),data(i,87), ...
-                                    data(i,88),data(i,89),data(i,90),data(i,91),data(i,92),data(i,93), ...
-                                    data(i,94),data(i,95),data(i,96),data(i,97),data(i,98),data(i,99), ...
-                                    data(i,100),data(i,101),data(i,102),data(i,103),data(i,104),data(i,105), ...
-                                    data(i,106),data(i,107),data(i,108),data(i,109),data(i,110),data(i,111) ];
-            AWS_dur{n_gnd,1} = D;
-            
-            AWS_data3d = [ AWS_data3d; 
-                             data(i,7)  data(i,m-7) n_gnd data(i,77) data(i,2);
-                             data(i,19) data(i,m-7) n_gnd data(i,83) data(i,2);
-                             data(i,31) data(i,m-7) n_gnd data(i,89) data(i,2);
-                             data(i,43) data(i,m-7) n_gnd data(i,95) data(i,2);
-                             data(i,55) data(i,m-7) n_gnd data(i,101) data(i,2);
-                             data(i,67) data(i,m-7) n_gnd data(i,107) data(i,2)];
-                       
-           sat_gap_AWS{1,1} = [sat_gap_NEN{1,2}, data(i,6), data(i,7), data(i,8)];
-           sat_gap_AWS{2,1} = [sat_gap_NEN{2,2}, data(i,18), data(i,19), data(i,20)];
-           sat_gap_AWS{3,1} = [sat_gap_NEN{3,2}, data(i,30), data(i,31), data(i,32)];
-           sat_gap_AWS{4,1} = [sat_gap_NEN{4,2}, data(i,42), data(i,43), data(i,44)];
-           sat_gap_AWS{5,1} = [sat_gap_NEN{5,2}, data(i,54), data(i,55), data(i,56)];
-           sat_gap_AWS{6,1} = [sat_gap_NEN{6,2}, data(i,66), data(i,67), data(i,68)];
-       end
+                hold on;
+                grid on;
+                xlabel("Number of Ground Stations");
+                ylabel(labels{i}(1));
+                xlim([limsX(1,1) limsX(1,2)]);
+                ylim(limsY(j,:));
+                xticks([1:1:22])
+            end
+        end
+        if j == 1
+            plot(1:1:22, 1*60*ones(1,22),'--','Color',[17 17 17]/255)
+            legend("AWS","AWS + CL","NEN","NEN + CL","1 hr",'Location','Best')
+        end
+        title(labels{i}(1)+" vs Number of Ground Stations");
     end
     
-    x = 1;
+    subplot(3,1,3)
+    for nen = 1:2
+        for crosslinks = 1:2
+            if(nen == 1)
+                scatter3(data(:,((7-1)*5)+2,nen,strategy,crosslinks)'/conversions(7), ...
+                        data(:,((2-1)*5)+2,nen,strategy,crosslinks)'/conversions(2),...
+                        1:1:22,'*');
+            else
+                scatter3(data(1:14,((7-1)*5)+2,nen,strategy,crosslinks)'/conversions(7),...
+                    data(1:14,((2-1)*5)+2,nen,strategy,crosslinks)'/conversions(2),...
+                    1:1:14,'filled');
+            end
+            hold on;
+            grid on;
+            xlabel(labels{7}(1));
+            ylabel(labels{2}(1));
+            zlabel("Number of Ground Stations");
+            xlim(limsY(2,:));
+            ylim(limsY(1,:));
+            xticks(0:2.5:35)
+            yticks(0:50:550);
+        end
+    end
+    view(0,90)
+    sgtitle(strategy_label+" Down-Link Strategy")
+    figs = [figs, fig3];
+end 
+
+if(save)
+    saveas(figs(1),  path+"\paret_"+labels{j}(2)+"_cons"+".png",'png'); 
+    saveas(figs(2),  path+"\paret_"+labels{j}(2)+"_opt"+".png",'png');
 end
 
-NEN_lat_box = [];
-NEN_lat_box_cl = [];
-
-NEN_gap_box = [];
-NEN_gap_box_cl = [];
-
-NEN_cost_box = [];
-NEN_cost_box_cl = [];
-
-NEN_dur_box = [];
-NEN_dur_box_cl = [];
-
-for i = 1:14
-    NEN_lat_box(:,i) = NEN_lat{i,1}';
-    NEN_lat_box_cl(:,i) = NEN_lat{i,2}';
-    
-    NEN_gap_box(:,i) = NEN_gap{i,1}';
-    NEN_gap_box_cl(:,i) = NEN_gap{i,2}';
-    
-    NEN_cost_box(:,i) = NEN_cost{i,1}';
-    NEN_cost_box_cl(:,i) = NEN_cost{i,2}';
-    
-    NEN_dur_box(:,i) = NEN_dur{i,1}';
-    NEN_dur_box_cl(:,i) = NEN_dur{i,2}';
-end
-
-AWS_lat_box = [];
-AWS_lat_box_cl = [];
-
-AWS_gap_box = [];
-AWS_gap_box_cl = [];
-
-AWS_cost_box = [];
-AWS_cost_box_cl = [];
-
-AWS_dur_box = [];
-AWS_dur_box_cl = [];
-
-for i = 1:22
-    AWS_lat_box(:,i) = AWS_lat{i,1}';
-    AWS_lat_box_cl(:,i) = AWS_lat{i,2}';
-    
-    AWS_gap_box(:,i) = AWS_gap{i,1}';
-    AWS_gap_box_cl(:,i) = AWS_gap{i,2}';
-    
-    AWS_cost_box(:,i) = AWS_cost{i,1}';
-    AWS_cost_box_cl(:,i) = AWS_cost{i,2}';
-    
-    AWS_dur_box(:,i) = AWS_dur{i,1}';
-    AWS_dur_box_cl(:,i) = AWS_dur{i,2}';
-end
-
-NEN_sat_gap_box = [];
-NEN_sat_gap_box_cl = [];
-
-AWS_sat_gap_box = [];
-AWS_sat_gap_box_cl = [];
-
-for i = 1:6
-    NEN_sat_gap_box(:,i) = sat_gap_NEN{i,1};
-    NEN_sat_gap_box_cl(:,i) = sat_gap_NEN{i,2}; 
-    
-    AWS_sat_gap_box(:,i) = sat_gap_AWS{i,1};
-    AWS_sat_gap_box_cl(:,i) = sat_gap_AWS{i,2}; 
-end
-
-%% PLOTS
-
-% LATENCY PLOTS
-lat_fig_nen = figure;
-subplot(1,2,1)
-boxplot(NEN_lat_box/60)
-grid on
-title(["Measurement Latency vs";"Number of Ground Stations";"(NEN)"])
-xlabel("Number of Ground Stations")
-ylabel("Measurement Latency [min]")
-ylim([-50 800])
-
-subplot(1,2,2)
-boxplot(NEN_lat_box_cl/60)
-grid on
-title(["Measurement Latency vs";"Number of Ground Stations";"(NEN + CL)"])
-xlabel("Number of Ground Stations")
-ylabel("Measurement Latency [min]")
-ylim([-50 800])
-
-lat_fig_aws = figure;
-subplot(1,2,1)
-boxplot(AWS_lat_box/60)
-grid on
-title(["Measurement Latency vs";"Number of Ground Stations";"(AWS)"])
-xlabel("Number of Ground Stations")
-ylabel("Measurement Latency [min]")
-ylim([-50 800])
-
-subplot(1,2,2)
-boxplot(AWS_lat_box_cl/60)
-grid on
-title(["Measurement Latency vs";"Number of Ground Stations";"(AWS + CL)"])
-xlabel("Number of Ground Stations")
-ylabel("Measurement Latency [min]")
-ylim([-50 800])
-
-% GAP TIME 
-gap_fig_nen = figure;
-subplot(1,2,1)
-boxplot(NEN_gap_box/60)
-grid on
-title(["GS Gap Time vs";"Number of Ground Stations";"(NEN)"])
-xlabel("Number of Ground Stations")
-ylabel("Ground Station Gap Time [min]")
-ylim([-50 800])
-
-subplot(1,2,2)
-boxplot(NEN_gap_box_cl/60)
-grid on
-title(["GS Gap Time vs";"Number of Ground Stations";"(NEN + CL)"])
-xlabel("Number of Ground Stations")
-ylabel("Ground Station Gap Time [min]")
-ylim([-50 800])
-
-gap_fig_aws = figure;
-subplot(1,2,1)
-boxplot(AWS_gap_box/60)
-grid on
-title(["GS Gap Time vs";"Number of Ground Stations";"(AWS)"])
-xlabel("Number of Ground Stations")
-ylabel("Ground Station Gap Time [min]")
-ylim([-50 800])
-
-subplot(1,2,2)
-boxplot(AWS_gap_box_cl/60)
-grid on
-title(["GS Gap Time vs";"Number of Ground Stations";"(AWS + CL)"])
-xlabel("Number of Ground Stations")
-ylabel("Ground Station Gap Time [min]")
-ylim([-50 800])
-
-% ACCESS DURATION
-dur_fig_nen = figure;
-subplot(1,2,1)
-boxplot(NEN_dur_box/3600    )
-grid on
-title(["GS Daily Access Time Duration vs";"Number of Ground Stations";"(NEN)"])
-xlabel("Number of Ground Stations")
-ylabel("Ground Station Access Time Duration [hrs]")
-ylim([0 24])
-
-subplot(1,2,2)
-boxplot(NEN_dur_box_cl/3600)
-grid on
-title(["GS Daily Access Time Duration vs";"Number of Ground Stations";"(NEN + CL)"])
-xlabel("Number of Ground Stations")
-ylabel("Ground Station Access Time Duration [hrs]")
-ylim([0 24])
-
-dur_fig_aws = figure;
-subplot(1,2,1)
-boxplot(AWS_dur_box/3600)
-grid on
-title(["GS Daily Access Time Duration vs";"Number of Ground Stations";"(AWS)"])
-xlabel("Number of Ground Stations")
-ylabel("Ground Station Access Time Duration [hrs]")
-ylim([0 24])
-
-subplot(1,2,2)
-boxplot(AWS_dur_box_cl/3600)
-grid on
-title(["GS Daily Access Time Duration vs";"Number of Ground Stations";"(AWS + CL)"])
-xlabel("Number of Ground Stations")
-ylabel("Ground Station Access Time Duration [hrs]")
-ylim([0 24])
-
-% GAP TIME PER SAT
-gap_sat_fig_nen = figure;
-subplot(1,2,1)
-boxplot(NEN_sat_gap_box/60)
-grid on
-title(["GS Gap Time per";"Satellite (NEN)"])
-xlabel("Number of Ground Stations")
-ylabel("Ground Station Gap Time [min]")
-ylim([-50 800])
-
-subplot(1,2,2)
-boxplot(NEN_sat_gap_box_cl/60)
-grid on
-title(["GS Gap Time per";"Satellite (NEN + CL)"])
-xlabel("Number of Ground Stations")
-ylabel("Ground Station Gap Time [min]")
-ylim([-50 800])
-
-gap_sat_fig_aws = figure;
-subplot(1,2,1)
-boxplot(AWS_sat_gap_box/60)
-grid on
-title(["GS Gap Time per";"Satellite (AWS)"])
-xlabel("Number of Ground Stations")
-ylabel("Ground Station Gap Time [min]")
-ylim([-50 800])
-
-subplot(1,2,2)
-boxplot(AWS_sat_gap_box_cl/60)
-grid on
-title(["GS Gap Time per";"Satellite (AWS + CL)"])
-xlabel("Number of Ground Stations")
-ylabel("Ground Station Gap Time [min]")
-ylim([-50 800])
-
-
-% COST
-cost_fig_nen = figure;
-subplot(1,2,1)
-boxplot(NEN_cost_box)
-grid on
-title(["Daily Operating Costs vs";"Number of Ground Stations";"(NEN)"])
-xlabel("Number of Ground Stations")
-ylabel("Daily Operating Costs $USD")
-ylim([-50 20E4])
-
-subplot(1,2,2)
-boxplot(NEN_cost_box_cl)
-grid on
-title(["Daily Operating Costs vs";"Number of Ground Stations";"(NEN + CL)"])
-xlabel("Number of Ground Stations")
-ylabel("Daily Operating Costs $USD")
-ylim([-50 20E4])
-
-cost_fig_aws = figure;
-subplot(1,2,1)
-boxplot(AWS_cost_box)
-grid on
-title(["Daily Operating Costs vs";"Number of Ground Stations";"(AWS)"])
-xlabel("Number of Ground Stations")
-ylabel("Daily Operating Costs $USD")
-ylim([-50 20E4])
-
-subplot(1,2,2)
-boxplot(AWS_cost_box_cl)
-grid on
-title(["Daily Operating Costs vs";"Number of Ground Stations";"(AWS + CL)"])
-xlabel("Number of Ground Stations")
-ylabel("Daily Operating Costs $USD")
-ylim([-50 20E4])
-
-% 3D PLOTS
-figure
-scatter3(NEN_data3d(:,3), NEN_data3d(:,2),NEN_data3d(:,1)/3600, 'filled')
-hold on
-grid on
-scatter3(NEN_data3d_cl(:,3), NEN_data3d_cl(:,2),NEN_data3d_cl(:,1)/3600, 'filled')
-scatter3(AWS_data3d(:,3), AWS_data3d(:,2),AWS_data3d(:,1)/3600, 'filled')
-scatter3(AWS_data3d_cl(:,3), AWS_data3d_cl(:,2),AWS_data3d_cl(:,1)/3600, 'filled')
-xlabel("Number of Ground Stations")
-ylabel("Daily Cost $")
-zlabel("GS Gap Time [hrs]")
-legend("NEN", "NEN + Crosslinks","AWS", "AWS + Crosslinks")
-title("AWS vs NEN")
-
-%% 2D PLOTS
-ymin = ones(23,2);
-ymin(:,1) = [0:1:22];
-ymin(:,2) = 60;
-
-triple_fig = figure('position', [1000, 1000, 700, 850]);
-subplot(3,1,1)
-scatter(NEN_data3d(:,3),NEN_data3d(:,1)/60);
-hold on
-grid on
-scatter(NEN_data3d_cl(:,3),NEN_data3d_cl(:,1)/60);
-scatter(AWS_data3d(:,3),AWS_data3d(:,1)/60,'*');
-scatter(AWS_data3d_cl(:,3),AWS_data3d_cl(:,1)/60,'*');
-plot(ymin(:,1),ymin(:,2),'--r')
-xlabel("Number of Ground Stations")
-ylabel("GS Gap Time [min]")
-legend("NEN", "NEN + Crosslinks","AWS", "AWS + Crosslinks", '1 hr')
-title("Gap Time vs Number Satellites")
-xticks([1:1:22])
-yticks([0:60:600])
-
-subplot(3,1,2)
-scatter(NEN_data3d(:,3),NEN_data3d(:,2)/1e3);
-hold on
-grid on
-scatter(NEN_data3d_cl(:,3),NEN_data3d_cl(:,2)/1e3);
-scatter(AWS_data3d(:,3),AWS_data3d(:,2)/1e3,'*');
-scatter(AWS_data3d_cl(:,3),AWS_data3d_cl(:,2)/1e3,'*');
-xlabel("Number of Ground Stations")
-ylabel("Daily Cost $K")
-legend("NEN", "NEN + Crosslinks","AWS", "AWS + Crosslinks")
-title("Gap Time vs Number Satellites")
-xticks([1:1:22])
-yticks([0:25:200])
-
-ymin = ones(23,2);
-ymin(:,1) = [0:1:22];
-ymin(:,2) = 1/24;
-
-subplot(3,1,3)
-scatter(NEN_data3d(:,3),NEN_data3d(:,4)/(24*3600));
-hold on
-grid on
-scatter(NEN_data3d_cl(:,3),NEN_data3d_cl(:,4)/(24*3600));
-scatter(AWS_data3d(:,3),AWS_data3d(:,4)/(24*3600),'*');
-scatter(AWS_data3d_cl(:,3),AWS_data3d_cl(:,4)/(24*3600),'*');
-% plot(ymin(:,1),ymin(:,2),'--r')
-xlabel("Number of Ground Stations")
-ylabel("Percentage of Day in GS Access [%]")
-legend("NEN", "NEN + Crosslinks","AWS", "AWS + Crosslinks", '1 hr')
-title("Percentage of Day in GS Access vs Number Satellites")
-xticks([1:1:22])
-ylim([0 1])
-yticks([0:0.1:1])
-
-% Dif Plots
-
-
-
-%% Save Plots
-
-saveas(lat_fig_nen,  path+"\lat_fig_nen.png",'png');
-saveas(lat_fig_aws,  path+".\lat_fig_aws.png",'png');
-saveas(gap_sat_fig_nen,  path+".\gap_sat_fig_nen.png",'png');
-saveas(gap_sat_fig_aws,  path+".\gap_sat_fig_aws.png",'png');
-saveas(gap_fig_nen,  path+".\gap_fig_nen.png",'png');
-saveas(gap_fig_aws,  path+".\gap_fig_aws.png",'png');
-saveas(dur_fig_nen,  path+".\dur_fig_nen.png",'png');
-saveas(dur_fig_aws,  path+".\dur_fig_aws.png",'png');
-saveas(cost_fig_nen, path+".\cost_fig_nen.png",'png');
-saveas(cost_fig_aws, path+".\cost_fig_aws.png",'png');
-saveas(triple_fig, path+".\triple_fig.png",'png');
-
-disp DONE
+fprintf("DONE\n")

@@ -115,9 +115,9 @@ public class LatencyStudy {
         OffNadirRectangularFOV fovSARR = new OffNadirRectangularFOV(FastMath.toRadians(35),
                 FastMath.toRadians(2.8/2), FastMath.toRadians(2.8/2), 0.0, earthShape);
 
-        Instrument refl = new Instrument("refl", fovRef, 100, 100, 35e6);
+        Instrument refl = new Instrument("refl", fovRef, 100, 100, 4e6 * 35e6 / 130e6);
         Instrument sarL = new Instrument("SARL", fovSARL, 100, 100, 35e6);
-        Instrument sarR = new Instrument("SARL", fovSARR, 100, 100, 2*35e3);
+        Instrument sarR = new Instrument("SARP", fovSARR, 100, 100, 35e6);
 
         ArrayList<Instrument> payloadRef = new ArrayList<>();
         payloadRef.add(refl);
@@ -136,20 +136,21 @@ public class LatencyStudy {
         satBands.add(CommunicationBand.UHF);
 
         // -full + complementary
-        double memory = 1e9;
+        double memorySAR = 2*126e9;
+        double memoryREF = 2e9;
 
         Satellite sat1 = new Satellite("sat41", orb21, null, payloadAll,
-                new ReceiverAntenna(6., satBands), new TransmitterAntenna(6., satBands), Propagator.DEFAULT_MASS, Propagator.DEFAULT_MASS, memory, 130e6);
+                new ReceiverAntenna(6., satBands), new TransmitterAntenna(6., satBands), Propagator.DEFAULT_MASS, Propagator.DEFAULT_MASS, memorySAR, 130e6);
         Satellite sat2 = new Satellite("sat42", orb22, null, payloadRef,
-                new ReceiverAntenna(6., satBands), new TransmitterAntenna(6., satBands), Propagator.DEFAULT_MASS, Propagator.DEFAULT_MASS, memory, 4e6);
+                new ReceiverAntenna(6., satBands), new TransmitterAntenna(6., satBands), Propagator.DEFAULT_MASS, Propagator.DEFAULT_MASS, memoryREF, 4e6);
         Satellite sat3 = new Satellite("sat43", orb23, null, payloadAll,
-                new ReceiverAntenna(6., satBands), new TransmitterAntenna(6., satBands), Propagator.DEFAULT_MASS, Propagator.DEFAULT_MASS, memory, 130e6);
+                new ReceiverAntenna(6., satBands), new TransmitterAntenna(6., satBands), Propagator.DEFAULT_MASS, Propagator.DEFAULT_MASS, memorySAR, 130e6);
         Satellite sat4 = new Satellite("sat44", orb24, null, payloadRef,
-                new ReceiverAntenna(6., satBands), new TransmitterAntenna(6., satBands), Propagator.DEFAULT_MASS, Propagator.DEFAULT_MASS, memory, 4e6);
+                new ReceiverAntenna(6., satBands), new TransmitterAntenna(6., satBands), Propagator.DEFAULT_MASS, Propagator.DEFAULT_MASS, memoryREF, 4e6);
         Satellite sat5 = new Satellite("sat45", orb25, null, payloadAll,
-                new ReceiverAntenna(6., satBands), new TransmitterAntenna(6., satBands), Propagator.DEFAULT_MASS, Propagator.DEFAULT_MASS, memory, 130e6);
+                new ReceiverAntenna(6., satBands), new TransmitterAntenna(6., satBands), Propagator.DEFAULT_MASS, Propagator.DEFAULT_MASS, memorySAR, 130e6);
         Satellite sat6 = new Satellite("sat46", orb26, null, payloadRef,
-                new ReceiverAntenna(6., satBands), new TransmitterAntenna(6., satBands), Propagator.DEFAULT_MASS, Propagator.DEFAULT_MASS, memory, 4e6);
+                new ReceiverAntenna(6., satBands), new TransmitterAntenna(6., satBands), Propagator.DEFAULT_MASS, Propagator.DEFAULT_MASS, memoryREF, 4e6);
 
         ArrayList<Satellite> satellites =new ArrayList<>();
         satellites.add(sat1);
@@ -171,6 +172,10 @@ public class LatencyStudy {
         HashMap<ArrayList<GndStation>, HashSet> networkMap= new HashMap<>();
         networkMap.put(gndNetworks.get(0), gndStationsNEN);
         networkMap.put(gndNetworks.get(1), gndStationsAWS);
+
+        HashMap<ArrayList<GndStation>, GndStationNetwork.GSNetwork> networkEnum = new HashMap<>();
+        networkEnum.put(gndNetworks.get(0), GndStationNetwork.GSNetwork.NEN);
+        networkEnum.put(gndNetworks.get(1), GndStationNetwork.GSNetwork.AWS);
 
         HashMap<ArrayList<GndStation>, String> networkNameMap= new HashMap<>();
         networkNameMap.put(gndNetworks.get(0), "NEN");
@@ -208,6 +213,7 @@ public class LatencyStudy {
         for(ArrayList<GndStation> gndNetwork : gndNetworks){
             i_tot += Math.pow(2,gndNetwork.size()) * 2;
         }
+        i_tot *= 2*2;
 
         System.out.println("Generating Ground Station Network Combinations...");
         HashMap<ArrayList<GndStation>, HashMap<Integer, ArrayList<String>>> networks = new HashMap<>();
@@ -266,8 +272,10 @@ public class LatencyStudy {
 
             // set event analyses
             ArrayList<EventAnalysis> eventanalyses = new ArrayList<>();
-            FieldOfViewAndGndStationEventAnalysis events = new FieldOfViewAndGndStationEventAnalysis(startDate,endDate,inertialFrame,covDefs,
-                    stationAssignment,pfJ2,true,false,false);
+//            FieldOfViewAndGndStationEventAnalysis events = new FieldOfViewAndGndStationEventAnalysis(startDate,endDate,inertialFrame,covDefs,
+//                    stationAssignment,pfJ2,true,false,false);
+
+            GndStationEventAnalysis events = new GndStationEventAnalysis(startDate,endDate,inertialFrame,stationAssignment,pfJ2);
             eventanalyses.add(events);
 
             // build scenario
@@ -285,6 +293,7 @@ public class LatencyStudy {
             }
             System.out.println("Propagation DONE! ");
 
+            // evaluate configurations
             for(Boolean crossLink : crossLinks) {
                 if(crossLink){
                     System.out.println("CrossLinks ON");
@@ -293,6 +302,17 @@ public class LatencyStudy {
                     System.out.println("CrossLinks OFF");
                 }
                 for(GSAccessAnalyser.Strategy strategy : strategies) {
+                    switch (strategy){
+                        case CONSERVATIVE:
+                            System.out.println("Down-Link Strategy CONSERVATIVE");
+                            break;
+                        case EVERY_ACCESS:
+                            System.out.println("Down-Link Strategy EVERY ACCESS");
+                            break;
+                        default:
+                            throw new Exception("Down-Link strategy not supported for this study");
+                    }
+
                     for (Integer n_gnd : networks.get(gndNetwork).keySet()) {
                         for (String networkBin : networks.get(gndNetwork).get(n_gnd)) {
                             ArrayList<GndStation> gndNetworkActive = new ArrayList<>();
@@ -306,10 +326,9 @@ public class LatencyStudy {
                             }
 
                             long start_i = System.nanoTime();
-                            boolean costPerAccess = gndNetworks.indexOf(gndNetwork) == 0;
-                            double cost = costs.get(gndNetworks.indexOf(gndNetwork));
 
-                            LatencyResults results = new LatencySim(events, constellation, covDefs, gndNetworkActive, crossLink, cost, costPerAccess, strategy, startDate, endDate).calcResults();
+                            LatencyResults results = new LatencySim(events, gndNetworkActive, networkBin,
+                                    networkEnum.get(gndNetwork), strategy, crossLink, startDate, endDate).calcResults();
 
                             long end_i = System.nanoTime();
                             System.out.print(String.format("Sim no. " + i_sim + "/" + i_tot + " with " + n_gnd + " GS took %.4f sec (mean gap time %.4f min)\n", (end_i - start_i) / Math.pow(10, 9), results.getGapTime() / 60));
@@ -320,7 +339,7 @@ public class LatencyStudy {
                                 continue;
                             }
 
-                            printWriter.print(results.toString(networkBin, costPerAccess, crossLink));
+                            printWriter.print(results.toString());
 
 //                        if(results.getGapTime() < timeTol){
 //                            System.out.print("BREAK: " + n_gnd + " number of ground stations exceeds performance.\n");
