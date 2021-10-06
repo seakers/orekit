@@ -7,6 +7,11 @@ package seakers.orekit.constellations;
 
 import java.util.ArrayList;
 import java.util.Collection;
+
+import org.orekit.attitudes.AttitudeProvider;
+import org.orekit.attitudes.NadirPointing;
+import org.orekit.bodies.BodyShape;
+import org.orekit.propagation.Propagator;
 import seakers.orekit.object.Constellation;
 import seakers.orekit.object.Satellite;
 import org.hipparchus.util.FastMath;
@@ -45,12 +50,13 @@ public class Walker extends Constellation {
      * @param f the relative spacing between satellites in adjacent planes
      * @param inertialFrame the frame in which the PVCoordinates are defined
      * (must be a pseudo-inertial frame)
+     * @param earthShape shape of the Earth
      * @param startDate the date to begin simulating this constellation
      * @param mu central attraction coefficient (m³/s²)
      */
     public Walker(String name, Collection<Instrument> payload,
-            double semimajoraxis, double i, int t, int p, int f, Frame inertialFrame, AbsoluteDate startDate, double mu) {
-        this(name, payload, semimajoraxis, i, t, p, f, inertialFrame, startDate, mu, 0.0, 0.0);
+                  double semimajoraxis, double i, int t, int p, int f, Frame inertialFrame, BodyShape earthShape, AbsoluteDate startDate, double mu) {
+        this(name, payload, semimajoraxis, i, t, p, f, inertialFrame, earthShape, startDate, mu, 0.0, 0.0);
     }
 
     /**
@@ -78,8 +84,8 @@ public class Walker extends Constellation {
      */
     public Walker(String name, Collection<Instrument> payload,
             double semimajoraxis, double i, int t, int p, int f, 
-            Frame inertialFrame, AbsoluteDate startDate, double mu, double refRaan, double refAnom) {
-        super(name, createConstellation(payload, semimajoraxis, i, t, p, f, inertialFrame, startDate, mu, refRaan, refAnom));
+            Frame inertialFrame, BodyShape earthShape, AbsoluteDate startDate, double mu, double refRaan, double refAnom) {
+        super(name, createConstellation(payload, semimajoraxis, i, t, p, f, inertialFrame, earthShape, startDate, mu, refRaan, refAnom));
     }
 
     /**
@@ -102,7 +108,7 @@ public class Walker extends Constellation {
      */
     private static Collection<Satellite> createConstellation(
             Collection<Instrument> payload, double semimajoraxis, double i, int t, int p, int f, 
-            Frame inertialFrame, AbsoluteDate startDate, double mu, double refRaan, double refAnom) {
+            Frame inertialFrame, BodyShape earthShape, AbsoluteDate startDate, double mu, double refRaan, double refAnom) {
         //checks for valid parameters
         if (t < 0 || p < 0) {
             throw new IllegalArgumentException(String.format("Expected t>0, p>0."
@@ -136,7 +142,8 @@ public class Walker extends Constellation {
                         refRaan + planeNum * delRaan, 
                         anom,
                         PositionAngle.TRUE, inertialFrame, startDate, mu);
-                Satellite sat = new Satellite(String.format("sat_walker_%d", s * planeNum + satNum), orb, null, payload);
+                AttitudeProvider att = new NadirPointing(inertialFrame, earthShape);
+                Satellite sat = new Satellite(String.format("sat_walker_%d", s * planeNum + satNum), orb, att, payload);
                 walker.add(sat);
             }
         }

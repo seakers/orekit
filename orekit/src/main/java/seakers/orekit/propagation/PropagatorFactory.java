@@ -9,8 +9,11 @@ import java.util.Properties;
 import org.hipparchus.ode.ODEIntegrator;
 import org.hipparchus.ode.nonstiff.AdaptiveStepsizeIntegrator;
 import org.hipparchus.ode.nonstiff.DormandPrince853Integrator;
+import org.orekit.attitudes.AttitudeProvider;
 import org.orekit.bodies.CelestialBodyFactory;
 import org.orekit.bodies.OneAxisEllipsoid;
+import org.orekit.data.DataContext;
+import org.orekit.data.DataProvidersManager;
 import org.orekit.errors.OrekitException;
 import org.orekit.forces.drag.DragForce;
 import org.orekit.forces.drag.DragSensitive;
@@ -39,6 +42,7 @@ import org.orekit.propagation.analytical.EcksteinHechlerPropagator;
 import org.orekit.propagation.analytical.KeplerianPropagator;
 import org.orekit.propagation.analytical.tle.SGP4;
 import org.orekit.propagation.analytical.tle.TLE;
+import org.orekit.propagation.analytical.tle.TLEPropagator;
 import org.orekit.propagation.numerical.NumericalPropagator;
 import org.orekit.utils.Constants;
 import org.orekit.utils.IERSConventions;
@@ -89,20 +93,24 @@ public class PropagatorFactory {
     }
 
     public Propagator createPropagator(Orbit orbit, double mass) throws OrekitException {
+        return createPropagator(orbit, Propagator.DEFAULT_LAW, mass);
+    }
+
+    public Propagator createPropagator(Orbit orbit, AttitudeProvider att, double mass) throws OrekitException {
         switch (propType) {
             case KEPLERIAN:
-                return createKeplerianPropagator(orbit, mass);
+                return createKeplerianPropagator(orbit, att, mass);
             case J2:
-                return createJ2Propagator(orbit, mass);
+                return createJ2Propagator(orbit, att, mass);
             case NUMERICAL:
                 //MASS PROPAGATION
 
                 //set integrator steps and tolerances
                 final double dP = 0.001;
-                final double minStep = 0.00000001;
+                final double minStep = 0.00001;
                 final double maxStep = 1000;
                 final double initStep = 60;
-                final double[][] tolerance = NumericalPropagator.tolerances(dP, orbit, OrbitType.EQUINOCTIAL);
+                final double[][] tolerance = NumericalPropagator.tolerances(dP, orbit, orbit.getType());
                 double[] absTolerance = tolerance[0];
                 double[] relTolerance = tolerance[1];
 
@@ -110,7 +118,20 @@ public class PropagatorFactory {
                 //DormandPrince853 is an implementation of some Runge Kutta method
                 AdaptiveStepsizeIntegrator integrator = new DormandPrince853Integrator(minStep, maxStep, absTolerance, relTolerance);
                 integrator.setInitialStepSize(initStep);
-                return createNumericalPropagator(orbit,integrator, properties);
+                return createNumericalPropagator(orbit, att, integrator, properties);
+            default:
+                throw new UnsupportedOperationException(String.format("Propagator of type %s is not supported by factory or by this constructor.", propType));
+        }
+    }
+
+    public Propagator createPropagator(TLE tle, double mass) throws OrekitException {
+        return createPropagator(tle, Propagator.DEFAULT_LAW, mass);
+    }
+
+    public Propagator createPropagator(TLE tle, AttitudeProvider att, double mass) throws OrekitException {
+        switch (propType) {
+            case TLE:
+                return createTLEPropagator(tle, att, mass);
             default:
                 throw new UnsupportedOperationException(String.format("Propagator of type %s is not supported by factory or by this constructor.", propType));
         }
@@ -125,7 +146,11 @@ public class PropagatorFactory {
      * @throws OrekitException
      */
     private Propagator createKeplerianPropagator(Orbit orbit, double mass) throws OrekitException {
-        return new KeplerianPropagator(orbit, Propagator.DEFAULT_LAW, orbit.getMu(), mass);
+        return createKeplerianPropagator(orbit, Propagator.DEFAULT_LAW, mass);
+    }
+
+    private Propagator createKeplerianPropagator(Orbit orbit, AttitudeProvider att, double mass) throws OrekitException {
+        return new KeplerianPropagator(orbit, att, orbit.getMu(), mass);
     }
 
     /**
@@ -137,11 +162,13 @@ public class PropagatorFactory {
      * @throws OrekitException
      */
     private Propagator createJ2Propagator(Orbit orbit, double mass) throws OrekitException {
-
-        return new EcksteinHechlerPropagator(orbit, mass, Constants.WGS84_EARTH_EQUATORIAL_RADIUS,
+        return createJ2Propagator(orbit, Propagator.DEFAULT_LAW, mass);
+    }
+    private Propagator createJ2Propagator(Orbit orbit, AttitudeProvider att, double mass) throws OrekitException {
+        return new EcksteinHechlerPropagator(orbit, att, mass, Constants.WGS84_EARTH_EQUATORIAL_RADIUS,
                 Constants.WGS84_EARTH_MU, Constants.WGS84_EARTH_C20, 0, 0, 0, 0);
     }
-    
+
     /**
      * Creates a TLE propagator
      *
@@ -151,7 +178,11 @@ public class PropagatorFactory {
      * @throws OrekitException
      */
     private Propagator createTLEPropagator(TLE tle, double mass) throws OrekitException {
-        return new SGP4(tle, Propagator.DEFAULT_LAW, mass);
+        return createTLEPropagator(tle, Propagator.DEFAULT_LAW, mass);
+    }
+
+    private Propagator createTLEPropagator(TLE tle, AttitudeProvider att, double mass) throws OrekitException {
+        return TLEPropagator.selectExtrapolator(tle, att, mass);
     }
 
     /**
@@ -163,9 +194,12 @@ public class PropagatorFactory {
      * @throws OrekitException
      */
     private Propagator createNumericalPropagator(Orbit orbit, ODEIntegrator integrator, Properties properties) throws OrekitException {
+        return createNumericalPropagator(orbit, Propagator.DEFAULT_LAW, integrator, properties);
+    }
+    private Propagator createNumericalPropagator(Orbit orbit, AttitudeProvider att, ODEIntegrator integrator, Properties properties) throws OrekitException {
         double mass = Double.parseDouble(properties.getProperty("orekit.propagator.mass", "10"));
         SpacecraftState s = new SpacecraftState(orbit, mass);
-        NumericalPropagator prop = new NumericalPropagator(integrator);
+        NumericalPropagator prop = new NumericalPropagator(integrator, att);
         prop.setInitialState(s);
         prop.setOrbitType(orbit.getType());
         prop.setPositionAngleType(PositionAngle.MEAN);
@@ -186,11 +220,12 @@ public class PropagatorFactory {
             double dragArea = Double.parseDouble(properties.getProperty("orekit.propagator.dragarea", "10"));
             double dragCoeff = Double.parseDouble(properties.getProperty("orekit.propagator.dragcoeff", "2.2"));
 
-            String supportedNames = "(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\\p{Digit}\\p{Digit}\\p{Digit}\\p{Digit}F10\\.(?:txt|TXT)";
-            MarshallSolarActivityFutureEstimation.StrengthLevel strengthlevel = MarshallSolarActivityFutureEstimation.StrengthLevel.AVERAGE;
-            DTM2000InputParameters parameters = new MarshallSolarActivityFutureEstimation(supportedNames, strengthlevel);
-
-            Atmosphere atmosphere = new DTM2000(parameters, CelestialBodyFactory.getSun(), earth);
+            MarshallSolarActivityFutureEstimation msafe =
+                            new MarshallSolarActivityFutureEstimation(MarshallSolarActivityFutureEstimation.DEFAULT_SUPPORTED_NAMES,
+                                                                      MarshallSolarActivityFutureEstimation.StrengthLevel.AVERAGE);
+            final DataProvidersManager manager = DataContext.getDefault().getDataProvidersManager();
+            manager.feed(msafe.getSupportedNames(), msafe);
+            Atmosphere atmosphere = new DTM2000(msafe, CelestialBodyFactory.getSun(), earth);
             DragSensitive spacecraft = new IsotropicDrag(dragArea, dragCoeff);
             prop.addForceModel(new DragForce(atmosphere, spacecraft));
         }
