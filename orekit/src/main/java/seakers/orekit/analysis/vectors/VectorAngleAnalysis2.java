@@ -24,13 +24,11 @@ import seakers.orekit.propagation.PropagatorFactory;
  *
  * @author paugarciabuzzi
  */
-public abstract class VectorAngleAnalysis2 extends AbstractSpacecraftAnalysis<Double> {
+public abstract class VectorAngleAnalysis2 extends VectorAngleAnalysis{
 
     /**
-     * The desired frame to use. Frame used to transform vectors into the same
-     * frame.
+     * Celestial Body needed to define the angle between vectors.
      */
-    private final Frame frame;
     private final CelestialBody body;
 
     /**
@@ -49,30 +47,7 @@ public abstract class VectorAngleAnalysis2 extends AbstractSpacecraftAnalysis<Do
     public VectorAngleAnalysis2(AbsoluteDate startDate, AbsoluteDate endDate,
             double timeStep, Satellite sat, PropagatorFactory propagatorFactory, 
             Frame frame, CelestialBody body) {
-        super(startDate, endDate, timeStep,sat, propagatorFactory);
-        this.frame = frame;
+        super(startDate, endDate, timeStep,sat, propagatorFactory,frame);
         this.body = body;
     }
-
-    public abstract Vector3D getVector1(SpacecraftState currentState, Frame frame) throws OrekitException;
-
-    public abstract Vector3D getVector2(SpacecraftState currentState, Frame frame) throws OrekitException;
-
-    @Override
-    public String getHeader() {
-        return super.getHeader() + ",angle[rad]"; //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public String getExtension() {
-        return "vecang";
-    }
-
-    @Override
-    public void handleStep(SpacecraftState currentState, boolean isLast) throws OrekitException{   
-        Vector3D v1 = getVector1(currentState, frame);
-        Vector3D v2 = getVector2(currentState, frame);
-        addRecord(new Record<>(currentState.getDate(), Vector3D.angle(v1, v2)));
-    }
-
 }

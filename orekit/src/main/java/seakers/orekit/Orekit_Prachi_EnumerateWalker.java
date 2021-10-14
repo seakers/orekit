@@ -11,13 +11,11 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Locale;
-import java.util.Properties;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.hipparchus.stat.descriptive.DescriptiveStatistics;
+
 import org.hipparchus.util.FastMath;
 import org.orekit.bodies.BodyShape;
 import org.orekit.bodies.OneAxisEllipsoid;
@@ -29,25 +27,12 @@ import org.orekit.time.TimeScale;
 import org.orekit.time.TimeScalesFactory;
 import org.orekit.utils.Constants;
 import org.orekit.utils.IERSConventions;
-import seakers.orekit.analysis.Analysis;
-import seakers.orekit.constellations.EnumerateWalkerConstellations;
+import seakers.orekit.constellations.EnumerateConstellations;
 import seakers.orekit.constellations.Walker;
 import seakers.orekit.constellations.WalkerParameters;
-import seakers.orekit.coverage.analysis.AnalysisMetric;
-import seakers.orekit.coverage.analysis.FastCoverageAnalysis;
-import seakers.orekit.coverage.analysis.GroundEventAnalyzer;
-import seakers.orekit.event.EventAnalysis;
-import seakers.orekit.event.EventAnalysisFactory;
-import seakers.orekit.event.FieldOfViewEventAnalysis;
-import seakers.orekit.object.CoverageDefinition;
 import seakers.orekit.object.Instrument;
 import seakers.orekit.object.Satellite;
 import seakers.orekit.object.fieldofview.NadirRectangularFOV;
-import seakers.orekit.object.fieldofview.NadirSimpleConicalFOV;
-import seakers.orekit.propagation.PropagatorFactory;
-import seakers.orekit.propagation.PropagatorType;
-import seakers.orekit.scenario.Scenario;
-import seakers.orekit.scenario.ScenarioIO;
 import seakers.orekit.util.OrekitConfig;
 
 /**
@@ -90,26 +75,26 @@ public class Orekit_Prachi_EnumerateWalker {
                 Constants.WGS84_EARTH_FLATTENING, earthFrame);
         
         
-        double[] alt = new double[2];
-        alt = new double[] {400,500};
+        Double[] alt = new Double[2];
+        alt = new Double[] {400.0,500.0};
         for(int i_alt = 0; i_alt<alt.length; i_alt++) {
             alt[i_alt] = alt[i_alt]*1000 + 6378000; //convert to semi major axis and meters
         }
         
-        double[] inc = new double[2];
-        inc = new double[] {30,40};
+        Double[] inc = new Double[2];
+        inc = new Double[] {30.0,40.0};
         for(int i_inc = 0; i_inc<inc.length; i_inc++) {
             inc[i_inc]=FastMath.toRadians(inc[i_inc]);
         }
    
-        int[] sats = new int[2];
+        Integer[] sats = new Integer[2];
         for(int i_nsats = 1; i_nsats<=2;i_nsats++) {
             sats[i_nsats-1]=i_nsats;
         }
         
         //define walker parameters
         ArrayList<WalkerParameters> constelParams = new ArrayList<>();
-        constelParams = EnumerateWalkerConstellations.fullFactWalker(alt, inc, sats);
+        constelParams = EnumerateConstellations.fullFactWalker(alt, inc, sats);
         
         //define instruments
         //NadirSimpleConicalFOV fov = new NadirSimpleConicalFOV(FastMath.toRadians(45), earthShape);

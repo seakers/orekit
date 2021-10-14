@@ -5,6 +5,7 @@
  */
 package seakers.orekit.event.detector;
 
+import org.hipparchus.ode.events.Action;
 import org.orekit.errors.OrekitException;
 import org.orekit.propagation.SpacecraftState;
 import org.orekit.propagation.events.EventDetector;
@@ -69,7 +70,7 @@ public class GroundStationDetector extends AbstractEventDetector<GroundStationDe
             AbsoluteDate startDate, AbsoluteDate endDate,
             Transmitter transmitter, Receiver receiver, GndStation station) {
         this(initialState, startDate, endDate, transmitter, receiver, station, 
-                DEFAULT_MAXCHECK, DEFAULT_THRESHOLD, DEFAULT_MAX_ITER, EventHandler.Action.STOP);
+                DEFAULT_MAXCHECK, DEFAULT_THRESHOLD, DEFAULT_MAX_ITER, Action.STOP);
     }
 
     /**
@@ -92,7 +93,7 @@ public class GroundStationDetector extends AbstractEventDetector<GroundStationDe
             Transmitter transmitter, Receiver receiver, GndStation station, 
             double maxCheck, double threshold) {
         this(initialState, startDate, endDate, transmitter, receiver, station,
-                maxCheck, threshold, DEFAULT_MAX_ITER, EventHandler.Action.STOP);
+                maxCheck, threshold, DEFAULT_MAX_ITER, Action.STOP);
     }
 
     /**
@@ -110,10 +111,10 @@ public class GroundStationDetector extends AbstractEventDetector<GroundStationDe
      * @param threshold convergence threshold (s)
      * @param action specifies action after event is detected.
      */
-    public GroundStationDetector(SpacecraftState initialState, 
-            AbsoluteDate startDate, AbsoluteDate endDate, 
-            Transmitter transmitter, Receiver receiver, GndStation station, 
-            EventHandler.Action action, double maxCheck, double threshold) {
+    public GroundStationDetector(SpacecraftState initialState,
+                                 AbsoluteDate startDate, AbsoluteDate endDate,
+                                 Transmitter transmitter, Receiver receiver, GndStation station,
+                                 Action action, double maxCheck, double threshold) {
         this(initialState, startDate, endDate, transmitter, receiver, station, 
                 maxCheck, threshold, DEFAULT_MAX_ITER, action);
     }
@@ -140,7 +141,7 @@ public class GroundStationDetector extends AbstractEventDetector<GroundStationDe
     private GroundStationDetector(final SpacecraftState initialState,
             final AbsoluteDate startDate, final AbsoluteDate endDate,
              Transmitter transmitter, Receiver receiver, GndStation station, 
-            final double maxCheck, final double threshold, final int maxIter, EventHandler.Action action) {
+            final double maxCheck, final double threshold, final int maxIter, Action action) {
         super(initialState, startDate, endDate, action, maxCheck, threshold, maxIter);
 
         this.transmitter = transmitter;
@@ -153,7 +154,7 @@ public class GroundStationDetector extends AbstractEventDetector<GroundStationDe
     @Override
     protected GroundStationDetector create(SpacecraftState initialState,
             AbsoluteDate startDate, AbsoluteDate endDate, 
-            EventHandler.Action action, double maxCheck, double threshold, int maxIter) {
+            Action action, double maxCheck, double threshold, int maxIter) {
         return new GroundStationDetector(initialState, startDate, endDate,
                 transmitter, receiver, station, maxCheck, threshold, maxIter, action);
     }

@@ -55,7 +55,9 @@ import org.orekit.utils.IERSConventions;
 import seakers.orekit.analysis.AbstractSpacecraftAnalysis;
 import seakers.orekit.analysis.CompoundSpacecraftAnalysis;
 import seakers.orekit.analysis.ephemeris.LifetimeAnalysis;
+import seakers.orekit.analysis.ephemeris.LifetimeAnalysis2;
 import seakers.orekit.analysis.vectors.VectorAnalysis;
+import seakers.orekit.analysis.vectors.VectorAnalisysEclipseSunlightDiffDrag;
 import seakers.orekit.coverage.analysis.AnalysisMetric;
 import seakers.orekit.coverage.analysis.FastCoverageAnalysis;
 import seakers.orekit.coverage.analysis.GroundEventAnalyzer;
@@ -100,8 +102,8 @@ public class Orekit_Pau_eph_vec {
         Logger.getGlobal().addHandler(handler);
 
         TimeScale utc = TimeScalesFactory.getUTC();
-        AbsoluteDate startDate = new AbsoluteDate(2004, 1, 1, 00, 00, 00.000, utc);
-        AbsoluteDate endDate = new AbsoluteDate(2030, 1, 1, 00, 00, 00.000, utc);
+        AbsoluteDate startDate = new AbsoluteDate(2005, 1, 1, 00, 00, 00.000, utc);
+        AbsoluteDate endDate = new AbsoluteDate(2005, 1, 8, 00, 00, 00.000, utc);
         double mu = Constants.WGS84_EARTH_MU; // gravitation coefficient
         
         Frame earthFrame = FramesFactory.getITRF(IERSConventions.IERS_2003, true);
@@ -112,39 +114,46 @@ public class Orekit_Pau_eph_vec {
         Frame inertialFrame = FramesFactory.getEME2000();
 
         //Enter satellite orbital parameters
-        double a = Constants.WGS84_EARTH_EQUATORIAL_RADIUS + 700000;
+        double a400 = Constants.WGS84_EARTH_EQUATORIAL_RADIUS + 400000;
+        double a500 = Constants.WGS84_EARTH_EQUATORIAL_RADIUS + 500000;
+        double a600 = Constants.WGS84_EARTH_EQUATORIAL_RADIUS + 600000;
+        double a700 = Constants.WGS84_EARTH_EQUATORIAL_RADIUS + 700000;
         double i = FastMath.toRadians(30);
 
         ArrayList<Instrument> payload = new ArrayList<>();
         Collection<Satellite> constel = new ArrayList<>();
-        Satellite sat1 = new Satellite("sat1", new KeplerianOrbit(a, 0.0001, i, 0, 0, 0, PositionAngle.MEAN, inertialFrame, startDate, mu), null, payload);
-        //Satellite sat2 = new Satellite("sat2", new KeplerianOrbit(a, 0.00000001, i, 0, 0, FastMath.toRadians(180), PositionAngle.MEAN, inertialFrame, startDate, mu), null, payload);
-        constel.add(sat1);
+        Satellite sat1 = new Satellite("sat@400km", new KeplerianOrbit(a400, 0.0001, i, 0, 0, 0, PositionAngle.MEAN, inertialFrame, startDate, mu), null, payload);
+        Satellite sat2 = new Satellite("sat@500km", new KeplerianOrbit(a500, 0.0001, i, 0, 0, 0, PositionAngle.MEAN, inertialFrame, startDate, mu), null, payload);
+        Satellite sat3 = new Satellite("sat@600km", new KeplerianOrbit(a600, 0.0001, i, 0, 0, 0, PositionAngle.MEAN, inertialFrame, startDate, mu), null, payload);
+        Satellite sat4 = new Satellite("sat@700km", new KeplerianOrbit(a700, 0.0001, i, 0, 0, 0, PositionAngle.MEAN, inertialFrame, startDate, mu), null, payload);
+
+        //constel.add(sat1);
         //constel.add(sat2);
+        //constel.add(sat3);
+        constel.add(sat4);
 
         Constellation constellation = new Constellation("constel", constel);
 
         Properties propertiesPropagator = new Properties();
         propertiesPropagator.setProperty("orekit.propagator.mass", "6");
         propertiesPropagator.setProperty("orekit.propagator.atmdrag", "true");
-        //propertiesPropagator.setProperty("orekit.propagator.dragarea", "0.08196");
-        propertiesPropagator.setProperty("orekit.propagator.dragarea", "0.075");
+        propertiesPropagator.setProperty("orekit.propagator.dragarea", "0.13");
         propertiesPropagator.setProperty("orekit.propagator.dragcoeff", "2.2");
         propertiesPropagator.setProperty("orekit.propagator.thirdbody.sun", "true");
         propertiesPropagator.setProperty("orekit.propagator.thirdbody.moon", "true");
         propertiesPropagator.setProperty("orekit.propagator.solarpressure", "true");
         propertiesPropagator.setProperty("orekit.propagator.solararea", "0.058");
 
-        //PropagatorFactory pf = new PropagatorFactory(PropagatorType.J2, propertiesPropagator);
-        PropagatorFactory pf = new PropagatorFactory(PropagatorType.NUMERICAL, propertiesPropagator);
+        PropagatorFactory pf = new PropagatorFactory(PropagatorType.J2, propertiesPropagator);
+        //PropagatorFactory pf = new PropagatorFactory(PropagatorType.NUMERICAL, propertiesPropagator);
 
         //set the analyses
         double analysisTimeStep = 60;
         Collection<Analysis<?>> analyses = new ArrayList<>();
         for (final Satellite sat : constellation.getSatellites()) {
-            analyses.add(new LifetimeAnalysis(startDate, endDate, analysisTimeStep, sat, PositionAngle.MEAN, pf, earthShape));
-            //analyses.add(new OrbitalElementsAnalysis(startDate, endDate, analysisTimeStep, sat, PositionAngle.MEAN,pf));
-            //analyses.add(new CompoundSpacecraftAnalysis(startDate, endDate, analysisTimeStep, sat, pf, inertialFrame, 0.015, 0.075, 0.058, 6));
+            //analyses.add(new LifetimeAnalysis(startDate, endDate, analysisTimeStep, sat, PositionAngle.MEAN, pf, earthShape));
+            analyses.add(new OrbitalElementsAnalysis(startDate, endDate, analysisTimeStep, sat, PositionAngle.MEAN,pf));
+            //analyses.add(new VectorAnalisysEclipseSunlightDiffDrag(startDate, endDate, analysisTimeStep, sat, pf, inertialFrame, 0.13, 0.07, 0.058, 6));
 //            analyses.add(new VectorAnalysis(startDate,endDate,analysisTimeStep,sat,pf,inertialFrame) {
 //                private static final long serialVersionUID = 4680062066885650976L;
 //                @Override
@@ -203,7 +212,8 @@ public class Orekit_Pau_eph_vec {
         
         for (Analysis<?> analysis : analyses) {
             if (analysis instanceof LifetimeAnalysis){
-                Logger.getGlobal().finest(String.format("Lifetime of %.2f years", ((LifetimeAnalysis) analysis).getLifetime()));
+                Logger.getGlobal().finest(String.format("Satellite %s has a lifetime of %.2f years", ((LifetimeAnalysis) analysis).getSatellite().getName(),
+                        ((LifetimeAnalysis) analysis).getLifetime()));
             }
         }
         long end = System.nanoTime();

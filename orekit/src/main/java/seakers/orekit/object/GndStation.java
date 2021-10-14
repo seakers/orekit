@@ -34,7 +34,6 @@ public class GndStation extends GroundStation implements OrekitObject {
      */
     private final double minEl;
     
-
     /**
      * Creates a new ground station
      *
@@ -43,8 +42,6 @@ public class GndStation extends GroundStation implements OrekitObject {
      * @param receiver the receiving antenna
      * @param transmitter the transmitting antenna
      * @param minEl the minimum elevation angle [rad]
-     * @param designated the flag that returns whether this gnd station is designated or not
-     * @param commBandType returns the communication bands for this ground station
      * @throws OrekitException
      */
     public GndStation(TopocentricFrame topo,

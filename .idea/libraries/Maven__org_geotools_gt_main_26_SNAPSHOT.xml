@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="Maven: org.geotools:gt-main:26-SNAPSHOT">
+    <CLASSES>
+      <root url="jar://$APPLICATION_HOME_DIR$/jbr/bin/~/.m2/repository/org/geotools/gt-main/26-SNAPSHOT/gt-main-26-20210913.005431-125.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$APPLICATION_HOME_DIR$/jbr/bin/~/.m2/repository/org/geotools/gt-main/26-SNAPSHOT/gt-main-26-20210913.005431-125-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$APPLICATION_HOME_DIR$/jbr/bin/~/.m2/repository/org/geotools/gt-main/26-SNAPSHOT/gt-main-26-20210913.005431-125-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

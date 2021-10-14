@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 import org.hipparchus.geometry.euclidean.threed.Vector3D;
+import org.hipparchus.ode.events.Action;
 import org.orekit.bodies.CelestialBody;
 import org.orekit.frames.Frame;
 import org.orekit.frames.TopocentricFrame;
@@ -74,7 +75,7 @@ public class GroundBodyAngleEventAnalysis extends AbstractGroundEventAnalysis {
                 GroundBodyAngleDetector gsd
                         = new GroundBodyAngleDetector(kp.getInitialState(),
                                 getStartDate(), getEndDate(), point, body,
-                                maxAngle, direction, EventHandler.Action.CONTINUE, stepSize, threshold);
+                                maxAngle, direction, Action.CONTINUE, stepSize, threshold);
                 kp.addEventDetector(gsd);
                 kp.propagate(getStartDate(), getEndDate());
                 illuminationTimes.put(point, gsd.getTimeIntervalArray());

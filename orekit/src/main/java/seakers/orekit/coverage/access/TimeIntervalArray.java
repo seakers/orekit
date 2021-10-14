@@ -127,6 +127,10 @@ public class TimeIntervalArray implements Iterable<RiseSetTime>, Serializable {
      */
     private boolean addRise(double riseTime) {
         if (accessing) {
+            if(riseTime<this.timeArray.get(this.timeArray.size()-1).getTime()){
+                accessing = true;
+                return accessing;
+            }
             throw new IllegalArgumentException(String.format("Cannot add rise time %f since interval is not closed yet.\nLast rise time = %f",
                                 riseTime, this.timeArray.get(this.timeArray.size()-1).getTime()));
         }
@@ -168,6 +172,10 @@ public class TimeIntervalArray implements Iterable<RiseSetTime>, Serializable {
         } else {
 
             if (!accessing) {
+                if(setTime<this.timeArray.get(this.timeArray.size()-1).getTime()){
+                    accessing = false;
+                    return accessing;
+                }
                 throw new IllegalArgumentException(
                         String.format("Cannot add set time %f since interval is not open yet.\nLast set time = %f",
                                 setTime, this.timeArray.get(this.timeArray.size()-1).getTime()));

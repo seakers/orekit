@@ -30,25 +30,6 @@ public class RectangularFieldOfView extends CustomFieldOfView {
 
     private final double halfAperture2;
     
-    /**
-     * Build a Field Of View with dihedral shape (i.e. rectangular shape).
-     * @param center Direction of the FOV center, in spacecraft frame
-     * @param acrossTrackHalfAperture FOV half aperture angle in the across-track direction,
-     * must be less than π/2, i.e. full dihedra must be smaller then
-     * an hemisphere
-     * @param alongTrackHalfAperture FOV half aperture angle in the along-track direction,
-     * must be less than π/2, i.e. full dihedra must be smaller then
-     * an hemisphere
-     * @param margin angular margin to apply to the zone (if positive,
-     * the Field Of View will consider points slightly outside of the
-     * zone are still visible)
-     * @throws OrekitException 
-     */
-    public RectangularFieldOfView(Vector3D center,
-            double acrossTrackHalfAperture, double alongTrackHalfAperture,
-            double margin) throws OrekitException {
-        this(Vector3D.PLUS_K, Vector3D.PLUS_I, acrossTrackHalfAperture, Vector3D.PLUS_J, alongTrackHalfAperture, margin);
-    }
 
     /**
      * Build a Field Of View with dihedral shape (i.e. rectangular shape).

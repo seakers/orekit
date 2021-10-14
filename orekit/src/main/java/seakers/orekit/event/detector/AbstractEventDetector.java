@@ -7,14 +7,12 @@ package seakers.orekit.event.detector;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import org.hipparchus.ode.events.Action;
 import seakers.orekit.coverage.access.TimeIntervalArray;
 import org.orekit.errors.OrekitException;
 import org.orekit.propagation.SpacecraftState;
 import org.orekit.propagation.events.AbstractDetector;
-import static org.orekit.propagation.events.AbstractDetector.DEFAULT_MAXCHECK;
-import static org.orekit.propagation.events.AbstractDetector.DEFAULT_MAX_ITER;
-import static org.orekit.propagation.events.AbstractDetector.DEFAULT_THRESHOLD;
-import org.orekit.propagation.events.EventDetector;
 import org.orekit.propagation.events.handlers.EventHandler;
 import org.orekit.propagation.events.handlers.StopOnIncreasing;
 import org.orekit.time.AbsoluteDate;
@@ -29,7 +27,7 @@ import org.orekit.time.AbsoluteDate;
  * @author nozomihitomi
  * @param <T>
  */
-public abstract class AbstractEventDetector<T extends EventDetector> extends AbstractDetector<T> {
+public abstract class AbstractEventDetector<T extends AbstractEventDetector<T>> extends AbstractDetector<T> {
 
     private static final long serialVersionUID = 1500574292575623469L;
 
@@ -57,12 +55,12 @@ public abstract class AbstractEventDetector<T extends EventDetector> extends Abs
     /**
      * specifies action after event is detected.
      */
-    private final EventHandler.Action action;
+    private final Action action;
 
     /**
      * Event handler for the time intervals
      */
-    private HandlerTimeInterval<? super T> handlerTimeInterval;
+    private TimeIntervalHandler<? super T> timeIntervalHandler;
 
     /**
      * Constructor for the detector.
@@ -73,7 +71,7 @@ public abstract class AbstractEventDetector<T extends EventDetector> extends Abs
      * @param endDate the end date of the simulation or propagation
      */
     public AbstractEventDetector(SpacecraftState initialState, AbsoluteDate startDate, AbsoluteDate endDate) {
-        this(initialState, startDate, endDate, EventHandler.Action.STOP, DEFAULT_MAXCHECK, DEFAULT_THRESHOLD, DEFAULT_MAX_ITER);
+        this(initialState, startDate, endDate, Action.STOP, DEFAULT_MAXCHECK, DEFAULT_THRESHOLD, DEFAULT_MAX_ITER);
     }
 
     /**
@@ -87,7 +85,7 @@ public abstract class AbstractEventDetector<T extends EventDetector> extends Abs
      * @param threshold convergence threshold (s)
      */
     public AbstractEventDetector(SpacecraftState initialState, AbsoluteDate startDate, AbsoluteDate endDate, double maxCheck, double threshold) {
-        this(initialState, startDate, endDate, EventHandler.Action.STOP, maxCheck, threshold, DEFAULT_MAX_ITER);
+        this(initialState, startDate, endDate, Action.STOP, maxCheck, threshold, DEFAULT_MAX_ITER);
     }
 
     /**
@@ -108,7 +106,7 @@ public abstract class AbstractEventDetector<T extends EventDetector> extends Abs
      * @param threshold convergence threshold (s)
      * @param maxIter maximum number of iterations in the event time search
      */
-    public AbstractEventDetector(SpacecraftState initialState, AbsoluteDate startDate, AbsoluteDate endDate, EventHandler.Action action, double maxCheck, double threshold, int maxIter) {
+    public AbstractEventDetector(SpacecraftState initialState, AbsoluteDate startDate, AbsoluteDate endDate, Action action, double maxCheck, double threshold, int maxIter) {
         super(maxCheck, threshold, maxIter, new StopOnIncreasing<>());
         this.initialState = initialState;
         this.startDate = startDate;
@@ -126,7 +124,7 @@ public abstract class AbstractEventDetector<T extends EventDetector> extends Abs
                 throw new IllegalArgumentException("Spacecraft state must be given at the provided start date");
             }
             try {
-                this.handlerTimeInterval = new HandlerTimeInterval<>(startDate, endDate, g(initialState), action);
+                this.timeIntervalHandler = new TimeIntervalHandler<>(startDate, endDate, g(initialState), action);
             } catch (OrekitException ex) {
                 Logger.getLogger(AbstractEventDetector.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -137,7 +135,7 @@ public abstract class AbstractEventDetector<T extends EventDetector> extends Abs
 
     /**
      * Abstract Event Detector does not utilize the given event handler. It is
-     * set up to use a default time interval handler (HandlerTimeInterval)
+     * set up to use a default time interval handler (TimeIntervalHandler)
      *
      * @param newMaxCheck
      * @param newThreshold
@@ -146,20 +144,20 @@ public abstract class AbstractEventDetector<T extends EventDetector> extends Abs
      * @return
      */
     @Override
-    protected final T create(double newMaxCheck, double newThreshold, int newMaxIter, EventHandler<? super T> newHandler) {
+    protected T create(double newMaxCheck, double newThreshold, int newMaxIter, EventHandler<? super T> newHandler) {
         return create(initialState, startDate, endDate, action, newMaxCheck, newThreshold, newMaxIter);
     }
 
     protected abstract T create(SpacecraftState initialState,
             AbsoluteDate startDate, AbsoluteDate endDate,
-            EventHandler.Action action, double maxCheck, double threshold, int maxIter);
+            Action action, double maxCheck, double threshold, int maxIter);
 
     @Override
     public EventHandler<? super T> getHandler() {
-        if (this.handlerTimeInterval == null) {
+        if (this.timeIntervalHandler == null) {
             return super.getHandler();
         } else {
-            return this.handlerTimeInterval;
+            return this.timeIntervalHandler;
         }
     }
 
@@ -170,10 +168,10 @@ public abstract class AbstractEventDetector<T extends EventDetector> extends Abs
      * @return
      */
     public TimeIntervalArray getTimeIntervalArray() {
-        if (this.handlerTimeInterval == null) {
+        if (this.timeIntervalHandler == null) {
             return null;
         } else {
-            return this.handlerTimeInterval.getTimeArray().createImmutable();
+            return this.timeIntervalHandler.getTimeArray().createImmutable();
         }
     }
 
@@ -183,7 +181,7 @@ public abstract class AbstractEventDetector<T extends EventDetector> extends Abs
      * @return true if the latest time interval in the time interval array is open or closed
      */
     public boolean isOpen() {
-        return handlerTimeInterval.getTimeArray().isAccessing();
+        return timeIntervalHandler.getTimeArray().isAccessing();
     }
 
 }

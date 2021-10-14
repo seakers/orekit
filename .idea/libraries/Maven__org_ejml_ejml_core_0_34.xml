@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="Maven: org.ejml:ejml-core:0.34">
+    <CLASSES>
+      <root url="jar://$APPLICATION_HOME_DIR$/jbr/bin/~/.m2/repository/org/ejml/ejml-core/0.34/ejml-core-0.34.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$APPLICATION_HOME_DIR$/jbr/bin/~/.m2/repository/org/ejml/ejml-core/0.34/ejml-core-0.34-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$APPLICATION_HOME_DIR$/jbr/bin/~/.m2/repository/org/ejml/ejml-core/0.34/ejml-core-0.34-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

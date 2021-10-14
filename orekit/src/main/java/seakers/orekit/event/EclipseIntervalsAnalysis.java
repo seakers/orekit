@@ -5,8 +5,11 @@
  */
 package seakers.orekit.event;
 
+import org.orekit.bodies.BodyShape;
 import org.orekit.bodies.CelestialBodyFactory;
+import org.orekit.bodies.OneAxisEllipsoid;
 import org.orekit.frames.Frame;
+import org.orekit.frames.FramesFactory;
 import org.orekit.propagation.Propagator;
 import org.orekit.propagation.SpacecraftState;
 import org.orekit.propagation.events.EclipseDetector;
@@ -16,6 +19,7 @@ import org.orekit.propagation.events.handlers.StopOnEvent;
 import org.orekit.propagation.numerical.NumericalPropagator;
 import org.orekit.time.AbsoluteDate;
 import org.orekit.utils.Constants;
+import org.orekit.utils.IERSConventions;
 import org.orekit.utils.PVCoordinatesProvider;
 import seakers.orekit.coverage.access.TimeIntervalArray;
 import seakers.orekit.object.Satellite;
@@ -35,35 +39,39 @@ public class EclipseIntervalsAnalysis extends AbstractEventAnalysis{
 
     public EclipseIntervalsAnalysis(AbsoluteDate startDate, AbsoluteDate endDate, Frame inertialFrame, Satellite sat, PropagatorFactory pf) {
         super(startDate, endDate, inertialFrame);
-        this.sat=sat;
-        this.pf=pf;
-        this.timearray=this.getEmptyTimeArray();
+        this.sat = sat;
+        this.pf = pf;
+        this.timearray = this.getEmptyTimeArray();
     }
 
     @Override
     public EventAnalysis call() throws Exception {
         Propagator prop = pf.createPropagator(sat.getOrbit(), sat.getGrossMass());
-        double detStepSize = sat.getOrbit().getKeplerianPeriod() / 1000.;
+        double maxCheck = sat.getOrbit().getKeplerianPeriod() / 1000.;
         double threshold = 1e-3;
 
         //need to reset initial state of the propagators or will progate from the last stop time
         prop.resetInitialState(prop.getInitialState());
         prop.clearEventsDetectors();
-        
-        final PVCoordinatesProvider occulted=CelestialBodyFactory.getSun();
-        double occultedRadius=Constants.SUN_RADIUS;
-        final PVCoordinatesProvider occulting=CelestialBodyFactory.getEarth();
-        double occultingRadius=Constants.WGS84_EARTH_EQUATORIAL_RADIUS;
-        final EventHandler<? super EclipseDetector> handler=new StopOnEvent<>();
-        EclipseDetector detector= new EclipseDetector(detStepSize,threshold,
-                                                occulted,occultedRadius,
-                                                occulting,occultingRadius)
-                                                .withHandler(handler);
+
+        final PVCoordinatesProvider occulted = CelestialBodyFactory.getSun();
+        double occultedRadius = Constants.SUN_RADIUS;
+
+        Frame earthFrame = FramesFactory.getITRF(IERSConventions.IERS_2003, true);
+        OneAxisEllipsoid earthShape = new OneAxisEllipsoid(Constants.WGS84_EARTH_EQUATORIAL_RADIUS,
+                Constants.WGS84_EARTH_FLATTENING, earthFrame);
+
+        final EventHandler<? super EclipseDetector> handler = new StopOnEvent<>();
+
+        EclipseDetector detector = new EclipseDetector(occulted, occultedRadius, earthShape)
+                .withHandler(handler)
+                .withMaxCheck(maxCheck)
+                .withThreshold(threshold);
         prop.addEventDetector(detector);
         
-        boolean end=false;
-        SpacecraftState s=prop.getInitialState();
-        while (!end){
+        boolean end = false;
+        SpacecraftState s = prop.getInitialState();
+        while (!end) {
             prop.resetInitialState(s);
             if (detector.g(prop.getInitialState())<0){
                 this.timearray.addRiseTime(s.getDate());
