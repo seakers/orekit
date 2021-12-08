@@ -97,6 +97,7 @@ public class Tests {
         OrekitConfig.end();
     }
     public static Collection<Record<String>> getGroundTrack(Orbit orbit, double duration, AbsoluteDate startDate) {
+        OrekitConfig.init(1);
         TimeScale utc = TimeScalesFactory.getUTC();
         AbsoluteDate endDate = startDate.shiftedBy(duration*86400);
 
@@ -111,7 +112,7 @@ public class Tests {
 
 
         Collection<Analysis<?>> analyses = new ArrayList<>();
-        double analysisTimeStep = 5;
+        double analysisTimeStep = 1;
         GroundTrackAnalysis gta = new GroundTrackAnalysis(startDate, endDate, analysisTimeStep, sat1, earthShape, pf);
         analyses.add(gta);
         Scenario scen = new Scenario.Builder(startDate, endDate, utc).
@@ -121,6 +122,7 @@ public class Tests {
         } catch (Exception ex) {
             throw new IllegalStateException("Ground track scenario failed to complete.");
         }
+        OrekitConfig.end();
         return gta.getHistory();
     }
     

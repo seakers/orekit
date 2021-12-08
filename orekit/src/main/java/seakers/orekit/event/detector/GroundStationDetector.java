@@ -161,7 +161,7 @@ public class GroundStationDetector extends AbstractEventDetector<GroundStationDe
 
     @Override
     public double g(SpacecraftState s) throws OrekitException {
-        if(downlinkCompatible && uplinkCompatible){
+        if(true){
             double elevation = station.getBaseFrame().getElevation(
                     s.getPVCoordinates().getPosition(), s.getFrame(), s.getDate());
             return elevation - station.getMinEl();

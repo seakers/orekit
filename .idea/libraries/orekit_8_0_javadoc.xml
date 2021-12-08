@@ -1,9 +1,0 @@
-<component name="libraryTable">
-  <library name="orekit-8.0-javadoc">
-    <CLASSES>
-      <root url="jar://$PROJECT_DIR$/javadoc/orekit-8.0-javadoc.jar!/" />
-    </CLASSES>
-    <JAVADOC />
-    <SOURCES />
-  </library>
-</component>

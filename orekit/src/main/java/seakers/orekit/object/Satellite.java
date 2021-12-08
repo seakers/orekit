@@ -82,11 +82,13 @@ public class Satellite implements OrekitObject, Serializable {
      * Constructor for new satellite instance with no attitude control and
      * default wet mass and default dry mass. No instruments are assigned to
      * this spacecraft
-     *
-     * @param name satellite name
+     *  @param name satellite name
      * @param orbit initial orbit to position satellite
+     * @param ssPayload
+     * @param tx
+     * @param rx
      */
-    public Satellite(String name, Orbit orbit) {
+    public Satellite(String name, Orbit orbit, Collection<Instrument> ssPayload, TransmitterAntenna tx, ReceiverAntenna rx) {
         this(name, orbit, null, new ArrayList<>(),
                 new ReceiverAntenna(1., new HashSet<>()),
                 new TransmitterAntenna(1, new HashSet<>()),

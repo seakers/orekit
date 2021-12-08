@@ -146,7 +146,10 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
                 //if no precomuted times available, then propagate
                 Propagator prop = propagatorFactory.createPropagator(sat.getOrbit(), sat.getGrossMass());
                 //Set stepsizes and threshold for detectors
-                double fovStepSize = sat.getOrbit().getKeplerianPeriod() / 100.;
+                double imagewidth = (sat.getOrbit().getA()-6371e3)*Math.tan(1*Math.PI/180);
+                double earthCircumference = 6371e3*2*Math.PI;
+                double numImages = earthCircumference/imagewidth;
+                double fovStepSize = sat.getOrbit().getKeplerianPeriod() / numImages;
                 double threshold = 1e-3;
 
                 FieldOfViewSubRoutine subRoutine = new FieldOfViewSubRoutine(sat, prop, cdef, fovStepSize, threshold);
