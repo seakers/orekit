@@ -1,13 +1,13 @@
 package seakers.orekit;
 
-import org.orekit.frames.TopocentricFrame;
+import org.orekit.bodies.GeodeticPoint;
 
 public class Observation {
-    private TopocentricFrame observationPoint;
+    private GeodeticPoint observationPoint;
     private double observationStart;
     private double observationEnd;
     private double observationReward;
-    public Observation(TopocentricFrame observationPoint, double observationStart, double observationEnd, double observationReward) {
+    public Observation(GeodeticPoint observationPoint, double observationStart, double observationEnd, double observationReward) {
         this.observationPoint = observationPoint;
         this.observationStart = observationStart;
         this.observationEnd = observationEnd;
@@ -22,7 +22,7 @@ public class Observation {
     public double getObservationReward() {
         return observationReward;
     }
-    public TopocentricFrame getObservationPoint() {
+    public GeodeticPoint getObservationPoint() {
         return observationPoint;
     }
     public void setObservationStart(double observationStart) {
@@ -34,11 +34,11 @@ public class Observation {
     public void setObservationReward(double observationReward) {
         this.observationReward = observationReward;
     }
-    public void setObservationPoint(TopocentricFrame observationPoint) {
+    public void setObservationPoint(GeodeticPoint observationPoint) {
         this.observationPoint = observationPoint;
     }
     public String toString() {
-        return this.observationPoint.getPoint().toString()+", Observation Start: "+this.observationStart+", Observation End: "+this.observationEnd+", Observation Reward: "+this.observationReward;
+        return this.observationPoint.toString()+", Observation Start: "+this.observationStart+", Observation End: "+this.observationEnd+", Observation Reward: "+this.observationReward;
     }
 
 }

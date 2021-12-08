@@ -201,18 +201,22 @@ public class XPlanner {
         OrekitConfig.end();
         ArrayList<ArrayList<Observation>> individualPlans = new ArrayList<>();
         ArrayList<Observation> allObservations = new ArrayList<>();
+
         for (Satellite imager : imagers) {
             Map<TopocentricFrame, TimeIntervalArray> sortedGPAccesses = satelliteGPContacts.get(imager);
             TimeIntervalArray downlinks = downlinkOpps.get(imager);
-            //ArrayList<Observation> planOutput = greedyPlanner(imager,sortedGPAccesses,downlinks,startDate,covPointRewards,getGroundTrack(imager.getOrbit(),duration,startDate));
-            ArrayList<Observation> planOutput = smarterGreedyPlanner(imager,sortedGPAccesses,downlinks,startDate,covPointRewards,getGroundTrack(imager.getOrbit(),duration,startDate),duration);
-            //ArrayList<Observation> planOutput = nadirEval(imager,sortedGPAccesses,downlinks,startDate,covPointRewards,getGroundTrack(imager.getOrbit(),duration,startDate));
-            individualPlans.add(planOutput);
-            allObservations.addAll(planOutput);
+            Collection<Record<String>> groundTrack = getGroundTrack(imager.getOrbit(),duration,startDate);
+            SMDPPlanner smdpPlanner = new SMDPPlanner(imager,sortedGPAccesses,downlinks,startDate,covPointRewards,groundTrack,duration);
+            ArrayList<Observation> smdpOutput = smdpPlanner.getResults();
+            //ArrayList<Observation> planOutput = greedyPlanner(imager,sortedGPAccesses,downlinks,startDate,covPointRewards,groundTrack,);
+            //ArrayList<Observation> planOutput = smarterGreedyPlanner(imager,sortedGPAccesses,downlinks,startDate,covPointRewards,groundTrack,duration);
+            //ArrayList<Observation> planOutput = nadirEval(imager,sortedGPAccesses,downlinks,startDate,covPointRewards,groundTrack);
+            individualPlans.add(smdpOutput);
+            allObservations.addAll(smdpOutput);
         }
         ArrayList<GeodeticPoint> observedGPs = new ArrayList<>();
         for(Observation obs : allObservations) {
-            observedGPs.add(obs.getObservationPoint().getPoint());
+            observedGPs.add(obs.getObservationPoint());
             System.out.println(obs.toString());
         }
         processGroundTracks(imagers,greedyPlannerFilePath+"groundtracks.shp",startDate,duration);
@@ -330,7 +334,7 @@ public class XPlanner {
             }
             recentTFs.add(bestTF);
             totalreward = totalreward + maximum;
-            Observation obs = new Observation(bestTF,bestRiseTime,bestSetTime,maximum);
+            Observation obs = new Observation(bestTF.getPoint(),bestRiseTime,bestSetTime,maximum);
             observations.add(obs);
             currentTime = bestSetTime;
             System.out.println(energy/3600);
@@ -360,7 +364,7 @@ public class XPlanner {
             double riseTime = sortedAccesses.get(tf).getRiseAndSetTimesList()[0];
             double setTime = sortedAccesses.get(tf).getRiseAndSetTimesList()[1];
             double reward = rewardFunction(tf,getIncidenceAngle(tf.getPoint(),riseTime,setTime,startDate,satellite,groundTrack),latestRewardGrid);
-            Observation obs = new Observation(tf,riseTime,setTime,reward);
+            Observation obs = new Observation(tf.getPoint(),riseTime,setTime,reward);
             observations.add(obs);
             totalreward = totalreward + reward;
         }
@@ -454,7 +458,7 @@ public class XPlanner {
             }
             recentTFs.add(bestTF);
             totalreward = totalreward + trueReward;
-            Observation obs = new Observation(bestTF,bestRiseTime,bestSetTime,trueReward);
+            Observation obs = new Observation(bestTF.getPoint(),bestRiseTime,bestSetTime,trueReward);
             observations.add(obs);
             currentTime = bestSetTime;
             System.out.println(energy/3600);
@@ -926,13 +930,13 @@ public class XPlanner {
             map.addLayer(generatePointLayer(overlapFilePath+"possible.shp",Color.ORANGE,0.5f,12.0f));
             map.addLayer(generatePointLayer(overlapFilePath+"observed.shp",Color.RED,0.5f,12.0f));
             map.addLayer(generatePointLayer(overlapFilePath+"rainupdated.shp",Color.BLUE,0.3f,6.0f));
-            File rasterFile = new File("rainfall.hdf5");
-            AbstractGridFormat format = GridFormatFinder.findFormat(rasterFile);
-            // this is a bit hacky but does make more geotiffs work
-            GridCoverage2DReader reader = format.getReader(rasterFile);
-            Style rasterStyle = createGreyscaleStyle(1);
-            Layer rasterLayer = new GridReaderLayer(reader, rasterStyle);
-            map.addLayer(rasterLayer);
+//            File rasterFile = new File("./rainfall.hdf5");
+//            AbstractGridFormat format = GridFormatFinder.findFormat(rasterFile);
+//            // this is a bit hacky but does make more geotiffs work
+//            GridCoverage2DReader reader = format.getReader(rasterFile);
+//            Style rasterStyle = createGreyscaleStyle(1);
+//            Layer rasterLayer = new GridReaderLayer(reader, rasterStyle);
+//            map.addLayer(rasterLayer);
 
             JMapFrame.showMap(map);
             saveImage(map, "planner_map.jpeg",3000);
