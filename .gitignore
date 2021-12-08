@@ -8,3 +8,4 @@
 /target/
 /.gradle/
 /GPM data/
+/orekit/src/main/java/seakers/orekit/output/
