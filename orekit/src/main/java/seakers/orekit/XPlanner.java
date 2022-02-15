@@ -94,7 +94,7 @@ import static java.lang.Double.doubleToLongBits;
 import static java.lang.Double.parseDouble;
 import static java.util.stream.Collectors.toCollection;
 import static org.apache.commons.io.FileUtils.getFile;
-import static seakers.orekit.object.CommunicationBand.S;
+import static seakers.orekit.object.CommunicationBand.S;    
 
 public class XPlanner {
 
