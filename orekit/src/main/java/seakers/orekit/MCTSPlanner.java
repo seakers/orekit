@@ -14,64 +14,74 @@ import seakers.orekit.object.Satellite;
 import java.util.*;
 
 public class MCTSPlanner {
-    private ArrayList<Observation> results;
+    private ArrayList<SatelliteAction> results;
     private ArrayList<SatelliteState> V;
-    private Map<StateAction,Integer> N;
-    private Map<StateAction,Double> Q;
+    private Map<Key,Integer> N;
+    private Map<Key,Double> Q;
     private double c;
-    private Satellite satellite;
-    private Collection<Record<String>> groundTrack;
-    private double duration;
     private ArrayList<Observation> sortedObservations;
     private TimeIntervalArray downlinks;
     private Map<String, TimeIntervalArray> crosslinks;
-    private AbsoluteDate startDate;
     private double priorityInfo;
     private double gamma;
     private int dSolveInit;
+    private Map<GeodeticPoint,Double> rewardGrid;
     private int actionSpaceSize;
-    private Map<GeodeticPoint,Double> latestRewardGrid;
+    private int nMaxSim;
 
-    public MCTSPlanner(Satellite satellite, ArrayList<Observation> sortedObservations, TimeIntervalArray downlinks, AbsoluteDate startDate, Map<Double,Map<GeodeticPoint,Double>> covPointRewards, Collection<Record<String>> groundTrack, double duration, double priorityInfo) {
-        this.satellite = satellite;
+    public MCTSPlanner(ArrayList<Observation> sortedObservations, TimeIntervalArray downlinks, Map<String,TimeIntervalArray> crosslinks, Map<GeodeticPoint,Double> rewardGrid, SatelliteState initialState) {
         this.sortedObservations = sortedObservations;
         this.downlinks = downlinks;
-        this.startDate = startDate;
-        this.groundTrack = groundTrack;
-        this.priorityInfo = priorityInfo;
-        this.duration = duration;
+        this.crosslinks = crosslinks;
+        this.rewardGrid = rewardGrid;
         this.gamma = 0.999;
+        this.priorityInfo = 0.0;
         this.dSolveInit = 5;
         this.actionSpaceSize = 4;
-        ArrayList<GeodeticPoint> initialImages = new ArrayList<>();
-        ArrayList<StateAction> stateActions = monteCarloTreeSearch(new SatelliteState(0,0,initialImages));
-        ArrayList<Observation> observations = new ArrayList<>();
+        this.nMaxSim = 50;
+        this.c = 4;
+        this.Q = new HashMap<>();
+        this.N = new HashMap<>();
+        this.V = new ArrayList<>();
+        ArrayList<StateAction> stateActions = monteCarloTreeSearch(initialState);
+        ArrayList<SatelliteAction> observations = new ArrayList<>();
         for (StateAction stateAction : stateActions) {
-            Observation newObs = new Observation(stateAction.getA().getLocation(),stateAction.getA().gettStart(),stateAction.getA().gettEnd(),stateAction.getA().getReward());
-            observations.add(newObs);
+            observations.add(stateAction.getA());
         }
         results = observations;
     }
 
-    public ActionResult SelectAction(SatelliteState s, int dSolve){
-        if (dSolve == 0) {
-            return new ActionResult(null,0);
-        }
-        ActionResult res = new ActionResult(null,Double.NEGATIVE_INFINITY);
-        SatelliteState sCopy = new SatelliteState(s);
-        ArrayList<SatelliteAction> feasibleActions = getActionSpace(sCopy);
-        for (int a = 0; a < feasibleActions.size(); a++) {
-            double value = 0;
-            value = rewardFunction(sCopy,feasibleActions.get(a));
-            SatelliteState tempSatelliteState = transitionFunction(sCopy,feasibleActions.get(a));
-            ActionResult tempRes = SelectAction(tempSatelliteState,dSolve-1);
-            value = value + Math.pow(gamma,feasibleActions.get(a).gettStart()-sCopy.getT())*tempRes.getV();
-            if (value > res.getV()) {
-                res = new ActionResult(feasibleActions.get(a),value);
+    public ArrayList<StateAction> monteCarloTreeSearch(SatelliteState initialState) {
+        ArrayList<StateAction> resultList = new ArrayList<>();
+        SatelliteState s = initialState;
+        boolean moreActions = true;
+        while(moreActions) {
+            for (int n = 0; n < nMaxSim; n++) {
+                simulate(s,dSolveInit);
             }
+            double max = 0.0;
+            SatelliteAction bestAction = null;
+            for (Key sa : Q.keySet()) {
+                if(sa.getS().equals(s)) {
+                    double value = Q.get(sa);
+                    if(value > max) {
+                        max = value;
+                        bestAction = sa.getA();
+                    }
+                }
+            }
+            if(bestAction==null) {
+                break;
+            }
+            StateAction stateAction = new StateAction(s,bestAction);
+            s = transitionFunction(initialState,bestAction);
+            resultList.add(stateAction);
+            moreActions = !getActionSpace(s).isEmpty();
         }
-        return res;
+        return resultList;
     }
+
+
 
     public double simulate(SatelliteState s, int d) {
         if(d == 0) {
@@ -80,8 +90,9 @@ public class MCTSPlanner {
         if(!V.contains(s)) {
             ArrayList<SatelliteAction> actionSpace = getActionSpace(s);
             for (SatelliteAction a : actionSpace) {
-                N.put(new StateAction(s,a),0);
-                Q.put(new StateAction(s,a),0.0);
+                Key sa = new Key(s,a);
+                N.put(sa,1);
+                Q.put(sa,0.0);
             }
             V.add(s);
             return rollout(s,actionSpace,dSolveInit);
@@ -89,12 +100,12 @@ public class MCTSPlanner {
         double max = 0.0;
         SatelliteAction bestAction = null;
         int nSum = 0;
-        for(StateAction sa1 : N.keySet()) {
+        for(Key sa1 : N.keySet()) {
             if(sa1.getS().equals(s)) {
-                nSum = N.get(sa1);
+                nSum = nSum + N.get(sa1);
             }
         }
-        for (StateAction sa : Q.keySet()) {
+        for (Key sa : Q.keySet()) {
             if(sa.getS().equals(s)) {
                 double value = Q.get(sa) + c*Math.sqrt(Math.log10(nSum)/N.get(sa));
                 if(value > max) {
@@ -103,11 +114,16 @@ public class MCTSPlanner {
                 }
             }
         }
-        StateAction newStateAction = new StateAction(s,bestAction);
+        Key key = new Key(s,bestAction);
+        if(bestAction == null) {
+            return 0;
+        }
         SatelliteState newSatelliteState = transitionFunction(s,bestAction);
-        double q = Math.pow(gamma,bestAction.gettStart()-s.getT()) * simulate(newSatelliteState, d-1);
-        N.put(newStateAction,
-
+        double r = rewardFunction(s,bestAction);
+        double q = r + Math.pow(gamma,bestAction.gettStart()-s.getT()) * simulate(newSatelliteState, d-1);
+        N.put(key,N.get(key)+1);
+        Q.put(key,Q.get(key)+(q-Q.get(key))/N.get(key));
+        return q;
     }
 
     public double rollout(SatelliteState s, ArrayList<SatelliteAction> actionSpace, int d) {
@@ -154,16 +170,19 @@ public class MCTSPlanner {
         if(selectedAction==null) {
             ArrayList<SatelliteAction> observationActions = new ArrayList<>();
             for(SatelliteAction a : actionSpace) {
-                if(a.getActionType().equals("observation")){
+                if(a.getActionType().equals("imaging")){
                     observationActions.add(a);
                 }
+            }
+            if(observationActions.isEmpty()) {
+                return 0;
             }
             Random random = new Random();
             selectedAction = observationActions.get(random.nextInt(observationActions.size()));
         }
         double reward = rewardFunction(s,selectedAction);
         SatelliteState newSatelliteState = transitionFunction(s,selectedAction);
-        return reward + Math.pow(gamma,selectedAction.gettStart()-s.getT())*rollout(newSatelliteState, getActionSpace(newSatelliteState),d-1)
+        return reward + Math.pow(gamma,selectedAction.gettStart()-s.getT())*rollout(newSatelliteState, getActionSpace(newSatelliteState),d-1);
     }
 
     public double rewardFunction(SatelliteState s, SatelliteAction a){
@@ -172,7 +191,7 @@ public class MCTSPlanner {
             case "charge":
                 score = 0.0;
                 break;
-            case "observation":
+            case "imaging":
                 score = a.getReward()*Math.pow(gamma,(a.gettStart()-s.getT()));
                 break;
             case "downlink":
@@ -205,7 +224,7 @@ public class MCTSPlanner {
             case "charge":
                 batteryCharge = batteryCharge + (a.gettEnd() - s.getT()) * 5 / 3600; // Wh
                 break;
-            case "observation":
+            case "imaging":
                 batteryCharge = batteryCharge - (a.gettEnd() - a.gettStart()) * 10 / 3600;
                 dataStored = dataStored + 1.0;
                 currentAngle = a.getAngle();
@@ -231,7 +250,7 @@ public class MCTSPlanner {
         ArrayList<Observation> currentObservations = new ArrayList<>();
         for (Observation obs : sortedObservations) {
             if(obs.getObservationStart() > currentTime && currentObservations.size() < actionSpaceSize) {
-                SatelliteAction obsAction = new SatelliteAction(obs.getObservationStart(),obs.getObservationEnd(),obs.getObservationPoint(),"imaging",obs.getObservationReward(),obs.getObservationAngle());
+                SatelliteAction obsAction = new SatelliteAction(obs.getObservationStart(),obs.getObservationEnd(),obs.getObservationPoint(),"imaging",rewardGrid.get(obs.getObservationPoint()),obs.getObservationAngle());
                 SatelliteAction chargeAction = new SatelliteAction(obs.getObservationStart(),obs.getObservationEnd(),null,"charge");
                 if(canSlew(s.getCurrentAngle(),obs.getObservationAngle(),currentTime,obs.getObservationStart())) {
                     possibleActions.add(obsAction);
@@ -256,10 +275,12 @@ public class MCTSPlanner {
         for (String sat : crosslinks.keySet()) {
             double[] crosslinkTimes = crosslinks.get(sat).getRiseAndSetTimesList();
             for (int i = 0; i < crosslinkTimes.length; i=i+2) {
-                SatelliteAction crosslinkAction = new SatelliteAction(crosslinkTimes[i],crosslinkTimes[i+1],null,"crosslink",sat);
-                SatelliteAction chargeAction = new SatelliteAction(crosslinkTimes[i],crosslinkTimes[i+1],null,"charge");
-                possibleActions.add(crosslinkAction);
-                possibleActions.add(chargeAction);
+                if(crosslinkTimes[i] >= currentTime) {
+                    SatelliteAction crosslinkAction = new SatelliteAction(crosslinkTimes[i],crosslinkTimes[i+1],null,"crosslink",sat);
+                    SatelliteAction chargeAction = new SatelliteAction(crosslinkTimes[i],crosslinkTimes[i+1],null,"charge");
+                    possibleActions.add(crosslinkAction);
+                    possibleActions.add(chargeAction);
+                }
             }
         }
 
@@ -276,7 +297,7 @@ public class MCTSPlanner {
         }
     }
     
-    public ArrayList<Observation> getResults() {
+    public ArrayList<SatelliteAction> getResults() {
         return results;
     }
 }

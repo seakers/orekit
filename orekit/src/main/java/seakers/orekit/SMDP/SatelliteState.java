@@ -12,6 +12,7 @@ public class SatelliteState {
     private double currentAngle;
     private double storedImageReward;
     private ArrayList<SatelliteAction> actionHistory;
+    private ArrayList<GeodeticPoint> images;
     public SatelliteState() {
         this.t = 0.0;
         this.tPrevious = 0.0;
@@ -20,6 +21,11 @@ public class SatelliteState {
         this.dataStored = 0.0;
         this.currentAngle = 0.0;
         this.storedImageReward = 0.0;
+    }
+    public SatelliteState (double t, double tPrevious, ArrayList<GeodeticPoint> images) {
+        this.t = t;
+        this.tPrevious = tPrevious;
+        this.images = images;
     }
     public SatelliteState (double t, double tPrevious, ArrayList<SatelliteAction> actionHistory, double batteryCharge, double dataStored, double currentAngle, double storedImageReward) {
         this.t = t;
@@ -43,6 +49,7 @@ public class SatelliteState {
     public double getT() { return t; }
     public double gettPrevious() { return t; }
     public ArrayList<SatelliteAction> getHistory() { return actionHistory; }
+    public ArrayList<GeodeticPoint> getImages() { return images; }
     public double getCurrentAngle() { return currentAngle; }
     public double getStoredImageReward() { return storedImageReward; }
     public double getDataStored() { return dataStored; }

@@ -10,6 +10,11 @@ public class SatelliteAction {
     private String actionType;
     private String crosslinkSat;
     private double angle;
+    public SatelliteAction (double tStart, double tEnd, GeodeticPoint location) {
+        this.tStart = tStart;
+        this.tEnd = tEnd;
+        this.location = location;
+    }
     public SatelliteAction (double tStart, double tEnd, GeodeticPoint location, String actionType) {
         this.tStart = tStart;
         this.tEnd = tEnd;
@@ -40,5 +45,23 @@ public class SatelliteAction {
     public double getAngle() { return angle; }
     public void setReward(double reward) {
         this.reward = reward;
+    }
+    public String toString() {
+        String printString = "\nAction start: "+tStart+", action end: "+tEnd+", ";
+        switch(actionType) {
+            case "downlink":
+                printString = printString+"downlink";
+                break;
+            case "crosslink":
+                printString = printString+"crosslink with sat "+crosslinkSat;
+                break;
+            case "imaging":
+                printString = printString+"observed point: "+location.toString();
+                break;
+            case "charge":
+                printString = printString+"charge";
+                break;
+        }
+        return printString;
     }
 }
