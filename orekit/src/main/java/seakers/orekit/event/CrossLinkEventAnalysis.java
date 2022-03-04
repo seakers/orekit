@@ -16,33 +16,22 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.hipparchus.ode.events.Action;
-import org.hipparchus.util.FastMath;
 import org.orekit.errors.OrekitException;
 import org.orekit.frames.Frame;
-import org.orekit.frames.TopocentricFrame;
-import org.orekit.orbits.Orbit;
 import org.orekit.propagation.Propagator;
 import org.orekit.propagation.SpacecraftState;
-import org.orekit.propagation.events.handlers.EventHandler;
-import org.orekit.propagation.numerical.NumericalPropagator;
 import org.orekit.time.AbsoluteDate;
 import seakers.orekit.coverage.access.TimeIntervalArray;
 import seakers.orekit.coverage.access.TimeIntervalMerger;
-import seakers.orekit.event.detector.FOVDetector;
-import seakers.orekit.event.detector.GroundStationDetector;
 import seakers.orekit.event.detector.SatLOSDetector;
 import seakers.orekit.event.detector.TimeIntervalHandler;
 import seakers.orekit.object.Constellation;
 import seakers.orekit.object.CoverageDefinition;
-import seakers.orekit.object.CoveragePoint;
-import seakers.orekit.object.GndStation;
-import seakers.orekit.object.Instrument;
 import seakers.orekit.object.Satellite;
 import seakers.orekit.parallel.ParallelRoutine;
 import seakers.orekit.parallel.SubRoutine;
@@ -258,8 +247,21 @@ public class CrossLinkEventAnalysis extends AbstractEventAnalysis {
      *
      * @return
      */
-    public HashMap<Constellation, HashMap<Satellite, HashMap<Satellite, TimeIntervalArray>>> getAllAccesses() {
-        return allAccesses;
+    public Map<String, Map<String, TimeIntervalArray>> getAllAccesses() {
+        Map<String, Map<String, TimeIntervalArray>> accesses = new HashMap<>();
+        for(Constellation constellation : allAccesses.keySet()) {
+            HashMap<Satellite, HashMap<Satellite, TimeIntervalArray>> sst = allAccesses.get(constellation);
+            for(Satellite satellite : allAccesses.get(constellation).keySet()) {
+                String baseSatelliteName = satellite.getName();
+                Map<String, TimeIntervalArray> indivSatAccesses = new HashMap<>();
+                for (Satellite satellite1 : allAccesses.get(constellation).get(satellite).keySet()) {
+                    String linkSatelliteName = satellite1.getName();
+                    indivSatAccesses.put(linkSatelliteName,allAccesses.get(constellation).get(satellite).get(satellite1));
+                }
+                accesses.put(baseSatelliteName,indivSatAccesses);
+            }
+        }
+        return accesses;
     }
 
 

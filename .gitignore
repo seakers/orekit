@@ -9,3 +9,6 @@
 /.gradle/
 /GPM data/
 /orekit/src/main/java/seakers/orekit/output/
+/CoverageDatabase/
+/orekit/orekit.iml
+/orekit/orekit1.iml
