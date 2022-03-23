@@ -270,6 +270,9 @@ public class FastCoverageAnalysis extends FieldOfViewEventAnalysis {
         public Task call() throws Exception {
             KeplerianOrbit orb = new KeplerianOrbit(sat.getOrbit());
             Logger.getGlobal().finer(String.format("Propagating satellite %s...", sat));
+
+
+
             //identify accesses and create time interval array for each coverage point
             for (CoveragePoint pt : cdef.getPoints()) {
                 if (!lineOfSightPotential(pt, orb, FastMath.toRadians(2.0))) {

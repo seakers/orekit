@@ -13,6 +13,8 @@ import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import org.hipparchus.ode.events.Action;
 import org.orekit.errors.OrekitException;
 import org.orekit.frames.Frame;
 import org.orekit.frames.TopocentricFrame;
@@ -104,7 +106,7 @@ public class GndStationEventAnalysis extends AbstractEventAnalysis {
             //if no precomuted times available, then propagate
             Propagator prop = propagatorFactory.createPropagator(sat.getOrbit(), sat.getGrossMass());
             //Set stepsizes and threshold for detectors
-            double losStepSize = sat.getOrbit().getKeplerianPeriod() / 10.;
+            double losStepSize = sat.getOrbit().getKeplerianPeriod() / 100.;
             double threshold = 1e-3;
 
             GndStationSubRoutine subRoutine
@@ -324,7 +326,7 @@ public class GndStationEventAnalysis extends AbstractEventAnalysis {
                         = new GroundStationDetector(initialState,
                                 getStartDate(), getEndDate(),
                                 sat.getTransmitter(), sat.getReceiver(), station,
-                                EventHandler.Action.CONTINUE, stepSize, threshold);
+                                Action.CONTINUE, stepSize, threshold);
 
                 prop.addEventDetector(gndstatDetec);
                 map.put(station, gndstatDetec);

@@ -8,6 +8,7 @@ package seakers.orekit.event.detector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.hipparchus.geometry.euclidean.threed.Vector3D;
+import org.hipparchus.ode.events.Action;
 import org.orekit.bodies.CelestialBody;
 import org.orekit.errors.OrekitException;
 import org.orekit.frames.Transform;
@@ -100,7 +101,7 @@ public class GroundBodyAngleDetector extends AbstractEventDetector<GroundBodyAng
             AbsoluteDate startDate, AbsoluteDate endDate, CoveragePoint target, CelestialBody body,
             double maxAngle, Vector3D direction) throws OrekitException {
         this(initialState, startDate, endDate, target, body, maxAngle, direction,
-                EventHandler.Action.STOP, DEFAULT_MAXCHECK,
+                Action.STOP, DEFAULT_MAXCHECK,
                 DEFAULT_THRESHOLD, DEFAULT_MAX_ITER);
     }
 
@@ -130,7 +131,7 @@ public class GroundBodyAngleDetector extends AbstractEventDetector<GroundBodyAng
             double maxAngle, Vector3D direction, double maxCheck,
             double threshold) throws OrekitException {
         this(initialState, startDate, endDate,
-                target, body, maxAngle, direction, EventHandler.Action.STOP,
+                target, body, maxAngle, direction, Action.STOP,
                 DEFAULT_MAXCHECK, DEFAULT_THRESHOLD, DEFAULT_MAX_ITER);
     }
 
@@ -158,7 +159,7 @@ public class GroundBodyAngleDetector extends AbstractEventDetector<GroundBodyAng
      */
     public GroundBodyAngleDetector(SpacecraftState initialState,
             AbsoluteDate startDate, AbsoluteDate endDate, CoveragePoint target, CelestialBody body,
-            double maxAngle, Vector3D direction, EventHandler.Action action,
+            double maxAngle, Vector3D direction, Action action,
             double maxCheck, double threshold) throws OrekitException {
         this(initialState, startDate, endDate,
                 target, body, maxAngle, direction, action,
@@ -191,7 +192,7 @@ public class GroundBodyAngleDetector extends AbstractEventDetector<GroundBodyAng
     public GroundBodyAngleDetector(SpacecraftState initialState,
             AbsoluteDate startDate, AbsoluteDate endDate,
             CoveragePoint target, CelestialBody body, double maxAngle, Vector3D direction,
-            EventHandler.Action action, double maxCheck, double threshold,
+            Action action, double maxCheck, double threshold,
             int maxIter) throws OrekitException {
         super(initialState, startDate, endDate, action, maxCheck, threshold, maxIter);
         this.target = target;
@@ -220,7 +221,7 @@ public class GroundBodyAngleDetector extends AbstractEventDetector<GroundBodyAng
     @Override
     protected GroundBodyAngleDetector create(SpacecraftState initialState,
             AbsoluteDate startDate, AbsoluteDate endDate,
-            EventHandler.Action action, double maxCheck, double threshold, int maxIter) {
+            Action action, double maxCheck, double threshold, int maxIter) {
         try {
             return new GroundBodyAngleDetector(initialState, startDate, endDate, target, body, maxAngle, direction, action, maxCheck, threshold, maxIter);
         } catch (OrekitException ex) {

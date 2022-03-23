@@ -61,6 +61,7 @@ import seakers.orekit.event.EventAnalysisEnum;
 import seakers.orekit.event.EventAnalysisFactory;
 import seakers.orekit.event.FieldOfViewEventAnalysis;
 import seakers.orekit.object.Constellation;
+import static seakers.orekit.object.CoverageDefinition.GridStyle.UNIFORM;
 import seakers.orekit.object.CoveragePoint;
 import seakers.orekit.object.fieldofview.NadirRectangularFOV;
 import seakers.orekit.orbit.J2KeplerianOrbit;
@@ -85,10 +86,10 @@ public class Orekit {
         if (args.length > 0) {
             filename = args[0];
         } else {
-            filename = "tropics_test";
+            filename = "tropics";
         }
 
-        OrekitConfig.init(3);
+        OrekitConfig.init(4);
         //setup logger
         Level level = Level.ALL;
         Logger.getGlobal().setLevel(level);
@@ -97,8 +98,8 @@ public class Orekit {
         Logger.getGlobal().addHandler(handler);
 
         TimeScale utc = TimeScalesFactory.getUTC();
-        AbsoluteDate startDate = new AbsoluteDate(2016, 1, 1, 00, 00, 00.000, utc);
-        AbsoluteDate endDate = new AbsoluteDate(2016, 1, 8, 00, 00, 00.000, utc);
+        AbsoluteDate startDate = new AbsoluteDate(2020, 1, 1, 00, 00, 00.000, utc);
+        AbsoluteDate endDate = new AbsoluteDate(2020, 1, 8, 00, 00, 00.000, utc);
         double mu = Constants.WGS84_EARTH_MU; // gravitation coefficient
 
         //must use IERS_2003 and EME2000 frames to be consistent with STK
@@ -109,17 +110,17 @@ public class Orekit {
                 Constants.WGS84_EARTH_FLATTENING, earthFrame);
 
         //Enter satellite orbital parameters
-        double a = Constants.WGS84_EARTH_EQUATORIAL_RADIUS + 1000000.;
+        double a = Constants.WGS84_EARTH_EQUATORIAL_RADIUS + 600000.;
         double i = FastMath.toRadians(30.);
 
         //define instruments
-        NadirSimpleConicalFOV fov = new NadirSimpleConicalFOV(FastMath.toRadians(51), earthShape);
-//        NadirRectangularFOV fov = new NadirRectangularFOV(FastMath.toRadians(57), FastMath.toRadians(20), 0, earthShape);
+        //NadirSimpleConicalFOV fov = new NadirSimpleConicalFOV(FastMath.toRadians(51), earthShape);
+        NadirRectangularFOV fov = new NadirRectangularFOV(FastMath.toRadians(57), FastMath.toRadians(20), 0, earthShape);
         ArrayList<Instrument> payload = new ArrayList<>();
         Instrument view1 = new Instrument("view1", fov, 100, 100);
         payload.add(view1);
 
-        Walker constellation = new Walker("walker1", payload, a, i, 10, 10, 1, inertialFrame, startDate, mu);
+        Walker constellation = new Walker("walker1", payload, a, i, 12, 2, 1, inertialFrame, startDate, mu);
 //        Collection<Satellite> constel = new ArrayList<>();
 //        Satellite sat1 = new Satellite("sat1", new KeplerianOrbit(a, 0., i, 0., 0., 0, PositionAngle.TRUE, inertialFrame, startDate, mu), null, payload);
 //        Satellite sat2 = new Satellite("sat2", new KeplerianOrbit(a, 0., i, 0., 0., FastMath.PI, PositionAngle.TRUE, inertialFrame, startDate, mu), null, payload);
@@ -140,10 +141,11 @@ public class Orekit {
 //        pts.add(new GeodeticPoint(-0.8726646259971650,  -2.72271363311116, 0.0));
 //        pts.add(new GeodeticPoint(1.5707963267949001, 0.0000000000000000, 0.0));
 //        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", pts, earthShape);
-//        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", 2, -FastMath.PI/2, FastMath.PI/2,-.1, .1, earthShape, CoverageDefinition.GridStyle.EQUAL_AREA);
+//        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", 2, -FastMath.PI/2, FastMath.PI/2,-FastMath.PI, FastMath.PI, earthShape, CoverageDefinition.GridStyle.UNIFORM);
 //        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", 6, earthShape, CoverageDefinition.GridStyle.EQUAL_AREA);
-        CoverageDefinition covDef1 = new CoverageDefinition("cdef", 5.0, -30, 30, -180, 180, earthShape, CoverageDefinition.GridStyle.UNIFORM);
+//        CoverageDefinition covDef1 = new CoverageDefinition("cdef", 5.0, -30, 30, -180, 180, earthShape, CoverageDefinition.GridStyle.UNIFORM);
 //        CoverageDefinition covDef1 = new CoverageDefinition("covdef1", STKGRID.getPoints20(), earthShape);
+            CoverageDefinition covDef1 = new CoverageDefinition("covdef1", 2, earthShape, UNIFORM);
 
 //        CoverageVersusOrbitalElements cvoe
 //                = new CoverageVersusOrbitalElements.Builder(1000, startDate, endDate, covDef1.getPoints()).
@@ -162,10 +164,10 @@ public class Orekit {
         HashSet<CoverageDefinition> covDefs = new HashSet<>();
         covDefs.add(covDef1);
 
-        FastCoverageAnalysis fca = new FastCoverageAnalysis(startDate, endDate, inertialFrame, covDefs, FastMath.toRadians(51.));
-        start = System.nanoTime();
-        fca.call();
-        System.out.println(new GroundEventAnalyzer(fca.getEvents(covDef1)).getStatistics(AnalysisMetric.MEAN_TIME_TO_T, false, new Properties()).getMean());
+//        FastCoverageAnalysis fca = new FastCoverageAnalysis(startDate, endDate, inertialFrame, covDefs, FastMath.toRadians(51.));
+//        start = System.nanoTime();
+//        fca.call();
+//        System.out.println(new GroundEventAnalyzer(fca.getEvents(covDef1)).getStatistics(AnalysisMetric.MEAN_TIME_TO_T, false, new Properties()).getMean());
 //        System.exit(0);
         long end1 = System.nanoTime();
         Logger.getGlobal().finest(String.format("Took %.4f sec", (end1 - start) / Math.pow(10, 9)));
@@ -180,7 +182,7 @@ public class Orekit {
         propertiesPropagator.setProperty("orekit.propagator.solarpressure", "true");
         propertiesPropagator.setProperty("orekit.propagator.solararea", "0.058");
 
-        PropagatorFactory pf = new PropagatorFactory(PropagatorType.J2, propertiesPropagator);
+        PropagatorFactory pf = new PropagatorFactory(PropagatorType.KEPLERIAN, propertiesPropagator);
 //        PropagatorFactory pf = new PropagatorFactory(PropagatorType.NUMERICAL, propertiesPropagator);
 
         Properties propertiesEventAnalysis = new Properties();
@@ -203,69 +205,71 @@ public class Orekit {
 
         Scenario scen = new Scenario.Builder(startDate, endDate, utc).
                 eventAnalysis(eventanalyses).analysis(analyses).
-                covDefs(covDefs).name("test1").properties(propertiesEventAnalysis).
+                covDefs(covDefs).name("mapuko66").properties(propertiesEventAnalysis).
                 propagatorFactory(pf).build();
         try {
             Logger.getGlobal().finer(String.format("Running Scenario %s", scen));
             Logger.getGlobal().finer(String.format("Number of points:     %d", covDef1.getNumberOfPoints()));
             Logger.getGlobal().finer(String.format("Number of satellites: %d", constellation.getSatellites().size()));
-//            scen.call();
+            scen.call();
         } catch (Exception ex) {
             Logger.getLogger(Orekit.class.getName()).log(Level.SEVERE, null, ex);
             throw new IllegalStateException("scenario failed to complete.");
         }
 
-        GroundEventAnalyzer ea2 = new GroundEventAnalyzer(fca.getEvents(covDef1));
-        Properties properties = new Properties();
-        properties.setProperty("threshold", "7200.0");
-        DescriptiveStatistics accessStats2 = ea2.getStatistics(AnalysisMetric.DURATION, true, properties);
-        DescriptiveStatistics gapStats2 = ea2.getStatistics(AnalysisMetric.DURATION, false, properties);
-//        ScenarioIO.saveGroundEventAnalysis(Paths.get(System.getProperty("results"), ""), filename + "_cva", scen, covDef1, fca);
-//        System.exit(0);
-
-        GroundEventAnalyzer ea = new GroundEventAnalyzer(fovEvent.getEvents(covDef1));
-        DescriptiveStatistics accessStats = ea.getStatistics(AnalysisMetric.DURATION, true, properties);
-        DescriptiveStatistics gapStats = ea.getStatistics(AnalysisMetric.DURATION, false, properties);
-
-        System.out.println(String.format("Max access time %s\t%s", accessStats.getMax(), accessStats2.getMax()));
-        System.out.println(String.format("Mean access time %s\t%s", accessStats.getMean(), accessStats2.getMean()));
-        System.out.println(String.format("Min access time %s\t%s", accessStats.getMin(), accessStats2.getMin()));
-        System.out.println(String.format("50th access time %s\t%s", accessStats.getPercentile(50), accessStats2.getPercentile(50)));
-        System.out.println(String.format("80th acceses time %s\t%s", accessStats.getPercentile(80), accessStats2.getPercentile(80)));
-        System.out.println(String.format("90th access time %s\t%s", accessStats.getPercentile(90), accessStats2.getPercentile(90)));
-
-        System.out.println(String.format("Max gap time %s\t%s", gapStats.getMax(), gapStats2.getMax()));
-        System.out.println(String.format("Mean gap time %s\t%s", gapStats.getMean(), gapStats2.getMean()));
-        System.out.println(String.format("Min gap time %s\t%s", gapStats.getMin(), gapStats2.getMin()));
-        System.out.println(String.format("50th gap time %s\t%s", gapStats.getPercentile(50), gapStats2.getPercentile(50)));
-        System.out.println(String.format("80th gap time %s\t%s", gapStats.getPercentile(80), gapStats2.getPercentile(80)));
-        System.out.println(String.format("90th gap time %s\t%s", gapStats.getPercentile(90), gapStats2.getPercentile(90)));
+//        GroundEventAnalyzer ea2 = new GroundEventAnalyzer(fca.getEvents(covDef1));
+//        Properties properties = new Properties();
+//        properties.setProperty("threshold", "7200.0");
+//        DescriptiveStatistics accessStats2 = ea2.getStatistics(AnalysisMetric.DURATION, true, properties);
+//        DescriptiveStatistics gapStats2 = ea2.getStatistics(AnalysisMetric.DURATION, false, properties);
+////        ScenarioIO.saveGroundEventAnalysis(Paths.get(System.getProperty("results"), ""), filename + "_cva", scen, covDef1, fca);
+////        System.exit(0);
+//
+//        GroundEventAnalyzer ea = new GroundEventAnalyzer(fovEvent.getEvents(covDef1));
+//        DescriptiveStatistics accessStats = ea.getStatistics(AnalysisMetric.DURATION, true, properties);
+//        DescriptiveStatistics gapStats = ea.getStatistics(AnalysisMetric.DURATION, false, properties);
+//
+//        System.out.println(String.format("Max access time %s\t%s", accessStats.getMax(), accessStats2.getMax()));
+//        System.out.println(String.format("Mean access time %s\t%s", accessStats.getMean(), accessStats2.getMean()));
+//        System.out.println(String.format("Min access time %s\t%s", accessStats.getMin(), accessStats2.getMin()));
+//        System.out.println(String.format("50th access time %s\t%s", accessStats.getPercentile(50), accessStats2.getPercentile(50)));
+//        System.out.println(String.format("80th acceses time %s\t%s", accessStats.getPercentile(80), accessStats2.getPercentile(80)));
+//        System.out.println(String.format("90th access time %s\t%s", accessStats.getPercentile(90), accessStats2.getPercentile(90)));
+//
+//        System.out.println(String.format("Max gap time %s\t%s", gapStats.getMax(), gapStats2.getMax()));
+//        System.out.println(String.format("Mean gap time %s\t%s", gapStats.getMean(), gapStats2.getMean()));
+//        System.out.println(String.format("Min gap time %s\t%s", gapStats.getMin(), gapStats2.getMin()));
+//        System.out.println(String.format("50th gap time %s\t%s", gapStats.getPercentile(50), gapStats2.getPercentile(50)));
+//        System.out.println(String.format("80th gap time %s\t%s", gapStats.getPercentile(80), gapStats2.getPercentile(80)));
+//        System.out.println(String.format("90th gap time %s\t%s", gapStats.getPercentile(90), gapStats2.getPercentile(90)));
 
         //load in weights
-        HashMap<Double, Double> wts = new HashMap<>();
-
-        try (BufferedReader br = new BufferedReader(new FileReader(new File("tropicsWts_new_2.csv")))) {
-            String line = br.readLine();
-            while (line != null) {
-                String[] arg = line.split(",");
-                wts.put(FastMath.toRadians(Double.parseDouble(arg[0])), Double.parseDouble(arg[1]));
-                line = br.readLine();
-            }
-        } catch (IOException ex) {
-            Logger.getLogger(Orekit.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        
-        for (CoveragePoint pt : covDef1.getPoints()) {
-            DescriptiveStatistics stats = ea2.getStatistics(AnalysisMetric.MEAN_TIME_TO_T, false, pt, properties);
-            System.out.println(FastMath.toDegrees(pt.getPoint().getLatitude())+","
-                    +FastMath.toDegrees(pt.getPoint().getLongitude())+","+stats.getMean());
-        }
+//        HashMap<Double, Double> wts = new HashMap<>();
+//
+//        try (BufferedReader br = new BufferedReader(new FileReader(new File("tropicsWts_new_2.csv")))) {
+//            String line = br.readLine();
+//            while (line != null) {
+//                String[] arg = line.split(",");
+//                wts.put(FastMath.toRadians(Double.parseDouble(arg[0])), Double.parseDouble(arg[1]));
+//                line = br.readLine();
+//            }
+//        } catch (IOException ex) {
+//            Logger.getLogger(Orekit.class.getName()).log(Level.SEVERE, null, ex);
+//        }
+//        
+//        for (CoveragePoint pt : covDef1.getPoints()) {
+//            DescriptiveStatistics stats = ea2.getStatistics(AnalysisMetric.MEAN_TIME_TO_T, false, pt, properties);
+//            System.out.println(FastMath.toDegrees(pt.getPoint().getLatitude())+","
+//                    +FastMath.toDegrees(pt.getPoint().getLongitude())+","+stats.getMean());
+//        }
 
 //        System.out.println(wtCHRC);
 
-        ScenarioIO.saveGroundEventAnalysis(Paths.get(System.getProperty("results"), ""), filename + "_cva", scen, covDef1, fca);
-        ScenarioIO.saveGroundEventAnalysisMetrics(Paths.get(System.getProperty("results"), ""), filename + "_cva", scen, covDef1, fca);
-        ScenarioIO.saveGroundEventAnalysis(Paths.get(System.getProperty("results"), ""), filename + "_fov", scen, covDef1, fovEvent);
+        //ScenarioIO.saveGroundEventAnalysis(Paths.get(System.getProperty("results"), ""), filename + "_cva", scen, covDef1, fca);
+        ScenarioIO.saveGroundEventAnalyzerObject(Paths.get(System.getProperty("results"), ""), filename, scen,covDef1, fovEvent);
+        //ScenarioIO.saveGroundEventAnalysisMetrics(Paths.get(System.getProperty("results"), ""), filename + "_cva", scen, covDef1, fca);
+        //ScenarioIO.saveGroundEventAnalysis(Paths.get(System.getProperty("results"), ""), filename + "_fov", scen, covDef1, fovEvent);
+        ScenarioIO.saveGroundEventAnalysis(Paths.get(System.getProperty("results"), ""), filename, scen, covDef1, fovEvent);
 //        ScenarioIO.saveGroundEventAnalysis(Paths.get(System.getProperty("results"), ""), filename + "_gsa", scen, covDef1, gndSunAngEvent);
 //        ScenarioIO.saveLinkBudget(Paths.get(System.getProperty("results"), ""), filename, scenComp, cdefToSave);
 //        ScenarioIO.saveReadMe(Paths.get(path, ""), filename, scenComp);
@@ -275,10 +279,10 @@ public class Orekit {
                     String.format("%s_%s", scen.toString(), "analysis"), analysis);
         }
         long end = System.nanoTime();
+        System.out.println("bruh i'm done");
         Logger.getGlobal().finest(String.format("Took %.4f sec", (end - end1) / Math.pow(10, 9)));
 
         OrekitConfig.end();
-
     }
 
 }

@@ -64,7 +64,7 @@ public class NadirRectangularFOV extends RectangularFieldOfView {
             Vector3D axis1, double halfAperture1,
             Vector3D axis2, double halfAperture2,
             double margin, BodyShape shape) throws OrekitException {
-        super(Vector3D.PLUS_K,axis1, halfAperture1, axis2, halfAperture2, margin);
+        super(Vector3D.PLUS_K, axis1, halfAperture1, axis2, halfAperture2, margin);
         this.shape = shape;
     }
 

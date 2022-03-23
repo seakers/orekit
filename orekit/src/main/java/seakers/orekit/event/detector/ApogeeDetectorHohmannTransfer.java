@@ -6,13 +6,12 @@
 package seakers.orekit.event.detector;
 
 import org.hipparchus.geometry.euclidean.threed.Vector3D;
+import org.hipparchus.ode.events.Action;
 import org.orekit.errors.OrekitException;
 import org.orekit.orbits.Orbit;
 import org.orekit.propagation.SpacecraftState;
 import org.orekit.propagation.events.AbstractDetector;
-import static org.orekit.propagation.events.AbstractDetector.DEFAULT_MAX_ITER;
 import org.orekit.propagation.events.handlers.EventHandler;
-import org.orekit.propagation.events.handlers.EventHandler.Action;
 import org.orekit.propagation.events.handlers.StopOnDecreasing;
 import org.orekit.time.AbsoluteDate;
 import org.orekit.utils.PVCoordinates;
@@ -20,9 +19,9 @@ import org.orekit.utils.PVCoordinates;
 /** Finder for apogee crossing events for a HohmannTransfer Orbit.
  * This class finds apside crossing events (i.e. apogee or perigee crossing).
  * The default implementation behavior is to {@link
- * org.orekit.propagation.events.handlers.EventHandler.Action#CONTINUE continue}
+ * org.hipparchus.ode.events.Action#CONTINUE continue}
  * propagation at perigee crossing and to {@link
- * org.orekit.propagation.events.handlers.EventHandler.Action#STOP stop} propagation
+ * org.hipparchus.ode.events.Action#STOP stop} propagation
  * at apogee crossing. However, we will only stop IF the apogee detection is AFTER 
  * the date of the first firing.
  * Most of the code is a replique of the ApsideDetector of the orekit source code.
@@ -110,9 +109,9 @@ public class ApogeeDetectorHohmannTransfer extends AbstractDetector<ApogeeDetect
      * @throws OrekitException 
      */
     @Override
-    public EventHandler.Action eventOccurred(final SpacecraftState s, final boolean increasing) throws OrekitException {
+    public Action eventOccurred(final SpacecraftState s, final boolean increasing) throws OrekitException {
         @SuppressWarnings("unchecked")
-        final EventHandler.Action whatNext;
+        final Action whatNext;
         if(s.getDate().compareTo(date)>0 && counter==0){
             whatNext = getHandler().eventOccurred(s, this, increasing);
             counter=counter+1;

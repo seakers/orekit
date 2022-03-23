@@ -25,7 +25,7 @@ import org.orekit.time.TimeScale;
 import org.orekit.time.TimeScalesFactory;
 import org.orekit.utils.Constants;
 import org.orekit.utils.IERSConventions;
-import seakers.orekit.constellations.EnumerateWalkerConstellations;
+import seakers.orekit.constellations.EnumerateConstellations;
 import seakers.orekit.constellations.Walker;
 import seakers.orekit.constellations.WalkerParameters;
 import seakers.orekit.coverage.analysis.AnalysisMetric;
@@ -71,7 +71,7 @@ public class Orekit_Prachi {
         // Where do we get this data from?
         // Can there be two different altitudes in a constellation?
         // these altitudes are semi major axises = altitude + radius of the earth
-        double[] semiMajorAxis = new double[7];
+        Double[] semiMajorAxis = new Double[7];
         for (int i = 0; i < 7; i++){
             semiMajorAxis[i] = Constants.WGS84_EARTH_EQUATORIAL_RADIUS+(i)*100000+400000;
         }
@@ -81,7 +81,7 @@ public class Orekit_Prachi {
         // Plane of Reference?
         // Max? Min? trmm goes moes geostar tropics
 
-        double[] inclinations = new double[16];
+        Double[] inclinations = new Double[16];
         for (int i = 0; i < 16; i++){
             double i_deg = FastMath.toRadians(i*10+10);
             if (i >= 10){
@@ -106,7 +106,7 @@ public class Orekit_Prachi {
             numberOfSatellites[i] = i+1;
         }*/
 
-        int[] numberOfSatellites = new int[8];
+        Integer[] numberOfSatellites = new Integer[8];
         int j = 32;
         for (int i = 0; i < 8; i++){
             numberOfSatellites[i] = i+j;
@@ -114,7 +114,7 @@ public class Orekit_Prachi {
         }
 
         ArrayList<WalkerParameters> constelParams = new ArrayList<>();
-        constelParams = EnumerateWalkerConstellations.fullFactWalker(semiMajorAxis, inclinations, numberOfSatellites);
+        constelParams = EnumerateConstellations.fullFactWalker(semiMajorAxis, inclinations, numberOfSatellites);
 
         //set the frame of reference i.e. inertial
         Frame inertialFrame = FramesFactory.getEME2000();

@@ -12,13 +12,9 @@ import org.hipparchus.ode.nonstiff.DormandPrince853Integrator;
 import org.orekit.bodies.CelestialBodyFactory;
 import org.orekit.bodies.OneAxisEllipsoid;
 import org.orekit.errors.OrekitException;
-import org.orekit.forces.drag.Atmosphere;
-import org.orekit.forces.drag.DTM2000;
-import org.orekit.forces.drag.DTM2000InputParameters;
 import org.orekit.forces.drag.DragForce;
 import org.orekit.forces.drag.DragSensitive;
 import org.orekit.forces.drag.IsotropicDrag;
-import org.orekit.forces.drag.MarshallSolarActivityFutureEstimation;
 import org.orekit.forces.gravity.HolmesFeatherstoneAttractionModel;
 import org.orekit.forces.gravity.ThirdBodyAttraction;
 import org.orekit.forces.gravity.potential.GravityFieldFactory;
@@ -30,6 +26,10 @@ import org.orekit.forces.radiation.RadiationSensitive;
 import org.orekit.forces.radiation.SolarRadiationPressure;
 import org.orekit.frames.Frame;
 import org.orekit.frames.FramesFactory;
+import org.orekit.models.earth.atmosphere.Atmosphere;
+import org.orekit.models.earth.atmosphere.DTM2000;
+import org.orekit.models.earth.atmosphere.DTM2000InputParameters;
+import org.orekit.models.earth.atmosphere.data.MarshallSolarActivityFutureEstimation;
 import org.orekit.orbits.Orbit;
 import org.orekit.orbits.OrbitType;
 import org.orekit.orbits.PositionAngle;
@@ -166,9 +166,9 @@ public class PropagatorFactory {
         double mass = Double.parseDouble(properties.getProperty("orekit.propagator.mass", "10"));
         SpacecraftState s = new SpacecraftState(orbit, mass);
         NumericalPropagator prop = new NumericalPropagator(integrator);
-        prop.resetInitialState(s);
+        prop.setInitialState(s);
         prop.setOrbitType(orbit.getType());
-        prop.setPositionAngleType(PositionAngle.TRUE);
+        prop.setPositionAngleType(PositionAngle.MEAN);
 
         //Frames and Bodies creation (must use IERS_2003 and EME2000 frames to be consistent with STK)
         final Frame earthFrame = FramesFactory.getITRF(IERSConventions.IERS_2003, true);

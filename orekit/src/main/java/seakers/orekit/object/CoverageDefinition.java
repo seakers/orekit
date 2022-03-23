@@ -167,9 +167,7 @@ public class CoverageDefinition implements OrekitObject, Serializable {
         this.planet = refPt.getParentShape();
 
         this.grid = new HashSet<>();
-        for (CoveragePoint pt : points) {
-            this.grid.add(pt);
-        }
+        this.grid.addAll(points);
     }
 
     /**

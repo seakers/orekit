@@ -12,7 +12,7 @@ import org.orekit.errors.OrekitException;
 import org.orekit.frames.Frame;
 import org.orekit.frames.FramesFactory;
 import org.orekit.time.AbsoluteDate;
-import seakers.orekit.constellations.EnumerateWalkerConstellations;
+import seakers.orekit.constellations.EnumerateConstellations;
 import seakers.orekit.constellations.Walker;
 import seakers.orekit.constellations.WalkerParameters;
 import seakers.orekit.object.Instrument;
@@ -24,18 +24,18 @@ import seakers.orekit.object.Satellite;
  */
 public class EnumerateUniqueSats {
     public static void main(String[] args)  throws OrekitException, IOException {
-    EnumerateWalkerConstellations en = new EnumerateWalkerConstellations();
+    EnumerateConstellations en = new EnumerateConstellations();
         
-        double[] alt = new double[5];
-        double[] inc = new double[8];
-        int[] sats = new int[18];
+        Double[] alt = new Double[5];
+        Double[] inc = new Double[8];
+        Integer[] sats = new Integer[18];
         
         for(int i_alt = 4; i_alt<=8;i_alt++) {
-            alt[i_alt-4]=i_alt*100+6378000;
+            alt[i_alt-4]=i_alt*100+6378000.0;
         }
         
         for(int i_inc = 0; i_inc<=7;i_inc++) {
-            inc[i_inc]=((i_inc+3)*10);
+            inc[i_inc]=((i_inc+3)*10.0);
         }
         
         for(int i_nsats = 1; i_nsats<=18;i_nsats++) {
@@ -45,7 +45,7 @@ public class EnumerateUniqueSats {
         ArrayList<Instrument> payload=new ArrayList<>();
         Frame inertialFrame=FramesFactory.getEME2000();
         AbsoluteDate date=new AbsoluteDate();
-        ArrayList<WalkerParameters> constell = EnumerateWalkerConstellations.fullFactWalker(alt,inc,sats);
+        ArrayList<WalkerParameters> constell = EnumerateConstellations.fullFactWalker(alt,inc,sats);
         HashMap<String,Satellite> map=new HashMap<>();
         for (WalkerParameters params:constell){
             Walker w = new Walker("", payload, params.getA(), params.getI(), 

@@ -9,13 +9,9 @@ import org.hipparchus.geometry.euclidean.threed.Vector3D;
 import org.orekit.bodies.CelestialBodyFactory;
 import org.orekit.bodies.OneAxisEllipsoid;
 import org.orekit.errors.OrekitException;
-import org.orekit.forces.drag.Atmosphere;
-import org.orekit.forces.drag.DTM2000;
-import org.orekit.forces.drag.DTM2000InputParameters;
 import org.orekit.forces.drag.DragForce;
 import org.orekit.forces.drag.DragSensitive;
 import org.orekit.forces.drag.IsotropicDrag;
-import org.orekit.forces.drag.MarshallSolarActivityFutureEstimation;
 import org.orekit.forces.gravity.HolmesFeatherstoneAttractionModel;
 import org.orekit.forces.gravity.ThirdBodyAttraction;
 import org.orekit.forces.gravity.potential.GravityFieldFactory;
@@ -27,6 +23,10 @@ import org.orekit.forces.radiation.RadiationSensitive;
 import org.orekit.forces.radiation.SolarRadiationPressure;
 import org.orekit.frames.Frame;
 import org.orekit.frames.FramesFactory;
+import org.orekit.models.earth.atmosphere.Atmosphere;
+import org.orekit.models.earth.atmosphere.DTM2000;
+import org.orekit.models.earth.atmosphere.DTM2000InputParameters;
+import org.orekit.models.earth.atmosphere.data.MarshallSolarActivityFutureEstimation;
 import org.orekit.propagation.Propagator;
 import org.orekit.propagation.SpacecraftState;
 import org.orekit.propagation.events.EclipseDetector;
@@ -80,30 +80,35 @@ public class VectorAnalisysEclipseSunlightDiffDrag extends VectorAnalysis{
         Propagator prop = propagatorFactory.createPropagator(super.getSatellite().getOrbit(), mass);
         prop.setSlaveMode();
         
-        //Set stepsizes and threshold for detectors
-        double StepSize = super.getSatellite().getOrbit().getKeplerianPeriod()/1000;
+        // Set stepsizes and threshold for detectors
+        double stepSize = super.getSatellite().getOrbit().getKeplerianPeriod()/1000;
         double threshold = 1e-3;
-        final PVCoordinatesProvider occulted=CelestialBodyFactory.getSun();
-        double occultedRadius=Constants.SUN_RADIUS;
-        final PVCoordinatesProvider occulting=CelestialBodyFactory.getEarth();
-        double occultingRadius=Constants.WGS84_EARTH_EQUATORIAL_RADIUS;
-        final EventHandler<? super EclipseDetector> handler=new StopOnEvent<>();
-        EclipseDetector detector= new EclipseDetector(StepSize,threshold,
-                                                occulted,occultedRadius,
-                                                occulting,occultingRadius)
-                                                .withHandler(handler);
+
+        final PVCoordinatesProvider occulted = CelestialBodyFactory.getSun();
+        double occultedRadius = Constants.SUN_RADIUS;
+
+        Frame earthFrame = FramesFactory.getITRF(IERSConventions.IERS_2003, true);
+        OneAxisEllipsoid earthShape = new OneAxisEllipsoid(Constants.WGS84_EARTH_EQUATORIAL_RADIUS,
+                Constants.WGS84_EARTH_FLATTENING, earthFrame);
+
+        final EventHandler<? super EclipseDetector> handler = new StopOnEvent<>();
+
+        EclipseDetector detector = new EclipseDetector(occulted, occultedRadius, earthShape)
+                .withHandler(handler)
+                .withMaxCheck(stepSize)
+                .withThreshold(threshold);
 
         prop.addEventDetector(detector);
-        boolean end=false;
-        SpacecraftState s=prop.getInitialState();
+        boolean end = false;
+        SpacecraftState s = prop.getInitialState();
         handleStep(s, false);
         /*Flag that captures when the satellite changes from sunlight to eclipse
         and viceversa*/
         boolean flag=true;
         while (!end){
             prop.resetInitialState(s);
-            ((NumericalPropagator) prop).removeForceModels();
             if (flag){
+                ((NumericalPropagator) prop).removeForceModels();
                 if (detector.g(prop.getInitialState())<0){
                     prop=setNumericalPropagator(prop, eclipseDragArea, solarArea);
                     flag=false;

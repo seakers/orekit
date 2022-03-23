@@ -26,13 +26,12 @@ import seakers.orekit.propagation.PropagatorFactory;
  *
  * @author paugarciabuzzi
  */
-public abstract class VectorAnalysis2 extends AbstractSpacecraftAnalysis<String> {
+public abstract class VectorAnalysis2 extends VectorAnalysis {
 
     /**
-     * The desired frame to use. Frame used to transform vectors into the same
-     * frame.
+     * Celestial Body needed to define vector. For instance, the Sun to compute the
+     * Satellite-Sun vector
      */
-    private final Frame frame;
     private final CelestialBody body;
 
     /**
@@ -44,38 +43,13 @@ public abstract class VectorAnalysis2 extends AbstractSpacecraftAnalysis<String>
      * @param sat
      * @param propagatorFactory
      * @param frame
+     * @param body
+     *
      */
     public VectorAnalysis2(AbsoluteDate startDate, AbsoluteDate endDate,
             double timeStep, Satellite sat, PropagatorFactory propagatorFactory, Frame frame, CelestialBody body) {
-        super(startDate, endDate, timeStep, sat, propagatorFactory);
-        this.frame = frame;
+        super(startDate, endDate, timeStep, sat, propagatorFactory,frame);
         this.body = body;
     }
-    
-    public abstract Vector3D getVector(SpacecraftState currentState, Frame frame) throws OrekitException;
 
-    @Override
-    public String getHeader() {
-        return super.getHeader() + ",x,y,z"; //To change body of generated methods, choose Tools | Templates.
-    }
-    
-    @Override
-    public String getExtension() {
-        return  "vec";
-    } 
-
-    @Override
-    public void handleStep(SpacecraftState currentState, boolean isLast) throws OrekitException{
-        Vector3D pos = null;
-        try {
-            pos = getVector(currentState, frame);
-        } catch (OrekitException ex) {
-            Logger.getLogger(VectorAnalysis2.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        if(pos == null){
-            throw new IllegalStateException("Could not complete Vector Analysis");
-        }
-        String str = String.format("%f,%f,%f", pos.getX(),pos.getY(),pos.getZ());
-        addRecord(new Record<>(currentState.getDate(),str));
-    }
 }

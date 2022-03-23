@@ -72,7 +72,7 @@ public class CoverageExample {
         //define the start and end date of the simulation
         TimeScale utc = TimeScalesFactory.getUTC();
         AbsoluteDate startDate = new AbsoluteDate(2016, 1, 1, 00, 00, 00.000, utc);
-        AbsoluteDate endDate = new AbsoluteDate(2016, 1, 7, 00, 00, 00.000, utc);
+        AbsoluteDate endDate = new AbsoluteDate(2016, 1, 22, 00, 00, 00.000, utc);
 
         //define the scenario parameters
         double mu = Constants.WGS84_EARTH_MU; // gravitation coefficient
@@ -83,8 +83,8 @@ public class CoverageExample {
                 Constants.WGS84_EARTH_FLATTENING, earthFrame);
 
         //Enter satellite orbital parameters
-        double a = Constants.WGS84_EARTH_EQUATORIAL_RADIUS + 600000;
-        double i = FastMath.toRadians(45);
+        double a = Constants.WGS84_EARTH_EQUATORIAL_RADIUS + 890000;
+        double i = FastMath.toRadians(77);
 
         //define instruments and payload
         NadirSimpleConicalFOV fov = new NadirSimpleConicalFOV(FastMath.toRadians(45), earthShape);
@@ -93,7 +93,7 @@ public class CoverageExample {
         payload.add(view1);
 
         //Create a walker constellation
-        Walker walker = new Walker("walker1", payload, a, i, 2, 2, 0, inertialFrame, startDate, mu);
+        Walker walker = new Walker("walker1", payload, a, i, 1, 1, 0, inertialFrame, startDate, mu);
 
         //create a coverage definition
         CoverageDefinition covDef1 = new CoverageDefinition("covdef1", 10, earthShape, CoverageDefinition.GridStyle.UNIFORM);
@@ -105,7 +105,7 @@ public class CoverageExample {
         covDefs.add(covDef1);
 
         //set the type of propagation
-        PropagatorFactory pf = new PropagatorFactory(PropagatorType.KEPLERIAN, new Properties());
+        PropagatorFactory pf = new PropagatorFactory(PropagatorType.J2, new Properties());
 
         //can set the properties of the analyses
         Properties propertiesEventAnalysis = new Properties();
@@ -159,7 +159,7 @@ public class CoverageExample {
         //ScenarioIO.saveGroundEventAnalysisMetrics(Paths.get(System.getProperty("results"), ""), filename + "_fov_metrics", scen, ea, AnalysisMetric.DURATION, false);
 
         long end = System.nanoTime();
-        Logger.getGlobal().finest(String.format("Took %.4f sec", (end - start) / Math.pow(10, 9)));
+        System.out.printf("Took %.4f sec", (end - start) / Math.pow(10, 9));
 
         OrekitConfig.end();
     }

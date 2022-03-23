@@ -26,7 +26,7 @@ import seakers.orekit.object.Satellite;
  * This class computes several standard metrics regarding events (occurring and
  * not occurring) computed during a coverage simulation
  *
- * @author nozomihitomi
+ * @author paugarciabuzzi
  */
 public class LatencyGroundEventAnalyzer implements Serializable {
     
@@ -48,6 +48,11 @@ public class LatencyGroundEventAnalyzer implements Serializable {
      * End of simulation
      */
     private final AbsoluteDate endDate;
+    
+    /**
+     * True if saellites communicate with each other, false otherwise.
+     */
+    private final boolean allowCrossLinks;
 
     /**
      * Creates an analyzer from a set of coverage points and time interval array
@@ -59,7 +64,8 @@ public class LatencyGroundEventAnalyzer implements Serializable {
      * @param fovEvents accesses of all satellites in the constellation to a collection of coverage points
      * @param gsEvents accesses of all  satellites in the constellation to a set of ground stations
      */
-    public LatencyGroundEventAnalyzer(HashMap<Satellite,HashMap<TopocentricFrame, TimeIntervalArray>> fovEvents, HashMap<Satellite,HashMap<GndStation, TimeIntervalArray>> gsEvents) {
+    public LatencyGroundEventAnalyzer(HashMap<Satellite,HashMap<TopocentricFrame, TimeIntervalArray>> fovEvents, 
+            HashMap<Satellite,HashMap<GndStation, TimeIntervalArray>> gsEvents, boolean allowCrossLinks) {
         this.events = fovEvents;
         this.gndstations = gsEvents;
         Set<Satellite> sats = fovEvents.keySet();
@@ -68,6 +74,7 @@ public class LatencyGroundEventAnalyzer implements Serializable {
         TopocentricFrame tp = topos.iterator().next();
         this.startDate = sat1_accesses.get(tp).getHead();
         this.endDate = sat1_accesses.get(tp).getTail();
+        this.allowCrossLinks=allowCrossLinks;
     }
 
     /**
@@ -170,51 +177,145 @@ public class LatencyGroundEventAnalyzer implements Serializable {
      */
     public DescriptiveStatistics getStatistics(Collection<TopocentricFrame> points) {
         DescriptiveStatistics ds = new DescriptiveStatistics();
-        //for each coverage point, we will calculate the latency of each rise time event
-        for (TopocentricFrame cp : points) {
-            for (Satellite sat : getSatellites()){
-                //Obtain rise and set times of the different accesses of the coverage point
-                ArrayList<RiseSetTime> eventsCP = events.get(sat).get(cp).getRiseSetTimes();
-                for (RiseSetTime tcp:eventsCP){
-                    //check if it is a rise time
-                    if(tcp.isRise()){
-                        //default initialization of latency of an specific coverage point and specific rise time
-                        double latencyopt=getEndDate().durationFrom(getStartDate());
-                        //Loop around the different ground stations to see which one is accessed first and determines shortest latency
-                        for(GndStation gs: gndstations.get(sat).keySet()){
-                            //Obtain rise and set times of the different contacts with ground station gs
-                            ArrayList<RiseSetTime> eventsGS = gndstations.get(sat).get(gs).getRiseSetTimes();
-                            //If on coverage point access rise time tcp, there is contact with ground station gs, latency is 0.
-                            if(isAccessing(eventsGS,tcp.getTime())){
-                                latencyopt=0;
-                                break;
-                            }
-                            //Find the latency for the rise time tcp of coverage point cp and ground station gs
-                            for(RiseSetTime tgs:eventsGS){
-                                if(tgs.isRise()){
-                                    double latency=tgs.getTime()-tcp.getTime();
-                                    if (latency>0 && latency<latencyopt){
-                                        //Update the latency of a specific rise time of a specific cov point if previous ground stations had longer latency
-                                        latencyopt=latency;
+        if (this.allowCrossLinks){
+            RiseSetTime lastAccessRiseSetTime=this.lastSetTimeConstellation();
+            //for each coverage point, we will calculate the latency of each rise time event
+            for (TopocentricFrame cp : points) {
+                for (Satellite sat : getSatellites()){
+                    double lastAccess=lastAccessRiseSetTime.getTime();
+                    //Obtain rise and set times of the different accesses of the coverage point
+                    ArrayList<RiseSetTime> eventsCP = events.get(sat).get(cp).getRiseSetTimes();
+                    for (RiseSetTime tcp:eventsCP){
+                        //check if it is a rise time
+                        if(tcp.isRise()){
+                            if(tcp.getTime()<lastAccess) {
+                                //default initialization of latency of an specific coverage point and specific rise time
+                                double latencyopt = getEndDate().durationFrom(getStartDate());
+                                //Loop around the different ground stations to see which one is accessed first and determines shortest latency
+                                for (Satellite sat1 : getSatellites()) {
+                                    for (GndStation gs : gndstations.get(sat1).keySet()) {
+                                        //Obtain rise and set times of the different contacts with ground station gs
+                                        ArrayList<RiseSetTime> eventsGS = gndstations.get(sat1).get(gs).getRiseSetTimes();
+                                        //If on coverage point access rise time tcp, there is contact with ground station gs, latency is 0.
+                                        if (isAccessing(eventsGS, tcp.getTime())) {
+                                            latencyopt = 0;
+                                            break;
+                                        }
+                                        //Find the latency for the rise time tcp of coverage point cp and ground station gs
+                                        for (RiseSetTime tgs : eventsGS) {
+                                            if (tgs.isRise()) {
+                                                double latency = tgs.getTime() - tcp.getTime();
+                                                if (latency > 0 && latency < latencyopt) {
+                                                    //Update the latency of a specific rise time of a specific cov point if previous ground stations had longer latency
+                                                    latencyopt = latency;
+                                                }
+                                            }
+                                        }
                                     }
                                 }
+                                //Add the latency with the "best" ground station of a specific rise time of a specific cov point
+                                ds.addValue(latencyopt);
+                            }else{
+                                //ds.addValue(getEndDate().durationFrom(getStartDate())-tcp.getTime());
                             }
                         }
-                        //Add the latency with the "best" ground station of a specific rise time of a specific cov point
-                        ds.addValue(latencyopt);
                     }
                 }
             }
+        }else{
+            HashMap<Satellite,RiseSetTime> lastAccesses=this.lastSetTimeSatellites();
+            //for each coverage point, we will calculate the latency of each rise time event
+            for (TopocentricFrame cp : points) {
+                for (Satellite sat : getSatellites()){
+                    //Obtain rise and set times of the different accesses of the coverage point
+                    ArrayList<RiseSetTime> eventsCP = events.get(sat).get(cp).getRiseSetTimes();
+                    for (RiseSetTime tcp:eventsCP){
+                        //check if it is a rise time
+                        if(tcp.isRise()){
+                            if(tcp.getTime()<lastAccesses.get(sat).getTime()) {
+                                //default initialization of latency of an specific coverage point and specific rise time
+                                double latencyopt = getEndDate().durationFrom(getStartDate());
+                                //Loop around the different ground stations to see which one is accessed first and determines shortest latency
+                                for (GndStation gs : gndstations.get(sat).keySet()) {
+                                    //Obtain rise and set times of the different contacts with ground station gs
+                                    ArrayList<RiseSetTime> eventsGS = gndstations.get(sat).get(gs).getRiseSetTimes();
+                                    //If on coverage point access rise time tcp, there is contact with ground station gs, latency is 0.
+                                    if (isAccessing(eventsGS, tcp.getTime())) {
+                                        latencyopt = 0;
+                                        break;
+                                    }
+                                    //Find the latency for the rise time tcp of coverage point cp and ground station gs
+                                    for (RiseSetTime tgs : eventsGS) {
+                                        if (tgs.isRise()) {
+                                            double latency = tgs.getTime() - tcp.getTime();
+                                            if (latency > 0 && latency < latencyopt) {
+                                                //Update the latency of a specific rise time of a specific cov point if previous ground stations had longer latency
+                                                latencyopt = latency;
+                                            }
+                                        }
+                                    }
+                                }
+                                //Add the latency with the "best" ground station of a specific rise time of a specific cov point
+                                ds.addValue(latencyopt);
+                            }else{
+                                //ds.addValue(getEndDate().durationFrom(getStartDate())-tcp.getTime());
+                            }
+                        }
+                    }
+                }
+            }
+        }
 
+        if(ds.getN()==0){
+            ds.addValue(getEndDate().durationFrom(getStartDate()));
         }
         return ds;
+    }   
+    
+    /** Function that returns the last access to a ground station for 
+     * every satellite in the constellation.
+     * 
+     * @return a map of satellites and last set time
+     */
+    public HashMap<Satellite,RiseSetTime> lastSetTimeSatellites(){
+        HashMap<Satellite,RiseSetTime> finalMap=new HashMap<>();
+        for(Satellite sat : this.gndstations.keySet()){
+            RiseSetTime last=new RiseSetTime(0,true);
+            HashMap<GndStation,TimeIntervalArray> mapGS=gndstations.get(sat);
+            for (GndStation gs : mapGS.keySet()){
+                ArrayList<RiseSetTime> listRiseSetTimes=mapGS.get(gs).getRiseSetTimes();
+                if(!listRiseSetTimes.isEmpty()){
+                    RiseSetTime t =  listRiseSetTimes.get(listRiseSetTimes.size()-1);
+                    if (t.getTime()>last.getTime()){;
+                        last=t;
+                    }
+                }
+            }
+            finalMap.put(sat, last);
+        }
+        return finalMap;
     }
-
+    
+    /** Function that returns the last access to a ground station for 
+     * any satellite in the constellation.
+     * 
+     * @return last set time
+     */
+    public RiseSetTime lastSetTimeConstellation(){
+        HashMap<Satellite,RiseSetTime> map=this.lastSetTimeSatellites();
+        RiseSetTime last=new RiseSetTime(0,true);
+        for(Satellite sat : map.keySet()){
+            if(map.get(sat).getTime()>last.getTime()){
+                last=map.get(sat);
+            }
+        }
+        return last;
+    }
     
      /**
      * Returns true if a ground station is in contact at the time when a coverage point is accessed
      *
-     * @param eventGS List of rise and set times of ground station contacts
+     * @param eventsGS List of rise and set times of ground station contacts
      * @param time Access rise time of coverage point
      */
     private boolean isAccessing(ArrayList<RiseSetTime> eventsGS, double time) {

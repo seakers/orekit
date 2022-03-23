@@ -1,3 +1,14 @@
 /orekit/target/
 /orekit/results/
+/orekit/resources/
+/orekit/src/main/java/seakers/orekit/overlap/
+/orekit/src/target/
 *.DS_Store
+/.idea/
+/target/
+/.gradle/
+/GPM data/
+/orekit/src/main/java/seakers/orekit/output/
+/CoverageDatabase/
+/orekit/orekit.iml
+/orekit/orekit1.iml
