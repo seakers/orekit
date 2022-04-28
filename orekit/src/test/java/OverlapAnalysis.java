@@ -83,8 +83,8 @@ public class OverlapAnalysis {
 
         // Orekit initialization needs
         OrekitConfig.init(1);
-        String overlapFilePath = "./src/test/output/overlap/";
-        File orekitData = new File("./src/main/resources");
+        String overlapFilePath = "./orekit/src/test/output/overlap/";
+        File orekitData = new File("./orekit/src/main/resources");
         DataProvidersManager manager = DataProvidersManager.getInstance();
         manager.addProvider(new DirectoryCrawler(orekitData));
         Level level = Level.ALL;
@@ -176,13 +176,13 @@ public class OverlapAnalysis {
 
         // Smallsat imagers
         Collection<Instrument> ssPayload = new ArrayList<>();
-        double ssCrossFOVRadians = Math.toRadians(30.0);
+        double ssCrossFOVRadians = Math.toRadians(20.0);
         double ssAlongFOVRadians = Math.atan(400.0/500.0);
         NadirRectangularFOV ssFOV = new NadirRectangularFOV(ssCrossFOVRadians,ssAlongFOVRadians,0.0,earthShape);
         Instrument ssImager = new Instrument("Smallsat imager", ssFOV, 100.0, 100.0);
         ssPayload.add(ssImager);
-        int r = 4;
-        int s = 4;
+        int r = 1;
+        int s = 11;
         for(int m = 0; m < r; m++) {
             for(int n = 0; n < s; n++) {
                 int pu = 360 / (r*s);
@@ -192,14 +192,14 @@ public class OverlapAnalysis {
                 int f = 1;
                 int phasing = pu * f;
                 int anom = (n * delAnom + phasing * m);
-                Orbit ssOrbit = new KeplerianOrbit(6378000+500000, 0.0, FastMath.toRadians(90), 0.0, FastMath.toRadians(RAAN), FastMath.toRadians(anom), PositionAngle.MEAN, inertialFrame, startDate, mu);
+                Orbit ssOrbit = new KeplerianOrbit(6378000+556000, 0.0, FastMath.toRadians(97.5896), 0.0, FastMath.toRadians(250.0+RAAN), FastMath.toRadians(anom), PositionAngle.MEAN, inertialFrame, startDate, mu);
                 Satellite smallsat = new Satellite("smallsat"+m+n, ssOrbit, ssPayload);
                 imagers.add(smallsat);
             }
         }
 
         // Computing results
-        double duration = 0.01; // in days
+        double duration = 1.0; // in days
         GroundEventAnalyzer altimeterAnalyzer = coverageByConstellation(altimeters, duration, startDate);
         Map<TopocentricFrame, TimeIntervalArray> altimeterEvents = altimeterAnalyzer.getEvents();
         GroundEventAnalyzer imagerAnalyzer = coverageByConstellation(imagers, duration, startDate);
@@ -209,21 +209,54 @@ public class OverlapAnalysis {
         processGroundTracks(imagers, overlapFilePath+"imagersgroundtrackoutput.shp", startDate, duration);
 
         // Analyzing overlap
-
-        Map<TopocentricFrame, ArrayList<Double>> results15min = analyzeOverlap(altimeterEvents, imagerEvents, 60.0*15);
+        ArrayList<Integer> times = new ArrayList<>();
+        ArrayList<Integer> overlapEvents = new ArrayList<>();
+        for (int i = 0; i < 24*4; i++) {
+            double delay = i * 3600 / 4;
+            Map<TopocentricFrame, ArrayList<Double>> results = analyzeOverlap(altimeterEvents, imagerEvents, delay);
+            times.add(i);
+            overlapEvents.add(results.size());
+        }
         Map<TopocentricFrame, ArrayList<Double>> results1hr = analyzeOverlap(altimeterEvents, imagerEvents, 3600.0);
-        Map<TopocentricFrame, ArrayList<Double>> results1day = analyzeOverlap(altimeterEvents, imagerEvents, 3600.0*24);
-        Map<TopocentricFrame, ArrayList<Double>> results3days = analyzeOverlap(altimeterEvents, imagerEvents, 3600.0*24*3);
-        System.out.println("Number of overlap events in 15 min: "+results15min.size());
-        System.out.println("Number of overlap events in 1 hr: "+results1hr.size());
-        System.out.println("Number of overlap events in 1 day: "+results1day.size());
-        System.out.println("Number of overlap events in 3 days: "+results3days.size());
-        processResults(results15min, overlapFilePath+"resultsoutput.shp");
+        try{
+            FileWriter csvWriter = new FileWriter("C:/Users/bgorr/Dropbox/delay_results.csv");
+            for (int i = 0; i<1; i++) {
+                String rowData = getListAsCsvString(times);
+                String overlap = getListAsCsvString(overlapEvents);
+                csvWriter.append(rowData);
+                csvWriter.append("\n");
+                csvWriter.append(overlap);
+                csvWriter.append("\n");
+            }
+            csvWriter.flush();
+            csvWriter.close();
+        } catch (Exception e) {
+            System.out.println(e.toString());
+            System.out.println("Error writing to CSV");
+        }
+//        Map<TopocentricFrame, ArrayList<Double>> results1day = analyzeOverlap(altimeterEvents, imagerEvents, 3600.0*24);
+//        Map<TopocentricFrame, ArrayList<Double>> results3days = analyzeOverlap(altimeterEvents, imagerEvents, 3600.0*24*3);
+//        System.out.println("Number of overlap events in 15 min: "+results15min.size());
+//        System.out.println("Number of overlap events in 1 hr: "+results1hr.size());
+//        System.out.println("Number of overlap events in 1 day: "+results1day.size());
+//        System.out.println("Number of overlap events in 3 days: "+results3days.size());
+        processResults(results1hr, overlapFilePath+"resultsoutput.shp");
 
         plotResults(overlapFilePath);
 
         OrekitConfig.end();
 
+    }
+    public static String getListAsCsvString(ArrayList<Integer> list){
+
+        StringBuilder sb = new StringBuilder();
+        for(Integer str:list){
+            if(sb.length() != 0){
+                sb.append(",");
+            }
+            sb.append(str);
+        }
+        return sb.toString();
     }
     public static Collection<Record<String>> getGroundTrack(Orbit orbit, double duration, AbsoluteDate startDate) {
         TimeScale utc = TimeScalesFactory.getUTC();
@@ -414,7 +447,7 @@ public class OverlapAnalysis {
             MapContent map = new MapContent();
             map.setTitle("Test");
 
-            File countries_file = getFile("./src/test/resources/ne_50m_admin_0_countries_lakes.shp");
+            File countries_file = getFile("./orekit/src/test/resources/ne_50m_admin_0_countries_lakes.shp");
             FileDataStore countries_store = FileDataStoreFinder.getDataStore(countries_file);
             SimpleFeatureSource countriesSource = countries_store.getFeatureSource();
             Style country_style = SLD.createPolygonStyle(Color.BLACK,null,1.0f);
@@ -442,7 +475,7 @@ public class OverlapAnalysis {
             Layer res_track_layer = new FeatureLayer(res_groundtrackSource, res_style);
             map.addLayer(res_track_layer);
 
-            File rivers_file = getFile("./src/test/resources/GRWL_summaryStats.shp");
+            File rivers_file = getFile("./orekit/src/test/resources/GRWL_summaryStats.shp");
             FileDataStore rivers_store = FileDataStoreFinder.getDataStore(rivers_file);
             SimpleFeatureSource riversSource = rivers_store.getFeatureSource();
             Style river_style = SLD.createPolygonStyle(Color.BLACK,null,1.0f);
@@ -530,7 +563,7 @@ public class OverlapAnalysis {
         PropagatorFactory pf = new PropagatorFactory(PropagatorType.J2);
 
         List<List<String>> riverRecords = new ArrayList<>();
-        try (BufferedReader br = new BufferedReader(new FileReader("./src/test/resources/grwl_river_output.csv"))) { // CHANGE THIS FOR YOUR IMPLEMENTATION
+        try (BufferedReader br = new BufferedReader(new FileReader("./orekit/src/test/resources/grwl_river_output.csv"))) { // CHANGE THIS FOR YOUR IMPLEMENTATION
             String line;
             while ((line = br.readLine()) != null) {
                 String[] values = line.split(",");
@@ -548,7 +581,7 @@ public class OverlapAnalysis {
             covPoints.add(riverPoint);
         }
         List<List<String>> lakeRecords = new ArrayList<>();
-        try (BufferedReader br = new BufferedReader(new FileReader("./src/test/resources/hydrolakes.csv"))) { // CHANGE THIS FOR YOUR IMPLEMENTATION
+        try (BufferedReader br = new BufferedReader(new FileReader("./orekit/src/test/resources/hydrolakes.csv"))) { // CHANGE THIS FOR YOUR IMPLEMENTATION
             String line;
             while ((line = br.readLine()) != null) {
                 String[] values = line.split(",");
