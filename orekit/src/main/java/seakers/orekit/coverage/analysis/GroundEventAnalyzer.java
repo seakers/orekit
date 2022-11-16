@@ -282,6 +282,17 @@ public class GroundEventAnalyzer implements Serializable {
                 break;
             case PERCENT_COVERAGE:
                 for(TopocentricFrame cp : data.keySet()) {
+                    double[] riseSetTimes = data.get(cp).getRiseAndSetTimesList();
+
+                    if(riseSetTimes == null || riseSetTimes.length == 0) {
+                        ds.addValue(0);
+                    } else {
+                        ds.addValue(1);
+                    }
+                }
+                break;
+            case PERCENT_COVERAGE_ONE_DAY:
+                for(TopocentricFrame cp : data.keySet()) {
                     double sumDuration = 0.0;
                     double oneDay = 86400.0;
                     double[] riseSetTimes = data.get(cp).getRiseAndSetTimesList();

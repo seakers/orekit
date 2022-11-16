@@ -48,5 +48,7 @@ public enum AnalysisMetric {
      */
     OCCURRENCES,
 
-    PERCENT_COVERAGE
+    PERCENT_COVERAGE,
+
+    PERCENT_COVERAGE_ONE_DAY
 }

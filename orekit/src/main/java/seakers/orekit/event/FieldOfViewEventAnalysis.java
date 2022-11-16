@@ -74,6 +74,8 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
      */
     private boolean saveToDB = false;
 
+    private double halfAngle;
+
     /**
      * Stores all the accesses of each satellite if saveAllAccesses is true.
      */
@@ -109,6 +111,25 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
         }
 
         this.saveToDB = saveToDB;
+        this.halfAngle = 1.0;
+    }
+
+    public FieldOfViewEventAnalysis(AbsoluteDate startDate, AbsoluteDate endDate,
+            Frame inertialFrame, Set<CoverageDefinition> covDefs,
+            PropagatorFactory propagatorFactory, boolean saveAllAccesses,
+            boolean saveToDB, double halfAngle) {
+        super(startDate, endDate, inertialFrame, covDefs);
+        this.propagatorFactory = propagatorFactory;
+        this.saveAllAccesses = saveAllAccesses;
+        if (saveAllAccesses) {
+            this.allAccesses = new HashMap<>();
+            for (CoverageDefinition cdef : covDefs) {
+                allAccesses.put(cdef, new HashMap<>());
+            }
+        }
+
+        this.saveToDB = saveToDB;
+        this.halfAngle = halfAngle;
     }
 
     /**
@@ -146,7 +167,7 @@ public class FieldOfViewEventAnalysis extends AbstractGroundEventAnalysis {
                 //if no precomuted times available, then propagate
                 Propagator prop = propagatorFactory.createPropagator(sat.getOrbit(), sat.getGrossMass());
                 //Set stepsizes and threshold for detectors
-                double imagewidth = (sat.getOrbit().getA()-6371e3)*Math.tan(1*Math.PI/180);
+                double imagewidth = 2*(sat.getOrbit().getA()-6371e3)*Math.tan(this.halfAngle*Math.PI/180);
                 double earthCircumference = 6371e3*2*Math.PI;
                 double numImages = earthCircumference/imagewidth;
                 double fovStepSize = sat.getOrbit().getKeplerianPeriod() / numImages;
